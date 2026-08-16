@@ -20,7 +20,7 @@
         <p class="text-xs text-slate-500 mt-1">Enter your admin password to access orders.</p>
       </div>
       <form onsubmit="handleLogin(event)" class="space-y-4">
-        <input type="password" id="adminPassword" placeholder="Enter Password..." required class="w-full px-4 py-2.5 border rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-emerald-500">
+        <input type="password" id="adminPassword" placeholder="Enter Password..." autocomplete="off" required class="w-full px-4 py-2.5 border rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-emerald-500">
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
           Unlock Dashboard
         </button>
@@ -45,7 +45,7 @@
           🔄 Refresh
         </button>
         <button onclick="handleLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
-          🚪 Logout
+          🚪 Lock Dashboard
         </button>
       </div>
     </div>
@@ -96,7 +96,7 @@
 
   <script>
     // ================= CONFIGURATION =================
-    const ADMIN_PASSCODE = "ttm2026"; // <-- YOU CAN CHANGE YOUR PASSWORD HERE
+    const ADMIN_PASSCODE = "ttm2026"; // Change your password here
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     
@@ -104,6 +104,7 @@
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentOrdersData = [];
+    let isAuthenticated = false;
 
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
@@ -111,35 +112,41 @@
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
 
-    // ================= AUTHENTICATION =================
-    function checkAuth() {
-      if (sessionStorage.getItem('tt_admin_logged_in') === 'true') {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-        fetchOrders();
-      } else {
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
-      }
-    }
-
+    // ================= STRICT ZERO-PERSISTENCE AUTH =================
     function handleLogin(e) {
       e.preventDefault();
       const enteredPass = document.getElementById('adminPassword').value;
       if (enteredPass === ADMIN_PASSCODE) {
-        sessionStorage.setItem('tt_admin_logged_in', 'true');
+        isAuthenticated = true;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
         document.getElementById('loginError').classList.add('hidden');
-        checkAuth();
+        document.getElementById('adminPassword').value = '';
+        fetchOrders();
       } else {
         document.getElementById('loginError').classList.remove('hidden');
       }
     }
 
     function handleLogout() {
-      sessionStorage.removeItem('tt_admin_logged_in');
+      isAuthenticated = false;
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboardContent').classList.add('hidden');
       document.getElementById('adminPassword').value = '';
-      checkAuth();
+      document.getElementById('ordersTableBody').innerHTML = '';
     }
+
+    // Auto-lock when leaving the tab or minimizing window
+    window.addEventListener('visibilitychange', () => {
+      if (document.hidden && isAuthenticated) {
+        handleLogout();
+      }
+    });
+
+    // Auto-lock before page refresh or unload
+    window.addEventListener('beforeunload', () => {
+      handleLogout();
+    });
 
     function renderStars(rating) {
       if (!rating) return '<span class="text-xs text-slate-400 italic">None</span>';
@@ -148,6 +155,7 @@
 
     // ================= FETCH & RENDER =================
     async function fetchOrders() {
+      if (!isAuthenticated) return;
       const tbody = document.getElementById('ordersTableBody');
       tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading orders...</td></tr>';
 
@@ -172,7 +180,6 @@
 
       currentOrdersData = orders;
 
-      // Fetch feedback
       const orderIds = orders.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
@@ -184,7 +191,6 @@
         feedbackMap[f.order_id] = f;
       });
 
-      // Update Top Metrics
       document.getElementById('statTotal').innerText = orders.length;
       document.getElementById('statProcess').innerText = orders.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
       document.getElementById('statDelivered').innerText = orders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
@@ -253,13 +259,9 @@
       if (!confirmDelete) return;
 
       try {
-        // 1. Delete associated feedback first (to respect foreign key)
         await client.from('feedback').delete().eq('order_id', orderId);
-        
-        // 2. Delete the order
         const { error } = await client.from('orders').delete().eq('id', orderId);
         if (error) throw error;
-
         fetchOrders();
       } catch (err) {
         alert("Error deleting record: " + err.message);
@@ -292,9 +294,6 @@
       a.download = `TirzaTrim_Orders_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
-
-    // Run auth check on initial load
-    checkAuth();
   </script>
 </body>
 </html>
