@@ -11,10 +11,10 @@
 
   <div class="max-w-6xl mx-auto space-y-6">
     <!-- Header -->
-    <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Doctor Portal</h1>
-        <p class="text-xs text-slate-500">Patient Prescription & Progress Monitoring</p>
+        <p class="text-xs text-slate-500">Patient Prescription, Delivery & Service Feedback Tracker</p>
       </div>
       <div class="flex gap-2">
         <input type="text" id="doctorFilter" placeholder="Filter by Doctor Name..." oninput="fetchDoctorPatients()" class="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
@@ -24,23 +24,38 @@
       </div>
     </div>
 
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Total Referred Patients</div>
+        <div id="metricTotal" class="text-2xl font-bold text-slate-800 mt-1">0</div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Completed Deliveries</div>
+        <div id="metricCompleted" class="text-2xl font-bold text-emerald-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Feedback Submissions</div>
+        <div id="metricFeedback" class="text-2xl font-bold text-purple-600 mt-1">0</div>
+      </div>
+    </div>
+
     <!-- Patient Records Table -->
     <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider border-b">
             <tr>
-              <th class="p-4">Patient Name / Mobile</th>
-              <th class="p-4">Indication</th>
-              <th class="p-4">Current Dose</th>
-              <th class="p-4">Device (Pen)</th>
-              <th class="p-4">Prescription</th>
+              <th class="p-4">Patient & City</th>
+              <th class="p-4">Dose & Pen Device</th>
               <th class="p-4">Status</th>
+              <th class="p-4">Prescription</th>
+              <th class="p-4">Patient Feedback</th>
             </tr>
           </thead>
           <tbody id="doctorTableBody" class="divide-y">
             <tr>
-              <td colspan="6" class="p-6 text-center text-slate-400">Loading patient records...</td>
+              <td colspan="5" class="p-6 text-center text-slate-400">Loading patient records...</td>
             </tr>
           </tbody>
         </table>
@@ -54,51 +69,88 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    function renderStars(rating) {
+      if (!rating) return '<span class="text-xs text-slate-400 italic">No rating</span>';
+      return '⭐'.repeat(rating) + ` <span class="text-xs text-slate-500">(${rating}/5)</span>`;
+    }
+
     async function fetchDoctorPatients() {
       const tbody = document.getElementById('doctorTableBody');
       const filter = document.getElementById('doctorFilter').value.trim();
-      
-      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading patient records...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading patient records...</td></tr>';
 
+      // 1. Fetch Orders
       let query = client.from('orders').select('*').order('created_at', { ascending: false });
-
       if (filter) {
         query = query.ilike('doctor_name', `%${filter}%`);
       }
+      const { data: orders, error: orderErr } = await query;
 
-      const { data: orders, error } = await query;
-
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-500">Error: ${error.message}</td></tr>`;
+      if (orderErr) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-500">Error: ${orderErr.message}</td></tr>`;
         return;
       }
 
       if (!orders || orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No patient records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No patient records found.</td></tr>';
+        document.getElementById('metricTotal').innerText = '0';
+        document.getElementById('metricCompleted').innerText = '0';
+        document.getElementById('metricFeedback').innerText = '0';
         return;
       }
 
-      tbody.innerHTML = orders.map(order => `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="p-4">
-            <div class="font-semibold text-slate-800">${order.patient_name}</div>
-            <div class="text-xs text-slate-400">${order.mobile} • ${order.city}</div>
-          </td>
-          <td class="p-4 text-xs font-medium text-slate-700">${order.indication || 'N/A'}</td>
-          <td class="p-4 text-xs font-bold text-emerald-600">${order.prescribed_dose || 'N/A'}</td>
-          <td class="p-4 text-xs font-medium text-slate-600">${order.device || 'N/A'}</td>
-          <td class="p-4">
-            ${order.prescription_url 
-              ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800">View Rx</a>` 
-              : '<span class="text-xs text-slate-400">None</span>'}
-          </td>
-          <td class="p-4">
-            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-              ${order.status}
-            </span>
-          </td>
-        </tr>
-      `).join('');
+      // 2. Fetch Feedback for these orders
+      const orderIds = orders.map(o => o.id);
+      const { data: feedbacks } = await client
+        .from('feedback')
+        .select('*')
+        .in('order_id', orderIds);
+
+      const feedbackMap = {};
+      (feedbacks || []).forEach(f => {
+        feedbackMap[f.order_id] = f;
+      });
+
+      // Update Top Metrics
+      document.getElementById('metricTotal').innerText = orders.length;
+      document.getElementById('metricCompleted').innerText = orders.filter(o => o.status === 'Delivered' || o.status === 'Completed' || o.status === 'Feedback Submitted').length;
+      document.getElementById('metricFeedback').innerText = feedbacks ? feedbacks.length : 0;
+
+      // Render Table Rows
+      tbody.innerHTML = orders.map(order => {
+        const fb = feedbackMap[order.id];
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-4">
+              <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
+              <div class="text-xs text-slate-400">${order.city}</div>
+              <div class="text-xs text-slate-500 mt-1">🩺 ${order.doctor_name || 'Dr. Not Specified'}</div>
+            </td>
+            <td class="p-4">
+              <div class="text-xs font-bold text-emerald-600">${order.prescribed_dose || 'N/A'}</div>
+              <div class="text-xs text-purple-700 font-medium mt-0.5">${order.device || 'N/A'}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${order.indication || ''}</div>
+            </td>
+            <td class="p-4">
+              <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                ${order.status}
+              </span>
+            </td>
+            <td class="p-4">
+              ${order.prescription_url 
+                ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">View Rx</a>` 
+                : '<span class="text-xs text-slate-400">None</span>'}
+            </td>
+            <td class="p-4">
+              ${fb ? `
+                <div class="text-xs font-semibold">${renderStars(fb.overall_rating)}</div>
+                ${fb.comments ? `<div class="text-xs text-slate-600 italic mt-1">"${fb.comments}"</div>` : '<div class="text-xs text-slate-400 mt-1">No written comments</div>'}
+                <div class="text-[11px] text-slate-400 mt-0.5">Recommend: <strong>${fb.would_recommend || 'N/A'}</strong></div>
+              ` : '<span class="text-xs text-slate-400 italic">Pending feedback</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     fetchDoctorPatients();
