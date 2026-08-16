@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim Patient Support — Submit Prescription</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4 flex justify-center">
+
+  <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6 border border-slate-100">
+    <!-- Header -->
+    <div class="text-center space-y-2 border-b pb-4">
+      <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Patient Support</h1>
+      <p class="text-sm text-slate-500">Submit your details and prescription below to start your order.</p>
+    </div>
+
+    <!-- Form -->
+    <form id="patientForm" class="space-y-4">
+      
+      <!-- Personal Info -->
+      <div class="space-y-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">1. Personal Details</h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Full Name *</label>
+          <input type="text" id="patient_name" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Mobile Number (WhatsApp) *</label>
+          <input type="tel" id="mobile" placeholder="03XXXXXXXXX" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">City / Area *</label>
+            <input type="text" id="city" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Delivery Address *</label>
+            <input type="text" id="delivery_address" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Treatment Info -->
+      <div class="space-y-3 pt-2">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">2. Treatment Details</h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Doctor Name / Clinic *</label>
+          <input type="text" id="doctor_name" placeholder="Dr. XYZ" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Prescribed Dose *</label>
+            <select id="prescribed_dose" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="2.5mg">2.5 mg</option>
+              <option value="5mg" selected>5 mg</option>
+              <option value="10mg">10 mg</option>
+              <option value="15mg">15 mg</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Indication *</label>
+            <input type="text" id="indication" value="Weight Management" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Prescription File -->
+      <div class="space-y-3 pt-2">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">3. Prescription</h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Upload Prescription Image/PDF *</label>
+          <input type="file" id="prescription_file" accept="image/*,.pdf" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="submitBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md transition-all">
+        Submit Order & Prescription
+      </button>
+
+      <p id="statusMsg" class="text-center text-sm font-medium hidden"></p>
+    </form>
+  </div>
+
+  <script>
+    // Configuration - Replace with your actual credentials saved from Step 2
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co"; 
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ"; // <--- PASTE YOUR KEY HERE
+
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('patientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const statusMsg = document.getElementById('statusMsg');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Submitting...";
+      statusMsg.classList.add('hidden');
+
+      try {
+        // 1. Upload File
+        const fileInput = document.getElementById('prescription_file');
+        const file = fileInput.files[0];
+        const fileName = `${Date.now()}_${file.name}`;
+
+        const { data: uploadData, error: uploadError } = await client
+          .storage
+          .from('prescriptions')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/prescriptions/${fileName}`;
+
+        // 2. Insert Order
+        const { error: insertError } = await client
+          .from('orders')
+          .insert([{
+            patient_name: document.getElementById('patient_name').value,
+            mobile: document.getElementById('mobile').value,
+            city: document.getElementById('city').value,
+            delivery_address: document.getElementById('delivery_address').value,
+            indication: document.getElementById('indication').value,
+            prescribed_dose: document.getElementById('prescribed_dose').value,
+            device: document.getElementById('prescribed_dose').value,
+            prescription_url: publicUrl,
+            status: 'New Patient'
+          }]);
+
+        if (insertError) throw insertError;
+
+        statusMsg.innerText = "Order submitted successfully! Our team will contact you shortly.";
+        statusMsg.className = "text-center text-sm font-medium text-emerald-600 block";
+        document.getElementById('patientForm').reset();
+
+      } catch (err) {
+        statusMsg.innerText = "Error: " + err.message;
+        statusMsg.className = "text-center text-sm font-medium text-rose-600 block";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Order & Prescription";
+      }
+    });
+  </script>
+</body>
+</html>
