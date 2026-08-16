@@ -99,7 +99,7 @@
 
   <script>
     // ================= CONFIGURATION =================
-    const ADMIN_PASSCODE = "ttm2026"; // Change your password here
+    const ADMIN_PASSCODE = "ttm2026"; // Change password here
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     
@@ -239,7 +239,7 @@
       }).join('');
     }
 
-    // ================= ACTIONS =================
+    // ================= ACTIONS & WHATSAPP =================
     async function updateStatus(orderId, newStatus) {
       await client.from('orders').update({ status: newStatus }).eq('id', orderId);
       fetchOrders();
@@ -259,14 +259,36 @@
       }
     }
 
+    function formatPakistanMobile(mobile) {
+      let cleaned = ('' + mobile).replace(/\D/g, '');
+      if (cleaned.startsWith('0')) {
+        cleaned = '92' + cleaned.substring(1);
+      } else if (!cleaned.startsWith('92')) {
+        cleaned = '92' + cleaned;
+      }
+      return cleaned;
+    }
+
+    function openWhatsApp(mobile, text) {
+      const formattedNumber = formatPakistanMobile(mobile);
+      const encodedText = encodeURIComponent(text);
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
+      } else {
+        window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
+      }
+    }
+
     function sendUpdateWhatsApp(mobile, name, orderId, status) {
       const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. If you have any questions, feel free to reply.`;
-      window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+      openWhatsApp(mobile, msg);
     }
 
     function sendFeedbackWhatsApp(mobile, name) {
       const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim Patient Support. Please take a moment to rate your delivery and service experience here: https://tirzatrim.vercel.app/feedback.html`;
-      window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+      openWhatsApp(mobile, msg);
     }
 
     function exportToCSV() {
