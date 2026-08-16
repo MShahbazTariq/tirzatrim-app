@@ -42,7 +42,7 @@
           📊 Export CSV
         </button>
         <button onclick="fetchOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
-          🔄 Refresh
+          🔄 Refresh Orders
         </button>
         <button onclick="handleLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
           🚪 Lock Dashboard
@@ -112,7 +112,7 @@
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
 
-    // ================= STRICT ZERO-PERSISTENCE AUTH =================
+    // ================= AUTHENTICATION =================
     function handleLogin(e) {
       e.preventDefault();
       const enteredPass = document.getElementById('adminPassword').value;
@@ -135,18 +135,6 @@
       document.getElementById('adminPassword').value = '';
       document.getElementById('ordersTableBody').innerHTML = '';
     }
-
-    // Auto-lock when leaving the tab or minimizing window
-    window.addEventListener('visibilitychange', () => {
-      if (document.hidden && isAuthenticated) {
-        handleLogout();
-      }
-    });
-
-    // Auto-lock before page refresh or unload
-    window.addEventListener('beforeunload', () => {
-      handleLogout();
-    });
 
     function renderStars(rating) {
       if (!rating) return '<span class="text-xs text-slate-400 italic">None</span>';
