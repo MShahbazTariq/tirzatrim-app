@@ -9,16 +9,41 @@
 </head>
 <body class="bg-slate-100 min-h-screen p-6">
 
-  <div class="max-w-6xl mx-auto space-y-6">
+  <div class="max-w-7xl mx-auto space-y-6">
     <!-- Header -->
-    <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Team Dashboard</h1>
-        <p class="text-xs text-slate-500">Manage patient orders, prescriptions, and updates.</p>
+        <p class="text-xs text-slate-500">Order processing, WhatsApp notifications, prescription verification & reporting.</p>
       </div>
-      <button onclick="fetchOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg">
-        Refresh Orders
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="exportToCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm">
+          📊 Export CSV
+        </button>
+        <button onclick="fetchOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Total Orders</div>
+        <div id="statTotal" class="text-xl font-bold text-slate-800 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">In Process</div>
+        <div id="statProcess" class="text-xl font-bold text-amber-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Delivered / Confirmed</div>
+        <div id="statDelivered" class="text-xl font-bold text-emerald-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-xs font-semibold uppercase text-slate-400">Feedback Received</div>
+        <div id="statFeedback" class="text-xl font-bold text-purple-600 mt-1">0</div>
+      </div>
     </div>
 
     <!-- Orders Table -->
@@ -27,12 +52,12 @@
         <table class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider border-b">
             <tr>
-              <th class="p-4">Order ID / Date</th>
-              <th class="p-4">Patient Details</th>
-              <th class="p-4">Doctor & Treatment</th>
-              <th class="p-4">Prescription</th>
-              <th class="p-4">Status</th>
-              <th class="p-4">Actions</th>
+              <th class="p-4">Order ID & Date</th>
+              <th class="p-4">Patient Info & Address</th>
+              <th class="p-4">Prescription & Details</th>
+              <th class="p-4">Status Update</th>
+              <th class="p-4">Patient Feedback</th>
+              <th class="p-4">WhatsApp Actions</th>
             </tr>
           </thead>
           <tbody id="ordersTableBody" class="divide-y">
@@ -51,11 +76,18 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let currentOrdersData = [];
+
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
       'Order Processing', 'Dispatched', 'Delivered', 'Patient Confirmed',
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
+
+    function renderStars(rating) {
+      if (!rating) return '<span class="text-xs text-slate-400 italic">None</span>';
+      return '⭐'.repeat(rating);
+    }
 
     async function fetchOrders() {
       const tbody = document.getElementById('ordersTableBody');
@@ -76,40 +108,73 @@
         return;
       }
 
-      tbody.innerHTML = orders.map(order => `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="p-4">
-            <span class="font-mono font-bold text-slate-800 block">${order.order_id || 'N/A'}</span>
-            <span class="text-xs text-slate-400">${new Date(order.created_at).toLocaleDateString()}</span>
-          </td>
-          <td class="p-4">
-            <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
-            <div class="text-xs text-slate-500">${order.mobile}</div>
-            <div class="text-xs text-slate-600 font-medium mt-1">📍 ${order.delivery_address || 'No address'}, ${order.city}</div>
-          </td>
-          <td class="p-4">
-            <div class="text-xs font-bold text-slate-800">🩺 Dr: ${order.doctor_name || 'N/A'}</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">${order.indication || 'N/A'}</div>
-            <div class="text-xs text-emerald-600 font-bold mt-0.5">Dose: ${order.prescribed_dose || 'N/A'}</div>
-            <div class="text-xs text-purple-700 font-medium mt-0.5">Device: ${order.device || 'N/A'}</div>
-          </td>
-          <td class="p-4">
-            ${order.prescription_url 
-              ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">View File</a>` 
-              : '<span class="text-xs text-slate-400">None</span>'}
-          </td>
-          <td class="p-4">
-            <select onchange="updateStatus('${order.id}', this.value)" class="text-xs font-medium border rounded-md p-1.5 bg-slate-50 text-slate-700">
-              ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </td>
-          <td class="p-4">
-            <button onclick="sendWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-semibold rounded-md">
-              WhatsApp
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      currentOrdersData = orders;
+
+      // Fetch feedback
+      const orderIds = orders.map(o => o.id);
+      const { data: feedbacks } = await client
+        .from('feedback')
+        .select('*')
+        .in('order_id', orderIds);
+
+      const feedbackMap = {};
+      (feedbacks || []).forEach(f => {
+        feedbackMap[f.order_id] = f;
+      });
+
+      // Update Top Metrics
+      document.getElementById('statTotal').innerText = orders.length;
+      document.getElementById('statProcess').innerText = orders.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
+      document.getElementById('statDelivered').innerText = orders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      document.getElementById('statFeedback').innerText = feedbacks ? feedbacks.length : 0;
+
+      tbody.innerHTML = orders.map(order => {
+        const fb = feedbackMap[order.id];
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-4">
+              <span class="font-mono font-bold text-slate-800 block">${order.order_id || 'N/A'}</span>
+              <span class="text-xs text-slate-400">${new Date(order.created_at).toLocaleDateString()}</span>
+            </td>
+            <td class="p-4">
+              <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
+              <div class="text-xs text-slate-500">${order.mobile}</div>
+              <div class="text-xs text-slate-600 font-medium mt-1">📍 ${order.delivery_address || 'No address'}, ${order.city}</div>
+            </td>
+            <td class="p-4">
+              <div class="text-xs font-bold text-slate-800">🩺 Dr: ${order.doctor_name || 'N/A'}</div>
+              <div class="text-xs text-emerald-600 font-bold mt-0.5">Dose: ${order.prescribed_dose || 'N/A'}</div>
+              <div class="text-xs text-purple-700 font-medium mt-0.5">Device: ${order.device || 'N/A'}</div>
+              <div class="mt-1">
+                ${order.prescription_url 
+                  ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">📄 View Rx</a>` 
+                  : '<span class="text-xs text-slate-400">No Rx</span>'}
+              </div>
+            </td>
+            <td class="p-4">
+              <select onchange="updateStatus('${order.id}', this.value)" class="text-xs font-medium border rounded-md p-1.5 bg-slate-50 text-slate-700 outline-none">
+                ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td class="p-4">
+              ${fb ? `
+                <div class="text-xs font-semibold">${renderStars(fb.overall_rating)}</div>
+                ${fb.comments ? `<div class="text-[11px] text-slate-600 italic mt-0.5">"${fb.comments}"</div>` : ''}
+              ` : '<span class="text-xs text-slate-400 italic">Pending</span>'}
+            </td>
+            <td class="p-4">
+              <div class="flex flex-col gap-1.5">
+                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-semibold rounded text-left">
+                  💬 Status Update
+                </button>
+                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-semibold rounded text-left">
+                  ⭐ Ask Feedback
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     async function updateStatus(orderId, newStatus) {
@@ -117,9 +182,31 @@
       fetchOrders();
     }
 
-    function sendWhatsApp(mobile, name, orderId, status) {
-      const msg = `Hello ${name}, update regarding your TirzaTrim order (${orderId}): Current status is now "${status}".`;
+    function sendUpdateWhatsApp(mobile, name, orderId, status) {
+      const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. If you have any questions, feel free to reply.`;
       window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function sendFeedbackWhatsApp(mobile, name) {
+      const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim Patient Support. Please take a moment to rate your delivery and service experience here: https://tirzatrim.vercel.app/feedback.html`;
+      window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function exportToCSV() {
+      if (!currentOrdersData || currentOrdersData.length === 0) {
+        alert("No orders to export!");
+        return;
+      }
+      let csv = "Order ID,Date,Patient Name,Age,Mobile,City,Address,Doctor Name,Indication,Dose,Device,Status\n";
+      currentOrdersData.forEach(o => {
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TirzaTrim_Orders_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
     }
 
     fetchOrders();
