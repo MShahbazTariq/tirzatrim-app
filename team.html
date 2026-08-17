@@ -289,7 +289,7 @@
     }
 
     function copyMyPatientLink() {
-      const link = `https://tirzatrim.vercel.app/?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      const link = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       navigator.clipboard.writeText(link);
       alert(`Copied your patient order link:\n${link}`);
     }
@@ -318,7 +318,7 @@
       const doc = getGeneratedDoctorLink();
       if (!doc) return;
 
-      const patientOrderLink = `https://tirzatrim.vercel.app/?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      const patientOrderLink = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       const message = `Respected ${doc.name},\n\nThank you for prescribing TirzaTrim.\n\n📲 *Patient Prescription Submission Link:*\n${patientOrderLink}\n\n📊 *Your Dedicated Doctor Monitoring Portal:*\n${doc.url}\n\nYou can track all your referred patients' fulfillment and verified service feedback live using the portal link above.\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
 
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -436,9 +436,9 @@
       const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*.`;
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       if (isMobile) {
-        window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
+        window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodeURIComponent(msg)}`;
       } else {
-        window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
+        window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodeURIComponent(msg)}`, '_blank');
       }
     }
 
