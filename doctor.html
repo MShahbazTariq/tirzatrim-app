@@ -14,12 +14,17 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <h1 class="text-2xl font-bold text-slate-800" id="portalHeader">TirzaTrim Doctor Portal</h1>
-        <p class="text-xs text-slate-500">Patient Prescription, Delivery & Service Feedback Tracker</p>
+        <p class="text-xs text-slate-500" id="portalSubheader">Patient Prescription, Delivery & Service Feedback Tracker</p>
       </div>
-      <div class="flex gap-2">
-        <input type="text" id="doctorFilter" placeholder="Filter by Doctor Name..." oninput="fetchDoctorPatients()" class="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-        <button onclick="fetchDoctorPatients()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg">
-          Refresh List
+      <div class="flex items-center gap-2">
+        <div id="searchContainer" class="hidden">
+          <input type="text" id="manualDoctorInput" placeholder="Enter Doctor Name..." class="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <button onclick="handleManualSearch()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg ml-2">
+            View Patients
+          </button>
+        </div>
+        <button onclick="fetchDoctorPatients()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg">
+          🔄 Refresh
         </button>
       </div>
     </div>
@@ -69,13 +74,27 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Auto-detect doctor name from link: ?dr=Dr.%20Qamar%20Sajjad
+    // Read dedicated doctor parameter from URL: ?dr=Dr.%20Qamar%20Sajjad
     const urlParams = new URLSearchParams(window.location.search);
-    const directDr = urlParams.get('dr');
+    let targetDoctor = urlParams.get('dr') ? urlParams.get('dr').trim() : '';
 
-    if (directDr) {
-      document.getElementById('doctorFilter').value = directDr;
-      document.getElementById('portalHeader').innerText = `${directDr}'s Patients`;
+    if (targetDoctor) {
+      document.getElementById('portalHeader').innerText = `${targetDoctor}'s Portal`;
+      document.getElementById('portalSubheader').innerText = `Live prescription tracker and feedback for ${targetDoctor}`;
+      document.getElementById('searchContainer').classList.add('hidden');
+    } else {
+      document.getElementById('searchContainer').classList.remove('hidden');
+    }
+
+    function handleManualSearch() {
+      const val = document.getElementById('manualDoctorInput').value.trim();
+      if (!val) {
+        alert("Please enter a doctor name.");
+        return;
+      }
+      targetDoctor = val;
+      document.getElementById('portalHeader').innerText = `${targetDoctor}'s Portal`;
+      fetchDoctorPatients();
     }
 
     function renderStars(rating) {
@@ -85,16 +104,26 @@
 
     async function fetchDoctorPatients() {
       const tbody = document.getElementById('doctorTableBody');
-      const filter = document.getElementById('doctorFilter').value.trim();
-      tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading patient records...</td></tr>';
 
-      let query = client.from('orders').select('*').order('created_at', { ascending: false });
-      
-      if (filter) {
-        query = query.ilike('doctor_name', `%${filter}%`);
+      // Security check: Never display all patient records without specifying a doctor
+      if (!targetDoctor) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">Please provide or search your Doctor Name to view your referred patient records.</td></tr>';
+        document.getElementById('metricTotal').innerText = '0';
+        document.getElementById('metricCompleted').innerText = '0';
+        document.getElementById('metricFeedback').innerText = '0';
+        return;
       }
 
-      const { data: orders, error: orderErr } = await query;
+      tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading your patient records...</td></tr>';
+
+      // Clean prefix (e.g. remove "Dr. " or "Dr " to match name variations)
+      const cleanName = targetDoctor.replace(/^Dr\.?\s*/i, '').trim();
+
+      const { data: orders, error: orderErr } = await client
+        .from('orders')
+        .select('*')
+        .ilike('doctor_name', `%${cleanName}%`)
+        .order('created_at', { ascending: false });
 
       if (orderErr) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-500">Error: ${orderErr.message}</td></tr>`;
@@ -102,7 +131,7 @@
       }
 
       if (!orders || orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No patient records found.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">No patient prescriptions found for <strong>${targetDoctor}</strong>.</td></tr>`;
         document.getElementById('metricTotal').innerText = '0';
         document.getElementById('metricCompleted').innerText = '0';
         document.getElementById('metricFeedback').innerText = '0';
@@ -130,8 +159,7 @@
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="p-4">
               <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
-              <div class="text-xs text-slate-400">${order.city}</div>
-              <div class="text-xs text-slate-500 mt-1">🩺 ${order.doctor_name || 'Dr. Not Specified'}</div>
+              <div class="text-xs text-slate-400 mt-0.5">📍 ${order.city}</div>
             </td>
             <td class="p-4">
               <div class="text-xs font-bold text-emerald-600">${order.prescribed_dose || 'N/A'}</div>
@@ -145,7 +173,7 @@
             </td>
             <td class="p-4">
               ${order.prescription_url 
-                ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">View Rx</a>` 
+                ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">📄 View Rx</a>` 
                 : '<span class="text-xs text-slate-400">None</span>'}
             </td>
             <td class="p-4">
