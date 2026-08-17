@@ -14,8 +14,14 @@
 
   <!-- ================= AUTH SCREEN ================= -->
   <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6">
-      <div class="text-center space-y-1">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6 relative">
+      
+      <!-- Home Button on Login Screen -->
+      <a href="/" class="absolute top-5 left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+        🏠 Home
+      </a>
+
+      <div class="text-center space-y-1 pt-4">
         <h2 class="text-2xl font-bold text-slate-800">Manager Operations Hub</h2>
         <p class="text-xs text-slate-500">Sign in or register your management territory</p>
       </div>
@@ -137,6 +143,9 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <div class="flex items-center gap-2">
+          <a href="/" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all mr-1">
+            🏠 Home
+          </a>
           <h1 class="text-2xl font-bold text-slate-800" id="mgrNameDisplay">Zonal Dashboard</h1>
           <span id="mgrSapBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">SAP ID</span>
         </div>
@@ -331,7 +340,6 @@
       return '⭐'.repeat(rating);
     }
 
-    // ================= REPS & TRANSFER MANAGEMENT =================
     function openRepsModal() {
       document.getElementById('repsModal').classList.remove('hidden');
       renderRepsModalTable();
@@ -417,13 +425,11 @@
       }
     }
 
-    // ================= FETCH & RENDER =================
     async function fetchManagerOrders() {
       if (!currentManager) return;
       const tbody = document.getElementById('ordersTableBody');
       tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading team orders...</td></tr>';
 
-      // 1. Fetch Reps under this Manager
       const { data: repsData } = await client
         .from('reps')
         .select('*')
@@ -431,7 +437,6 @@
 
       registeredReps = repsData || [];
 
-      // 2. Populate Dropdown
       const repFilter = document.getElementById('subordinateFilter');
       const currentSelected = repFilter.value;
       
@@ -442,7 +447,6 @@
         repFilter.value = currentSelected;
       }
 
-      // 3. Fetch Orders
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
@@ -456,7 +460,6 @@
 
       currentOrdersData = orders || [];
 
-      // 4. Fetch Feedback
       const orderIds = currentOrdersData.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
