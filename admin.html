@@ -12,7 +12,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
 
-  <!-- AUTH SCREEN (MANAGER SIGNUP / LOGIN) -->
+  <!-- ================= AUTH SCREEN ================= -->
   <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6">
       
@@ -30,7 +30,7 @@
         </button>
       </div>
 
-      <!-- MANAGER LOGIN -->
+      <!-- LOGIN -->
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
@@ -45,7 +45,7 @@
         </button>
       </form>
 
-      <!-- MANAGER SIGNUP -->
+      <!-- SIGNUP -->
       <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden">
         <div>
           <label class="block text-xs font-medium text-slate-700 mb-1">Manager Full Name *</label>
@@ -80,7 +80,37 @@
     </div>
   </div>
 
-  <!-- MANAGER MAIN DASHBOARD -->
+  <!-- ================= REP MANAGEMENT MODAL ================= -->
+  <div id="repsModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl border space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">Field Force Management</h3>
+          <p class="text-xs text-slate-500">Manage, view, or remove territory representatives</p>
+        </div>
+        <button onclick="closeRepsModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-400 uppercase tracking-wider border-b">
+            <tr>
+              <th class="p-3">Rep Name</th>
+              <th class="p-3">T.Code</th>
+              <th class="p-3">SAP ID</th>
+              <th class="p-3">Team</th>
+              <th class="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="repsModalTableBody" class="divide-y">
+            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading reps...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN DASHBOARD ================= -->
   <div id="dashboardContent" class="p-6 max-w-7xl mx-auto space-y-6 hidden">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
@@ -95,6 +125,9 @@
         <select id="subordinateFilter" onchange="renderFilteredOrders()" class="px-3 py-2 border rounded-lg text-xs font-semibold bg-slate-50 outline-none text-slate-700">
           <option value="ALL">All My Reps</option>
         </select>
+        <button onclick="openRepsModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+          👥 Manage Reps
+        </button>
         <button onclick="exportToCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm">
           📊 Export CSV
         </button>
@@ -107,7 +140,7 @@
       </div>
     </div>
 
-    <!-- Summary Metrics -->
+    <!-- Metrics -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl border shadow-sm">
         <div class="text-xs font-semibold uppercase text-slate-400">Total Team Orders</div>
@@ -277,12 +310,61 @@
       return '⭐'.repeat(rating);
     }
 
+    // ================= REPS MANAGEMENT =================
+    function openRepsModal() {
+      document.getElementById('repsModal').classList.remove('hidden');
+      renderRepsModalTable();
+    }
+
+    function closeRepsModal() {
+      document.getElementById('repsModal').classList.add('hidden');
+    }
+
+    function renderRepsModalTable() {
+      const tbody = document.getElementById('repsModalTableBody');
+      if (!registeredReps || registeredReps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = registeredReps.map(rep => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-semibold text-slate-800">${rep.full_name}</td>
+          <td class="p-3 font-mono font-bold text-emerald-700">${rep.territory_code}</td>
+          <td class="p-3">${rep.sap_id}</td>
+          <td class="p-3 uppercase">${rep.team_name}</td>
+          <td class="p-3 text-right">
+            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded border border-rose-200">
+              🗑️ Remove
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function removeRep(repId, repName, territoryCode) {
+      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nTheir login will be deleted, but past patient orders will remain safely saved in the records.`);
+      if (!confirmRemove) return;
+
+      try {
+        const { error } = await client.from('reps').delete().eq('id', repId);
+        if (error) throw error;
+
+        // Refresh lists
+        await fetchManagerOrders();
+        renderRepsModalTable();
+      } catch (err) {
+        alert("Error removing rep: " + err.message);
+      }
+    }
+
+    // ================= FETCH & RENDER =================
     async function fetchManagerOrders() {
       if (!currentManager) return;
       const tbody = document.getElementById('ordersTableBody');
       tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading team orders...</td></tr>';
 
-      // 1. Fetch all Reps registered under this Manager SAP ID
+      // 1. Fetch Reps under this Manager
       const { data: repsData } = await client
         .from('reps')
         .select('*')
@@ -290,7 +372,7 @@
 
       registeredReps = repsData || [];
 
-      // 2. Populate the Dropdown with registered Reps
+      // 2. Populate Dropdown
       const repFilter = document.getElementById('subordinateFilter');
       const currentSelected = repFilter.value;
       
@@ -301,7 +383,7 @@
         repFilter.value = currentSelected;
       }
 
-      // 3. Fetch Orders linked to this Manager
+      // 3. Fetch Orders
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
