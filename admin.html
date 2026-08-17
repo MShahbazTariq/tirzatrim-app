@@ -34,7 +34,7 @@
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
-          <input type="text" id="loginMgrSap" placeholder="e.g. 71726" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+          <input type="text" id="loginMgrSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
@@ -49,7 +49,7 @@
       <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden">
         <div>
           <label class="block text-xs font-medium text-slate-700 mb-1">Manager Full Name *</label>
-          <input type="text" id="regMgrName" placeholder="e.g. Shahbaz Tariq" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="text" id="regMgrName" placeholder="e.g. M. Shahbaz Tariq" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -58,13 +58,13 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Zone / Region *</label>
-            <input type="text" id="regMgrZone" placeholder="e.g. Lahore / North" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="text" id="regMgrZone" placeholder="e.g. LHR2" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regMgrSapId" placeholder="e.g. 71726" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-emerald-700">
+            <input type="text" id="regMgrSapId" placeholder="e.g. 7613" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-emerald-700">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Set Password *</label>
@@ -159,6 +159,7 @@
 
     let currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
+    let registeredReps = [];
     let feedbackMap = {};
 
     const statuses = [
@@ -281,7 +282,26 @@
       const tbody = document.getElementById('ordersTableBody');
       tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading team orders...</td></tr>';
 
-      // Query only orders linked to this Manager's SAP ID
+      // 1. Fetch all Reps registered under this Manager SAP ID
+      const { data: repsData } = await client
+        .from('reps')
+        .select('*')
+        .eq('manager_sap_id', currentManager.manager_sap_id);
+
+      registeredReps = repsData || [];
+
+      // 2. Populate the Dropdown with registered Reps
+      const repFilter = document.getElementById('subordinateFilter');
+      const currentSelected = repFilter.value;
+      
+      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      
+      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+        repFilter.value = currentSelected;
+      }
+
+      // 3. Fetch Orders linked to this Manager
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
@@ -295,16 +315,7 @@
 
       currentOrdersData = orders || [];
 
-      // Populate reps under this manager
-      const uniqueReps = Array.from(new Set(currentOrdersData.map(o => o.rep_code))).filter(Boolean);
-      const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter.value;
-      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-        uniqueReps.map(r => `<option value="${r}">${r}</option>`).join('');
-      if (uniqueReps.includes(currentSelected)) {
-        repFilter.value = currentSelected;
-      }
-
+      // 4. Fetch Feedback
       const orderIds = currentOrdersData.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
