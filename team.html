@@ -12,22 +12,73 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
 
-  <!-- ================= REP LOGIN SCREEN ================= -->
-  <div id="loginScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl border text-center space-y-5">
-      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
-        👤
+  <!-- ================= AUTH CONTAINER (SIGNUP / LOGIN) ================= -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6">
+      
+      <!-- Top Toggle Header -->
+      <div class="text-center space-y-1">
+        <h2 class="text-2xl font-bold text-slate-800">TirzaTrim Rep Portal</h2>
+        <p class="text-xs text-slate-500">Sign in to track orders or register your territory</p>
       </div>
-      <div>
-        <h2 class="text-xl font-bold text-slate-800">Team Member Portal</h2>
-        <p class="text-xs text-slate-500 mt-1">Enter your assigned Rep Name/Code to access your patients.</p>
+
+      <!-- Tab Buttons -->
+      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+        <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all">
+          Rep Login
+        </button>
+        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
+          New Registration
+        </button>
       </div>
-      <form onsubmit="handleRepLogin(event)" class="space-y-4">
-        <input type="text" id="repInput" placeholder="e.g. Ali, Usman, Zubair" required class="w-full px-4 py-2.5 border rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" onsubmit="handleRepLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Territory Code / T.Code *</label>
+          <input type="text" id="loginTCode" placeholder="e.g. QL1.1" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
-          Open My Dashboard
+          Login to Territory
         </button>
       </form>
+
+      <!-- SIGNUP FORM -->
+      <form id="signupForm" onsubmit="handleRepSignup(event)" class="space-y-3 hidden">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Full Name *</label>
+          <input type="text" id="regName" placeholder="e.g. Ali" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Team *</label>
+            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">T.Code *</label>
+            <input type="text" id="regTCode" placeholder="e.g. QL1.1" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">SAP ID *</label>
+            <input type="text" id="regSap" placeholder="e.g. 7271" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Set Password *</label>
+            <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg shadow transition-all mt-2">
+          Register & Generate My Link
+        </button>
+      </form>
+
+      <p id="authErrorMsg" class="text-center text-xs font-medium text-rose-600 hidden"></p>
     </div>
   </div>
 
@@ -37,10 +88,13 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-bold text-slate-800">Territory Dashboard</h1>
-          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">Rep</span>
+          <h1 class="text-2xl font-bold text-slate-800" id="repNameDisplay">Territory Dashboard</h1>
+          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">T.Code</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">Manage and track your referred prescriptions & doctor feedback.</p>
+        <div class="flex flex-wrap gap-x-4 text-xs text-slate-500 mt-1">
+          <span>Team: <strong id="repTeamDisplay" class="text-slate-700">-</strong></span>
+          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-700">-</strong></span>
+        </div>
       </div>
       <div class="flex flex-wrap gap-2">
         <button onclick="copyMyPatientLink()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
@@ -50,7 +104,7 @@
           🔄 Refresh
         </button>
         <button onclick="handleRepLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
-          🚪 Switch Rep
+          🚪 Logout
         </button>
       </div>
     </div>
@@ -92,7 +146,7 @@
           </thead>
           <tbody id="repOrdersTableBody" class="divide-y">
             <tr>
-              <td colspan="7" class="p-6 text-center text-slate-400">Loading your territory records...</td>
+              <td colspan="7" class="p-6 text-center text-slate-400">Loading territory orders...</td>
             </tr>
           </tbody>
         </table>
@@ -106,41 +160,116 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let activeRep = sessionStorage.getItem('tt_active_rep') || '';
+    let currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
 
-    function checkRepSession() {
-      if (activeRep) {
-        document.getElementById('loginScreen').classList.add('hidden');
+    function showAuthTab(type) {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const loginBtn = document.getElementById('loginTabBtn');
+      const signupBtn = document.getElementById('signupTabBtn');
+      document.getElementById('authErrorMsg').classList.add('hidden');
+
+      if (type === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        loginBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
+        signupBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        signupBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
+        loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+      }
+    }
+
+    function checkSession() {
+      if (currentRep && currentRep.territory_code) {
+        document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('activeRepBadge').innerText = `Rep: ${activeRep}`;
+        document.getElementById('repNameDisplay').innerText = `${currentRep.full_name}'s Territory`;
+        document.getElementById('activeRepBadge').innerText = currentRep.territory_code;
+        document.getElementById('repTeamDisplay').innerText = currentRep.team_name;
+        document.getElementById('repSapDisplay').innerText = currentRep.sap_id;
         fetchRepOrders();
       } else {
-        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
       }
     }
 
-    function handleRepLogin(e) {
+    async function handleRepSignup(e) {
       e.preventDefault();
-      const rep = document.getElementById('repInput').value.trim();
-      if (rep) {
-        activeRep = rep;
-        sessionStorage.setItem('tt_active_rep', rep);
-        checkRepSession();
+      const err = document.getElementById('authErrorMsg');
+      err.classList.add('hidden');
+
+      const full_name = document.getElementById('regName').value.trim();
+      const team_name = document.getElementById('regTeam').value.trim().toUpperCase();
+      const territory_code = document.getElementById('regTCode').value.trim().toUpperCase();
+      const sap_id = document.getElementById('regSap').value.trim();
+      const password = document.getElementById('regPassword').value;
+
+      try {
+        const { data, error } = await client
+          .from('reps')
+          .insert([{ full_name, team_name, territory_code, sap_id, password }])
+          .select();
+
+        if (error) {
+          if (error.message.includes('unique')) {
+            throw new Error(`Territory code '${territory_code}' is already registered. Please log in.`);
+          }
+          throw error;
+        }
+
+        currentRep = data[0];
+        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+        checkSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    async function handleRepLogin(e) {
+      e.preventDefault();
+      const err = document.getElementById('authErrorMsg');
+      err.classList.add('hidden');
+
+      const tcode = document.getElementById('loginTCode').value.trim().toUpperCase();
+      const pass = document.getElementById('loginPassword').value;
+
+      try {
+        const { data, error } = await client
+          .from('reps')
+          .select('*')
+          .eq('territory_code', tcode)
+          .eq('password', pass)
+          .limit(1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error('Invalid Territory Code or Password.');
+        }
+
+        currentRep = data[0];
+        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+        checkSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
       }
     }
 
     function handleRepLogout() {
-      sessionStorage.removeItem('tt_active_rep');
-      activeRep = '';
-      document.getElementById('repInput').value = '';
-      checkRepSession();
+      sessionStorage.removeItem('tt_current_rep');
+      currentRep = null;
+      checkSession();
     }
 
     function copyMyPatientLink() {
-      const link = `https://tirzatrim.vercel.app/?rep=${encodeURIComponent(activeRep)}`;
+      const link = `https://tirzatrim.vercel.app/?rep=${encodeURIComponent(currentRep.territory_code)}`;
       navigator.clipboard.writeText(link);
-      alert(`Copied your unique patient link to clipboard:\n${link}`);
+      alert(`Copied your unique patient link:\n${link}\n\nShare this link with your doctors & patients.`);
     }
 
     function renderStars(rating) {
@@ -149,15 +278,14 @@
     }
 
     async function fetchRepOrders() {
-      if (!activeRep) return;
+      if (!currentRep) return;
       const tbody = document.getElementById('repOrdersTableBody');
       tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400">Loading your territory records...</td></tr>';
 
-      // Query only orders tagged with this rep
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
-        .ilike('rep_code', activeRep)
+        .eq('rep_code', currentRep.territory_code)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -255,7 +383,7 @@
       }
     }
 
-    checkRepSession();
+    checkSession();
   </script>
 </body>
 </html>
