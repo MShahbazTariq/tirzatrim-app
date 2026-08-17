@@ -2,7 +2,7 @@
   "name": "TirzaTrim Team Hub",
   "short_name": "TirzaTrim",
   "description": "Sales & Support Team Operations Dashboard",
-  "start_url": "/admin.html",
+  "start_url": "/welcome.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#059669",
