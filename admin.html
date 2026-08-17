@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim Team Dashboard</title>
+  <title>TirzaTrim Master Admin Dashboard</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#059669">
   <meta name="mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
         🔒
       </div>
       <div>
-        <h2 class="text-xl font-bold text-slate-800">Admin Authentication</h2>
-        <p class="text-xs text-slate-500 mt-1">Enter your admin password to access orders.</p>
+        <h2 class="text-xl font-bold text-slate-800">Master Admin Authentication</h2>
+        <p class="text-xs text-slate-500 mt-1">Enter your master admin password to access all territory orders.</p>
       </div>
       <form onsubmit="handleLogin(event)" class="space-y-4">
         <input type="password" id="adminPassword" placeholder="Enter Password..." autocomplete="off" required class="w-full px-4 py-2.5 border rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-emerald-500">
@@ -37,15 +37,19 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Team Dashboard</h1>
-        <p class="text-xs text-slate-500">Order processing, WhatsApp notifications, prescription verification & reporting.</p>
+        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Master Operations Dashboard</h1>
+        <p class="text-xs text-slate-500">Consolidated territory management, team monitoring, orders & reporting.</p>
       </div>
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Subordinate Filter -->
+        <select id="repFilter" onchange="renderFilteredOrders()" class="px-3 py-2 border rounded-lg text-xs font-semibold bg-slate-50 outline-none text-slate-700">
+          <option value="ALL">All Subordinates / Territories</option>
+        </select>
         <button onclick="exportToCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm">
           📊 Export CSV
         </button>
         <button onclick="fetchOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
-          🔄 Refresh Orders
+          🔄 Refresh
         </button>
         <button onclick="handleLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
           🚪 Lock Dashboard
@@ -56,7 +60,7 @@
     <!-- Summary Metrics -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl border shadow-sm">
-        <div class="text-xs font-semibold uppercase text-slate-400">Total Orders</div>
+        <div class="text-xs font-semibold uppercase text-slate-400">Total Territory Orders</div>
         <div id="statTotal" class="text-xl font-bold text-slate-800 mt-1">0</div>
       </div>
       <div class="bg-white p-4 rounded-xl border shadow-sm">
@@ -80,7 +84,7 @@
           <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider border-b">
             <tr>
               <th class="p-4">Order ID & Date</th>
-              <th class="p-4">Patient Info & Address</th>
+              <th class="p-4">Rep & Patient Info</th>
               <th class="p-4">Prescription & Details</th>
               <th class="p-4">Status Update</th>
               <th class="p-4">Patient Feedback</th>
@@ -98,8 +102,7 @@
   </div>
 
   <script>
-    // ================= CONFIGURATION =================
-    const ADMIN_PASSCODE = "ttm2026"; // Change password here
+    const ADMIN_PASSCODE = "ttm2026";
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     
@@ -107,6 +110,7 @@
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentOrdersData = [];
+    let feedbackMap = {};
     let isAuthenticated = false;
 
     const statuses = [
@@ -115,7 +119,6 @@
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
 
-    // ================= AUTHENTICATION =================
     function handleLogin(e) {
       e.preventDefault();
       const enteredPass = document.getElementById('adminPassword').value;
@@ -144,7 +147,6 @@
       return '⭐'.repeat(rating);
     }
 
-    // ================= FETCH & RENDER =================
     async function fetchOrders() {
       if (!isAuthenticated) return;
       const tbody = document.getElementById('ordersTableBody');
@@ -160,8 +162,43 @@
         return;
       }
 
-      if (!orders || orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No orders found.</td></tr>';
+      currentOrdersData = orders || [];
+
+      // Populate unique reps into dropdown
+      const uniqueReps = Array.from(new Set(currentOrdersData.map(o => o.rep_code || 'Direct'))).filter(Boolean);
+      const repFilter = document.getElementById('repFilter');
+      const currentSelected = repFilter.value;
+      repFilter.innerHTML = '<option value="ALL">All Subordinates / Territories</option>' +
+        uniqueReps.map(r => `<option value="${r}">${r}</option>`).join('');
+      if (uniqueReps.includes(currentSelected)) {
+        repFilter.value = currentSelected;
+      }
+
+      // Fetch feedback
+      const orderIds = currentOrdersData.map(o => o.id);
+      const { data: feedbacks } = await client
+        .from('feedback')
+        .select('*')
+        .in('order_id', orderIds);
+
+      feedbackMap = {};
+      (feedbacks || []).forEach(f => {
+        feedbackMap[f.order_id] = f;
+      });
+
+      renderFilteredOrders();
+    }
+
+    function renderFilteredOrders() {
+      const selectedRep = document.getElementById('repFilter').value;
+      const filtered = selectedRep === 'ALL' 
+        ? currentOrdersData 
+        : currentOrdersData.filter(o => (o.rep_code || 'Direct') === selectedRep);
+
+      const tbody = document.getElementById('ordersTableBody');
+
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No orders found for this selection.</td></tr>';
         document.getElementById('statTotal').innerText = '0';
         document.getElementById('statProcess').innerText = '0';
         document.getElementById('statDelivered').innerText = '0';
@@ -169,25 +206,12 @@
         return;
       }
 
-      currentOrdersData = orders;
+      document.getElementById('statTotal').innerText = filtered.length;
+      document.getElementById('statProcess').innerText = filtered.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
+      document.getElementById('statDelivered').innerText = filtered.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      document.getElementById('statFeedback').innerText = filtered.filter(o => feedbackMap[o.id]).length;
 
-      const orderIds = orders.map(o => o.id);
-      const { data: feedbacks } = await client
-        .from('feedback')
-        .select('*')
-        .in('order_id', orderIds);
-
-      const feedbackMap = {};
-      (feedbacks || []).forEach(f => {
-        feedbackMap[f.order_id] = f;
-      });
-
-      document.getElementById('statTotal').innerText = orders.length;
-      document.getElementById('statProcess').innerText = orders.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
-      document.getElementById('statDelivered').innerText = orders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      document.getElementById('statFeedback').innerText = feedbacks ? feedbacks.length : 0;
-
-      tbody.innerHTML = orders.map(order => {
+      tbody.innerHTML = filtered.map(order => {
         const fb = feedbackMap[order.id];
         return `
           <tr class="hover:bg-slate-50 transition-colors">
@@ -196,6 +220,9 @@
               <span class="text-xs text-slate-400">${new Date(order.created_at).toLocaleDateString()}</span>
             </td>
             <td class="p-4">
+              <div class="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded mb-1">
+                👤 Rep: ${order.rep_code || 'Direct'}
+              </div>
               <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
               <div class="text-xs text-slate-500">${order.mobile}</div>
               <div class="text-xs text-slate-600 font-medium mt-1">📍 ${order.delivery_address || 'No address'}, ${order.city}</div>
@@ -239,7 +266,6 @@
       }).join('');
     }
 
-    // ================= ACTIONS & WHATSAPP =================
     async function updateStatus(orderId, newStatus) {
       await client.from('orders').update({ status: newStatus }).eq('id', orderId);
       fetchOrders();
@@ -296,15 +322,15 @@
         alert("No orders to export!");
         return;
       }
-      let csv = "Order ID,Date,Patient Name,Age,Mobile,City,Address,Doctor Name,Indication,Dose,Device,Status\n";
+      let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Indication,Dose,Device,Status\n";
       currentOrdersData.forEach(o => {
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `TirzaTrim_Orders_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `TirzaTrim_Master_Orders_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
   </script>
