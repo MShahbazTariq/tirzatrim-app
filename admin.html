@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim Master Admin Dashboard</title>
+  <title>TirzaTrim — Manager Portal</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#059669">
   <meta name="mobile-web-app-capable" content="yes">
@@ -12,47 +12,97 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
 
-  <!-- ================= PASSWORD LOGIN MODAL ================= -->
-  <div id="loginScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl border text-center space-y-5">
-      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
-        🔒
+  <!-- AUTH SCREEN (MANAGER SIGNUP / LOGIN) -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6">
+      
+      <div class="text-center space-y-1">
+        <h2 class="text-2xl font-bold text-slate-800">Manager Operations Hub</h2>
+        <p class="text-xs text-slate-500">Sign in or register your management territory</p>
       </div>
-      <div>
-        <h2 class="text-xl font-bold text-slate-800">Master Admin Authentication</h2>
-        <p class="text-xs text-slate-500 mt-1">Enter your master admin password to access all territory orders.</p>
+
+      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+        <button id="mgrLoginTabBtn" onclick="showMgrAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all">
+          Manager Login
+        </button>
+        <button id="mgrSignupTabBtn" onclick="showMgrAuthTab('signup')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
+          New Manager Signup
+        </button>
       </div>
-      <form onsubmit="handleLogin(event)" class="space-y-4">
-        <input type="password" id="adminPassword" placeholder="Enter Password..." autocomplete="off" required class="w-full px-4 py-2.5 border rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-emerald-500">
+
+      <!-- MANAGER LOGIN -->
+      <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
+          <input type="text" id="loginMgrSap" placeholder="e.g. 71726" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
+          <input type="password" id="loginMgrPassword" placeholder="Enter your password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
-          Unlock Dashboard
+          Unlock My Zone Dashboard
         </button>
       </form>
-      <p id="loginError" class="text-xs text-rose-600 font-medium hidden">Incorrect password. Please try again.</p>
+
+      <!-- MANAGER SIGNUP -->
+      <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Manager Full Name *</label>
+          <input type="text" id="regMgrName" placeholder="e.g. Shahbaz Tariq" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Team *</label>
+            <input type="text" id="regMgrTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Zone / Region *</label>
+            <input type="text" id="regMgrZone" placeholder="e.g. Lahore / North" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
+            <input type="text" id="regMgrSapId" placeholder="e.g. 71726" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-emerald-700">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Set Password *</label>
+            <input type="password" id="regMgrPassword" placeholder="Create password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg shadow transition-all mt-2">
+          Register Manager Account
+        </button>
+      </form>
+
+      <p id="mgrAuthErrorMsg" class="text-center text-xs font-medium text-rose-600 hidden"></p>
     </div>
   </div>
 
-  <!-- ================= MAIN DASHBOARD ================= -->
+  <!-- MANAGER MAIN DASHBOARD -->
   <div id="dashboardContent" class="p-6 max-w-7xl mx-auto space-y-6 hidden">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Master Operations Dashboard</h1>
-        <p class="text-xs text-slate-500">Consolidated territory management, team monitoring, orders & reporting.</p>
+        <div class="flex items-center gap-2">
+          <h1 class="text-2xl font-bold text-slate-800" id="mgrNameDisplay">Zonal Dashboard</h1>
+          <span id="mgrSapBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">SAP ID</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">Zone: <strong id="mgrZoneDisplay" class="text-slate-700">-</strong> | Team: <strong id="mgrTeamDisplay" class="text-slate-700">-</strong></p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Subordinate Filter -->
-        <select id="repFilter" onchange="renderFilteredOrders()" class="px-3 py-2 border rounded-lg text-xs font-semibold bg-slate-50 outline-none text-slate-700">
-          <option value="ALL">All Subordinates / Territories</option>
+        <select id="subordinateFilter" onchange="renderFilteredOrders()" class="px-3 py-2 border rounded-lg text-xs font-semibold bg-slate-50 outline-none text-slate-700">
+          <option value="ALL">All My Reps</option>
         </select>
         <button onclick="exportToCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm">
           📊 Export CSV
         </button>
-        <button onclick="fetchOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+        <button onclick="fetchManagerOrders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">
           🔄 Refresh
         </button>
-        <button onclick="handleLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
-          🚪 Lock Dashboard
+        <button onclick="handleMgrLogout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 shadow-sm">
+          🚪 Logout
         </button>
       </div>
     </div>
@@ -60,7 +110,7 @@
     <!-- Summary Metrics -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl border shadow-sm">
-        <div class="text-xs font-semibold uppercase text-slate-400">Total Territory Orders</div>
+        <div class="text-xs font-semibold uppercase text-slate-400">Total Team Orders</div>
         <div id="statTotal" class="text-xl font-bold text-slate-800 mt-1">0</div>
       </div>
       <div class="bg-white p-4 rounded-xl border shadow-sm">
@@ -93,7 +143,7 @@
           </thead>
           <tbody id="ordersTableBody" class="divide-y">
             <tr>
-              <td colspan="6" class="p-6 text-center text-slate-400">Loading orders...</td>
+              <td colspan="6" class="p-6 text-center text-slate-400">Loading team orders...</td>
             </tr>
           </tbody>
         </table>
@@ -102,16 +152,14 @@
   </div>
 
   <script>
-    const ADMIN_PASSCODE = "ttm2026";
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-    
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
     let feedbackMap = {};
-    let isAuthenticated = false;
 
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
@@ -119,27 +167,108 @@
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
 
-    function handleLogin(e) {
-      e.preventDefault();
-      const enteredPass = document.getElementById('adminPassword').value;
-      if (enteredPass === ADMIN_PASSCODE) {
-        isAuthenticated = true;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('loginError').classList.add('hidden');
-        document.getElementById('adminPassword').value = '';
-        fetchOrders();
+    function showMgrAuthTab(type) {
+      const loginForm = document.getElementById('mgrLoginForm');
+      const signupForm = document.getElementById('mgrSignupForm');
+      const loginBtn = document.getElementById('mgrLoginTabBtn');
+      const signupBtn = document.getElementById('mgrSignupTabBtn');
+      document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
+
+      if (type === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        loginBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
+        signupBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
       } else {
-        document.getElementById('loginError').classList.remove('hidden');
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        signupBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
+        loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
       }
     }
 
-    function handleLogout() {
-      isAuthenticated = false;
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('dashboardContent').classList.add('hidden');
-      document.getElementById('adminPassword').value = '';
-      document.getElementById('ordersTableBody').innerHTML = '';
+    function checkMgrSession() {
+      if (currentManager && currentManager.manager_sap_id) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        document.getElementById('mgrNameDisplay').innerText = `${currentManager.full_name}'s Zone`;
+        document.getElementById('mgrSapBadge').innerText = `SAP: ${currentManager.manager_sap_id}`;
+        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region;
+        document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name;
+        fetchManagerOrders();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
+    }
+
+    async function handleMgrSignup(e) {
+      e.preventDefault();
+      const err = document.getElementById('mgrAuthErrorMsg');
+      err.classList.add('hidden');
+
+      const full_name = document.getElementById('regMgrName').value.trim();
+      const team_name = document.getElementById('regMgrTeam').value.trim().toUpperCase();
+      const zone_region = document.getElementById('regMgrZone').value.trim();
+      const manager_sap_id = document.getElementById('regMgrSapId').value.trim();
+      const password = document.getElementById('regMgrPassword').value;
+
+      try {
+        const { data, error } = await client
+          .from('managers')
+          .insert([{ full_name, team_name, zone_region, manager_sap_id, password }])
+          .select();
+
+        if (error) {
+          if (error.message.includes('unique')) {
+            throw new Error(`Manager SAP ID '${manager_sap_id}' is already registered. Please log in.`);
+          }
+          throw error;
+        }
+
+        currentManager = data[0];
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        checkMgrSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    async function handleMgrLogin(e) {
+      e.preventDefault();
+      const err = document.getElementById('mgrAuthErrorMsg');
+      err.classList.add('hidden');
+
+      const sapId = document.getElementById('loginMgrSap').value.trim();
+      const pass = document.getElementById('loginMgrPassword').value;
+
+      try {
+        const { data, error } = await client
+          .from('managers')
+          .select('*')
+          .eq('manager_sap_id', sapId)
+          .eq('password', pass)
+          .limit(1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error('Invalid Manager SAP ID or Password.');
+        }
+
+        currentManager = data[0];
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        checkMgrSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    function handleMgrLogout() {
+      sessionStorage.removeItem('tt_current_manager');
+      currentManager = null;
+      checkMgrSession();
     }
 
     function renderStars(rating) {
@@ -147,14 +276,16 @@
       return '⭐'.repeat(rating);
     }
 
-    async function fetchOrders() {
-      if (!isAuthenticated) return;
+    async function fetchManagerOrders() {
+      if (!currentManager) return;
       const tbody = document.getElementById('ordersTableBody');
-      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading orders...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Loading team orders...</td></tr>';
 
+      // Query only orders linked to this Manager's SAP ID
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
+        .eq('manager_sap_id', currentManager.manager_sap_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -164,17 +295,16 @@
 
       currentOrdersData = orders || [];
 
-      // Populate unique reps into dropdown
-      const uniqueReps = Array.from(new Set(currentOrdersData.map(o => o.rep_code || 'Direct'))).filter(Boolean);
-      const repFilter = document.getElementById('repFilter');
+      // Populate reps under this manager
+      const uniqueReps = Array.from(new Set(currentOrdersData.map(o => o.rep_code))).filter(Boolean);
+      const repFilter = document.getElementById('subordinateFilter');
       const currentSelected = repFilter.value;
-      repFilter.innerHTML = '<option value="ALL">All Subordinates / Territories</option>' +
+      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
         uniqueReps.map(r => `<option value="${r}">${r}</option>`).join('');
       if (uniqueReps.includes(currentSelected)) {
         repFilter.value = currentSelected;
       }
 
-      // Fetch feedback
       const orderIds = currentOrdersData.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
@@ -190,10 +320,10 @@
     }
 
     function renderFilteredOrders() {
-      const selectedRep = document.getElementById('repFilter').value;
+      const selectedRep = document.getElementById('subordinateFilter').value;
       const filtered = selectedRep === 'ALL' 
         ? currentOrdersData 
-        : currentOrdersData.filter(o => (o.rep_code || 'Direct') === selectedRep);
+        : currentOrdersData.filter(o => o.rep_code === selectedRep);
 
       const tbody = document.getElementById('ordersTableBody');
 
@@ -268,7 +398,7 @@
 
     async function updateStatus(orderId, newStatus) {
       await client.from('orders').update({ status: newStatus }).eq('id', orderId);
-      fetchOrders();
+      fetchManagerOrders();
     }
 
     async function deleteOrder(orderId, patientName) {
@@ -279,7 +409,7 @@
         await client.from('feedback').delete().eq('order_id', orderId);
         const { error } = await client.from('orders').delete().eq('id', orderId);
         if (error) throw error;
-        fetchOrders();
+        fetchManagerOrders();
       } catch (err) {
         alert("Error deleting record: " + err.message);
       }
@@ -299,7 +429,6 @@
       const formattedNumber = formatPakistanMobile(mobile);
       const encodedText = encodeURIComponent(text);
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
       if (isMobile) {
         window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
       } else {
@@ -308,7 +437,7 @@
     }
 
     function sendUpdateWhatsApp(mobile, name, orderId, status) {
-      const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. If you have any questions, feel free to reply.`;
+      const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*.`;
       openWhatsApp(mobile, msg);
     }
 
@@ -330,9 +459,11 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `TirzaTrim_Master_Orders_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `TirzaTrim_${currentManager.manager_sap_id}_Orders.csv`;
       a.click();
     }
+
+    checkMgrSession();
   </script>
 </body>
 </html>
