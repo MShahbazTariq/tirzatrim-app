@@ -1,14 +1,22 @@
-const CACHE_NAME = 'tirzatrim-v1';
+const CACHE_NAME = 'tirzatrim-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
+// Always fetch fresh version from internet first
 self.addEventListener('fetch', (event) => {
-  // Let network handle all Supabase live requests
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
 });
