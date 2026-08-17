@@ -181,8 +181,7 @@
       </div>
     </div>
   </div>
-
-  <script>
+    <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
@@ -215,7 +214,8 @@
         loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
       }
     }
-        function checkSession() {
+
+    function checkSession() {
       if (currentRep && currentRep.territory_code) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
@@ -460,14 +460,21 @@
     function openWhatsAppUniversal(mobile, text) {
       const formattedNumber = formatPakistanMobile(mobile);
       const encodedText = encodeURIComponent(text);
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       
-      let targetUrl = '';
-      if (formattedNumber) {
-        targetUrl = `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`;
+      if (isMobile) {
+        if (formattedNumber) {
+          window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
+        } else {
+          window.location.href = `whatsapp://send?text=${encodedText}`;
+        }
       } else {
-        targetUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+        if (formattedNumber) {
+          window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
+        } else {
+          window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
+        }
       }
-      window.open(targetUrl, '_blank');
     }
 
     function sendUpdateWhatsApp(mobile, name, orderId, status) {
