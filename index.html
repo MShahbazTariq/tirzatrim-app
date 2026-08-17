@@ -11,18 +11,16 @@
 
   <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6 border border-slate-100">
     
-    <!-- ================= FORM CONTAINER ================= -->
+    <!-- FORM CONTAINER -->
     <div id="formSection" class="space-y-6">
-      <!-- Header -->
       <div class="text-center space-y-2 border-b pb-4">
         <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Patient Support</h1>
         <p class="text-sm text-slate-500">Submit your details and prescription below to start your order.</p>
       </div>
 
-      <!-- Form -->
       <form id="patientForm" class="space-y-4">
         
-        <!-- Personal Info -->
+        <!-- Personal Details -->
         <div class="space-y-3">
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">1. Personal Details</h2>
           <div class="grid grid-cols-3 gap-2">
@@ -51,7 +49,7 @@
           </div>
         </div>
 
-        <!-- Treatment Info -->
+        <!-- Treatment Details -->
         <div class="space-y-3 pt-2">
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">2. Treatment Details</h2>
           <div>
@@ -92,7 +90,7 @@
           </div>
         </div>
 
-        <!-- Prescription File -->
+        <!-- Prescription -->
         <div class="space-y-3 pt-2">
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">3. Prescription</h2>
           <div>
@@ -101,7 +99,6 @@
           </div>
         </div>
 
-        <!-- Submit Button -->
         <button type="submit" id="submitBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md transition-all">
           Submit Order & Prescription
         </button>
@@ -110,26 +107,22 @@
       </form>
     </div>
 
-    <!-- ================= THANK YOU SCREEN ================= -->
+    <!-- THANK YOU SCREEN -->
     <div id="thankYouSection" class="hidden text-center py-8 space-y-6">
       <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
         ✓
       </div>
-      
       <div class="space-y-2">
         <h2 class="text-2xl font-bold text-slate-800">Thank You!</h2>
         <p class="text-sm text-slate-600">Your order and prescription have been received successfully.</p>
       </div>
-
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 max-w-sm mx-auto">
         <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block">Order Reference ID</span>
         <span id="confirmedOrderId" class="font-mono text-lg font-bold text-slate-800 mt-1 block">TT-2026-XXXXXX</span>
       </div>
-
       <p class="text-xs text-slate-500 max-w-sm mx-auto">
         Our support team will verify your prescription and contact you on WhatsApp with delivery updates.
       </p>
-
       <div class="pt-4">
         <button onclick="resetOrderForm()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow transition-all">
           ← Place Another Order
@@ -142,11 +135,9 @@
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co"; 
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Read rep parameter from URL: ?rep=Ali or ?rep=REP01
     const urlParams = new URLSearchParams(window.location.search);
     const assignedRep = urlParams.get('rep') || 'Direct';
 
@@ -160,6 +151,19 @@
       errorMsg.classList.add('hidden');
 
       try {
+        // Fetch manager SAP ID linked to this rep
+        let repManagerId = 'Direct';
+        if (assignedRep !== 'Direct') {
+          const { data: repData } = await client
+            .from('reps')
+            .select('manager_sap_id')
+            .eq('territory_code', assignedRep)
+            .limit(1);
+          if (repData && repData.length > 0) {
+            repManagerId = repData[0].manager_sap_id;
+          }
+        }
+
         const fileInput = document.getElementById('prescription_file');
         const file = fileInput.files[0];
         const fileName = `${Date.now()}_${file.name}`;
@@ -186,7 +190,8 @@
             prescribed_dose: document.getElementById('prescribed_dose').value,
             device: document.getElementById('device').value,
             prescription_url: publicUrl,
-            rep_code: assignedRep, // Saved with assigned rep
+            rep_code: assignedRep,
+            manager_sap_id: repManagerId,
             status: 'New Patient'
           }])
           .select();
