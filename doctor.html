@@ -13,7 +13,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Doctor Portal</h1>
+        <h1 class="text-2xl font-bold text-slate-800" id="portalHeader">TirzaTrim Doctor Portal</h1>
         <p class="text-xs text-slate-500">Patient Prescription, Delivery & Service Feedback Tracker</p>
       </div>
       <div class="flex gap-2">
@@ -69,6 +69,15 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Auto-detect doctor name from link: ?dr=Dr.%20Qamar%20Sajjad
+    const urlParams = new URLSearchParams(window.location.search);
+    const directDr = urlParams.get('dr');
+
+    if (directDr) {
+      document.getElementById('doctorFilter').value = directDr;
+      document.getElementById('portalHeader').innerText = `${directDr}'s Patients`;
+    }
+
     function renderStars(rating) {
       if (!rating) return '<span class="text-xs text-slate-400 italic">No rating</span>';
       return '⭐'.repeat(rating) + ` <span class="text-xs text-slate-500">(${rating}/5)</span>`;
@@ -79,11 +88,12 @@
       const filter = document.getElementById('doctorFilter').value.trim();
       tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading patient records...</td></tr>';
 
-      // 1. Fetch Orders
       let query = client.from('orders').select('*').order('created_at', { ascending: false });
+      
       if (filter) {
         query = query.ilike('doctor_name', `%${filter}%`);
       }
+
       const { data: orders, error: orderErr } = await query;
 
       if (orderErr) {
@@ -99,7 +109,6 @@
         return;
       }
 
-      // 2. Fetch Feedback for these orders
       const orderIds = orders.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
@@ -111,12 +120,10 @@
         feedbackMap[f.order_id] = f;
       });
 
-      // Update Top Metrics
       document.getElementById('metricTotal').innerText = orders.length;
-      document.getElementById('metricCompleted').innerText = orders.filter(o => o.status === 'Delivered' || o.status === 'Completed' || o.status === 'Feedback Submitted').length;
+      document.getElementById('metricCompleted').innerText = orders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       document.getElementById('metricFeedback').innerText = feedbacks ? feedbacks.length : 0;
 
-      // Render Table Rows
       tbody.innerHTML = orders.map(order => {
         const fb = feedbackMap[order.id];
         return `
