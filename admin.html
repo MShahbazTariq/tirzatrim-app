@@ -15,7 +15,6 @@
   <!-- ================= AUTH SCREEN ================= -->
   <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6">
-      
       <div class="text-center space-y-1">
         <h2 class="text-2xl font-bold text-slate-800">Manager Operations Hub</h2>
         <p class="text-xs text-slate-500">Sign in or register your management territory</p>
@@ -80,18 +79,41 @@
     </div>
   </div>
 
-  <!-- ================= REP MANAGEMENT MODAL ================= -->
+  <!-- ================= REP & TERRITORY MANAGEMENT MODAL ================= -->
   <div id="repsModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl border space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl p-6 max-w-3xl w-full shadow-2xl border space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3">
         <div>
-          <h3 class="text-lg font-bold text-slate-800">Field Force Management</h3>
-          <p class="text-xs text-slate-500">Manage, view, or remove territory representatives</p>
+          <h3 class="text-lg font-bold text-slate-800">Field Force & Territory Transfers</h3>
+          <p class="text-xs text-slate-500">Manage reps or transfer past patient records between territory codes</p>
         </div>
         <button onclick="closeRepsModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
       </div>
 
-      <div class="overflow-x-auto">
+      <!-- Quick Transfer Section -->
+      <div class="bg-slate-50 border rounded-xl p-4 space-y-3">
+        <h4 class="text-xs font-bold uppercase text-slate-700">Transfer Territory Patients</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1">From Old Territory Code:</label>
+            <input type="text" id="transferFromCode" placeholder="e.g. QL1.1" class="w-full px-3 py-1.5 border rounded-lg text-xs uppercase font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1">To Active Rep:</label>
+            <select id="transferToRepSelect" class="w-full px-3 py-1.5 border rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Select Rep...</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="handleTerritoryTransfer()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+              Transfer All Records
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Reps Table -->
+      <div class="overflow-x-auto pt-2">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50 text-slate-400 uppercase tracking-wider border-b">
             <tr>
@@ -112,7 +134,6 @@
 
   <!-- ================= MAIN DASHBOARD ================= -->
   <div id="dashboardContent" class="p-6 max-w-7xl mx-auto space-y-6 hidden">
-    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
       <div>
         <div class="flex items-center gap-2">
@@ -126,7 +147,7 @@
           <option value="ALL">All My Reps</option>
         </select>
         <button onclick="openRepsModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
-          👥 Manage Reps
+          👥 Manage Reps & Transfers
         </button>
         <button onclick="exportToCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm">
           📊 Export CSV
@@ -140,7 +161,7 @@
       </div>
     </div>
 
-    <!-- Metrics -->
+    <!-- Summary Metrics -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl border shadow-sm">
         <div class="text-xs font-semibold uppercase text-slate-400">Total Team Orders</div>
@@ -310,7 +331,7 @@
       return '⭐'.repeat(rating);
     }
 
-    // ================= REPS MANAGEMENT =================
+    // ================= REPS & TRANSFER MANAGEMENT =================
     function openRepsModal() {
       document.getElementById('repsModal').classList.remove('hidden');
       renderRepsModalTable();
@@ -322,6 +343,11 @@
 
     function renderRepsModalTable() {
       const tbody = document.getElementById('repsModalTableBody');
+      const transferSelect = document.getElementById('transferToRepSelect');
+
+      transferSelect.innerHTML = '<option value="">Select Rep...</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
       if (!registeredReps || registeredReps.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
         return;
@@ -343,18 +369,51 @@
     }
 
     async function removeRep(repId, repName, territoryCode) {
-      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nTheir login will be deleted, but past patient orders will remain safely saved in the records.`);
+      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nTheir login will be deleted, but past patient orders will remain safely saved under your zone.`);
       if (!confirmRemove) return;
 
       try {
         const { error } = await client.from('reps').delete().eq('id', repId);
         if (error) throw error;
-
-        // Refresh lists
         await fetchManagerOrders();
         renderRepsModalTable();
       } catch (err) {
         alert("Error removing rep: " + err.message);
+      }
+    }
+
+    async function handleTerritoryTransfer() {
+      const fromCode = document.getElementById('transferFromCode').value.trim().toUpperCase();
+      const toCode = document.getElementById('transferToRepSelect').value;
+
+      if (!fromCode || !toCode) {
+        alert("Please enter the old Territory Code and select the target Rep.");
+        return;
+      }
+      if (fromCode === toCode) {
+        alert("Source and target territory codes cannot be the same.");
+        return;
+      }
+
+      const confirmTransfer = confirm(`Transfer all patient records from '${fromCode}' to '${toCode}'?`);
+      if (!confirmTransfer) return;
+
+      try {
+        const { data, error } = await client
+          .from('orders')
+          .update({ rep_code: toCode })
+          .eq('manager_sap_id', currentManager.manager_sap_id)
+          .eq('rep_code', fromCode)
+          .select();
+
+        if (error) throw error;
+
+        alert(`Successfully transferred ${data ? data.length : 0} patient records to '${toCode}'.`);
+        document.getElementById('transferFromCode').value = '';
+        closeRepsModal();
+        fetchManagerOrders();
+      } catch (err) {
+        alert("Transfer failed: " + err.message);
       }
     }
 
