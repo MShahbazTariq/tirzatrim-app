@@ -158,7 +158,7 @@
       </div>
     </div>
 
-    <!-- Orders Table (Full Detail Mirroring Manager View) -->
+    <!-- Orders Table -->
     <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
@@ -215,8 +215,7 @@
         loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
       }
     }
-
-    function checkSession() {
+        function checkSession() {
       if (currentRep && currentRep.territory_code) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
