@@ -140,12 +140,15 @@
   </div>
 
   <script>
-    // Configuration
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co"; 
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
 
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Read rep parameter from URL: ?rep=Ali or ?rep=REP01
+    const urlParams = new URLSearchParams(window.location.search);
+    const assignedRep = urlParams.get('rep') || 'Direct';
 
     document.getElementById('patientForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -157,7 +160,6 @@
       errorMsg.classList.add('hidden');
 
       try {
-        // 1. Upload File
         const fileInput = document.getElementById('prescription_file');
         const file = fileInput.files[0];
         const fileName = `${Date.now()}_${file.name}`;
@@ -171,7 +173,6 @@
 
         const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/prescriptions/${fileName}`;
 
-        // 2. Insert Order
         const { data: insertedData, error: insertError } = await client
           .from('orders')
           .insert([{
@@ -185,13 +186,13 @@
             prescribed_dose: document.getElementById('prescribed_dose').value,
             device: document.getElementById('device').value,
             prescription_url: publicUrl,
+            rep_code: assignedRep, // Saved with assigned rep
             status: 'New Patient'
           }])
           .select();
 
         if (insertError) throw insertError;
 
-        // 3. Show Thank You Screen
         const orderId = insertedData && insertedData[0] ? insertedData[0].order_id : 'Submitted';
         document.getElementById('confirmedOrderId').innerText = orderId;
         
