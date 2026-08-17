@@ -9,15 +9,28 @@
 </head>
 <body class="bg-slate-50 min-h-screen py-10 px-4 flex justify-center items-center">
 
-  <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6 border border-slate-100">
+  <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6 border border-slate-100 relative">
     
-    <!-- FORM CONTAINER -->
+    <!-- ================= FORM CONTAINER ================= -->
     <div id="formSection" class="space-y-6">
-      <div class="text-center space-y-2 border-b pb-4">
-        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Patient Support</h1>
-        <p class="text-sm text-slate-500">Submit your details and prescription below to start your order.</p>
+      
+      <!-- Home Button -->
+      <div class="flex justify-between items-center border-b pb-4">
+        <a href="/" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+          🏠 Home
+        </a>
+        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+          Patient Support Care
+        </span>
       </div>
 
+      <!-- Header -->
+      <div class="text-center space-y-1">
+        <h1 class="text-2xl font-bold text-slate-800">TirzaTrim Patient Support</h1>
+        <p class="text-xs text-slate-500">Submit your details and prescription below to start your order.</p>
+      </div>
+
+      <!-- Form -->
       <form id="patientForm" class="space-y-4">
         
         <!-- Personal Details -->
@@ -107,7 +120,7 @@
       </form>
     </div>
 
-    <!-- THANK YOU SCREEN -->
+    <!-- ================= THANK YOU SCREEN ================= -->
     <div id="thankYouSection" class="hidden text-center py-8 space-y-6">
       <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
         ✓
@@ -123,10 +136,13 @@
       <p class="text-xs text-slate-500 max-w-sm mx-auto">
         Our support team will verify your prescription and contact you on WhatsApp with delivery updates.
       </p>
-      <div class="pt-4">
-        <button onclick="resetOrderForm()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow transition-all">
+      <div class="pt-4 flex flex-wrap gap-2 justify-center">
+        <button onclick="resetOrderForm()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow transition-all">
           ← Place Another Order
         </button>
+        <a href="/" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow transition-all">
+          🏠 Back to Home
+        </a>
       </div>
     </div>
 
