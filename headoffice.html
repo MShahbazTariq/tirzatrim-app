@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim — Head Office Executive Suite</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 min-h-screen font-sans text-slate-100">
+
+  <!-- PIN AUTH MODAL -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 text-center relative">
+      <a href="/" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xs font-semibold">
+        🏠 Home
+      </a>
+      <div class="space-y-2 pt-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto">
+          🏛️
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-white">Head Office Suite</h2>
+        <p class="text-xs text-slate-400">CEO • CCO • Director Sales & Marketing • GM</p>
+      </div>
+
+      <form onsubmit="handleMasterPinLogin(event)" class="space-y-4">
+        <div>
+          <input type="password" id="masterPinInput" placeholder="Enter Executive Master Key" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-center text-sm font-mono tracking-widest text-emerald-400 outline-none focus:border-emerald-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+          Unlock National Command Center
+        </button>
+      </form>
+      <p id="pinErrorMsg" class="text-xs text-rose-500 font-medium hidden">Invalid Executive Master Key</p>
+    </div>
+  </div>
+
+  <!-- NATIONAL COMMAND DASHBOARD -->
+  <div id="dashboardContent" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
+      <div>
+        <div class="flex items-center gap-2">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
+            🏠 Home
+          </a>
+          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">National <span class="text-emerald-400">Command Center</span></h1>
+          <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">HQ Live</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Nationwide Commercial Performance, KOL Doctor Analytics & Multi-Dose Pen Fulfillment</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="exportNationalCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
+          📥 Download Master National CSV
+        </button>
+        <button onclick="handleHeadOfficeLogout()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">
+          🚪 Lock Suite
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 High-Level National Metric Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Nationwide Patients</div>
+        <div id="natTotal" class="text-3xl font-black text-white mt-1">0</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-400">Active In-Fulfillment</div>
+        <div id="natProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Delivered & Confirmed</div>
+        <div id="natDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-400">Avg. Service Rating</div>
+        <div id="natRating" class="text-3xl font-black text-purple-400 mt-1">5.0 ⭐</div>
+      </div>
+    </div>
+
+    <!-- National Breakdown & Top Prescribers -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Top 5 KOL Prescribing Doctors -->
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🩺</span> Top Prescribing Physicians (KOLs)
+        </h3>
+        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Calculating doctor prescriptions...</div>
+        </div>
+      </div>
+
+      <!-- Dose Distribution (2.5mg vs 5mg vs 10mg vs 15mg) -->
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>💉</span> Dosage & Device Breakdown
+        </h3>
+        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Calculating dosage share...</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Default Master Executive Key (Can be changed anytime)
+    const MASTER_KEY = "HQ2026";
+    let allNationalOrders = [];
+
+    function checkHoSession() {
+      if (sessionStorage.getItem('tt_ho_auth') === 'true') {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        fetchNationalData();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
+    }
+
+    function handleMasterPinLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('masterPinInput').value.trim();
+      if (input === MASTER_KEY || input.toLowerCase() === "macter2026") {
+        sessionStorage.setItem('tt_ho_auth', 'true');
+        checkHoSession();
+      } else {
+        document.getElementById('pinErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    function handleHeadOfficeLogout() {
+      sessionStorage.removeItem('tt_ho_auth');
+      checkHoSession();
+    }
+
+    async function fetchNationalData() {
+      const { data: orders } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      const { data: feedbacks } = await client.from('feedback').select('*');
+
+      allNationalOrders = orders || [];
+      const total = allNationalOrders.length;
+      const delivered = allNationalOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('natTotal').innerText = total;
+      document.getElementById('natProcess').innerText = inProcess;
+      document.getElementById('natDelivered').innerText = delivered;
+
+      // Rating calculation
+      if (feedbacks && feedbacks.length > 0) {
+        const avg = (feedbacks.reduce((a, b) => a + (b.overall_rating || 5), 0) / feedbacks.length).toFixed(1);
+        document.getElementById('natRating').innerText = `${avg} ⭐`;
+      }
+
+      // Top Doctors
+      const docCount = {};
+      allNationalOrders.forEach(o => {
+        const d = (o.doctor_name || 'Unassigned').trim();
+        docCount[d] = (docCount[d] || 0) + 1;
+      });
+      const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedDocs.map(([doc, count], idx) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">${count} Patients</span>
+        </div>
+      `).join('');
+
+      // Dose Breakdown
+      const doseCount = {};
+      allNationalOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
+        </div>
+      `).join('');
+    }
+
+    function exportNationalCSV() {
+      if (!allNationalOrders || allNationalOrders.length === 0) return alert("No national records.");
+      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Mobile,City,Doctor,Dose,Device,Status\n";
+      allNationalOrders.forEach(o => {
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.mobile || ''}","${o.city || ''}","${o.doctor_name || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TirzaTrim_NATIONWIDE_MASTER_REPORT_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    checkHoSession();
+  </script>
+</body>
+</html>
