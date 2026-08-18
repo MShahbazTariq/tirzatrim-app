@@ -3,160 +3,252 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Head of Sales Portal</title>
+  <title>TirzaTrim — Head of Sales Executive Suite</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#059669">
+  <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
 
   <!-- AUTH SCREEN -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6 relative">
-      <a href="/" class="absolute top-5 left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      <a href="/" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xs font-semibold">
         🏠 Home
       </a>
-      <div class="text-center space-y-1 pt-4">
-        <h2 class="text-2xl font-bold text-slate-800">Head of Sales Hub</h2>
-        <p class="text-xs text-slate-500">Supervisory access for Central, North & South Regions</p>
+      <div class="space-y-2 pt-4">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-2xl flex items-center justify-center mx-auto">
+          👔
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-white">Head of Sales Hub</h2>
+        <p class="text-xs text-slate-400">Regional Executive Oversight • Central, North & South</p>
       </div>
 
-      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-        <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all">
+      <div class="grid grid-cols-2 p-1 bg-slate-950 rounded-xl text-xs font-semibold border border-slate-800">
+        <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all">
           HOS Login
         </button>
-        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
-          New HOS Signup
+        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+          Register HOS
         </button>
       </div>
 
       <!-- LOGIN -->
       <form id="loginForm" onsubmit="handleHosLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">HOS SAP ID *</label>
-          <input type="text" id="loginSap" placeholder="e.g. 8001" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+          <input type="text" id="loginSap" placeholder="HOS SAP ID (e.g. 8001)" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
-          <input type="password" id="loginPassword" placeholder="Enter your password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
-          Access Regional Hub
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+          Unlock Regional Dashboard
         </button>
       </form>
 
       <!-- SIGNUP -->
-      <form id="signupForm" onsubmit="handleHosSignup(event)" class="space-y-3 hidden">
+      <form id="signupForm" onsubmit="handleHosSignup(event)" class="space-y-3 hidden text-left">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Full Name *</label>
-          <input type="text" id="regName" placeholder="e.g. Head of Sales Name" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name *</label>
+          <input type="text" id="regName" placeholder="e.g. Head of Sales Name" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Region *</label>
-            <select id="regRegion" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Assigned Region *</label>
+            <select id="regRegion" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-500">
               <option value="Central">Central</option>
               <option value="North">North</option>
               <option value="South">South</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Team *</label>
-            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Team Name *</label>
+            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs uppercase text-white outline-none focus:border-indigo-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">HOS SAP ID *</label>
-            <input type="text" id="regSap" placeholder="e.g. 8001" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">HOS SAP ID *</label>
+            <input type="text" id="regSap" placeholder="e.g. 8001" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
-            <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Set Password *</label>
+            <input type="password" id="regPassword" placeholder="Password" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500">
           </div>
         </div>
-        <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg shadow transition-all mt-2">
-          Register HOS Account
+        <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
+          Create HOS Account
         </button>
       </form>
-      <p id="authErrorMsg" class="text-center text-xs font-medium text-rose-600 hidden"></p>
+      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
 
-  <!-- HOS MAIN DASHBOARD -->
-  <div id="dashboardContent" class="p-4 md:p-6 max-w-7xl mx-auto space-y-5 hidden">
+  <!-- MAIN REGIONAL EXECUTIVE DASHBOARD -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
     
     <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all mr-1">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
             🏠 Home
           </a>
-          <h1 class="text-xl md:text-2xl font-extrabold text-slate-900" id="hosNameDisplay">Regional Sales Hub</h1>
-          <span id="hosRegionBadge" class="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full">Region</span>
+          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="hosNameDisplay">Regional <span class="text-indigo-400">Sales Hub</span></h1>
+          <span id="hosRegionBadge" class="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-full">Region Live</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">Supervisory Level: <strong class="text-slate-700">Head of Sales</strong> | SAP ID: <strong id="hosSapDisplay" class="text-slate-700">-</strong></p>
+        <p class="text-xs text-slate-400 mt-1">Supervisory Level: <strong class="text-slate-200">Head of Sales</strong> | SAP ID: <strong id="hosSapDisplay" class="text-slate-200">-</strong></p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="exportRegionalCSV()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm">
-          📊 Export Regional CSV
+        <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all">
+          📥 Download Regional CSV
         </button>
-        <button onclick="fetchHosData()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm">
+        <button onclick="fetchEverything()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">
           🔄 Refresh
         </button>
-        <button onclick="handleHosLogout()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200">
+        <button onclick="handleHosLogout()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
           🚪 Logout
         </button>
       </div>
     </div>
 
-    <!-- Regional Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Region Orders</div>
-        <div id="statTotal" class="text-2xl font-black text-slate-800 mt-1">0</div>
+    <!-- DATE CONTROLS STRIP -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+          <span>📅</span> Timeline & Date Scope
+        </div>
+        
+        <!-- Preset Toggles -->
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">In Process</div>
-        <div id="statProcess" class="text-2xl font-black text-amber-600 mt-1">0</div>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Delivered / Confirmed</div>
-        <div id="statDelivered" class="text-2xl font-black text-emerald-600 mt-1">0</div>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback Submissions</div>
-        <div id="statFeedback" class="text-2xl font-black text-purple-600 mt-1">0</div>
+
+      <!-- Custom Calendar Pickers -->
+      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-indigo-500">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-indigo-500">
+        </div>
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+          Showing: Month to Date
+        </span>
       </div>
     </div>
 
-    <!-- Search & Zone Filters -->
-    <div class="bg-white p-3 md:p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-2.5 items-center justify-between">
-      <div class="w-full md:w-1/2 relative">
-        <input type="text" id="hosSearchInput" oninput="renderHosCards()" placeholder="🔍 Search patient, rep, doctor, zone, or city..." class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50">
+    <!-- Regional KPI Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Regional Patients</div>
+        <div id="statTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
-      <div class="w-full md:w-auto flex flex-wrap gap-2">
-        <select id="hosManagerFilter" onchange="renderHosCards()" class="px-3.5 py-2 border rounded-xl text-xs font-semibold bg-slate-50 outline-none text-slate-700">
-          <option value="ALL">All Zonal Managers</option>
-        </select>
-        <select id="hosStatusFilter" onchange="renderHosCards()" class="px-3.5 py-2 border rounded-xl text-xs font-medium bg-slate-50 outline-none text-slate-700">
-          <option value="ALL">All Statuses</option>
-          <option value="New Patient">New Patient</option>
-          <option value="Prescription Verified">Prescription Verified</option>
-          <option value="Order Processing">Order Processing</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Feedback Submitted">Feedback Submitted</option>
-        </select>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">In Fulfillment</div>
+        <div id="statProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Delivered & Completed</div>
+        <div id="statDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Avg Service Rating</div>
+        <div id="statRating" class="text-3xl font-black text-purple-400 mt-1">5.0 ⭐</div>
       </div>
     </div>
 
-    <!-- Cards Container -->
-    <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full py-12 text-center text-slate-400 text-sm">
-        Loading regional records...
+    <!-- REGIONAL DRILL-DOWN SEARCH & FILTER BAR -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
+      <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+        <span>🔍</span> Regional ZSM & Field Rep Drill-Down
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- 1. ZSM / Zone Filter -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">1. Zonal Manager (ZSM)</label>
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-500">
+            <option value="ALL">All ZSMs in My Region</option>
+          </select>
+        </div>
+
+        <!-- 2. Territory Rep Filter -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">2. Field Rep (T-Code)</label>
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-500">
+            <option value="ALL">All Reps in Region</option>
+          </select>
+        </div>
+
+        <!-- 3. Global Search -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">3. Keyword Search</label>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Dr, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-indigo-500 placeholder-slate-600">
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
+    <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📊</span> Regional Enrollment Trend (Last 14 Days)
+          </h3>
+          <p class="text-xs text-slate-400">Showing daily prescription entries across your regional territory</p>
+        </div>
+        <div class="text-[11px] font-semibold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 self-start">
+          Regional Trend Tracker
+        </div>
+      </div>
+      <div class="h-64 w-full pt-2">
+        <canvas id="dailyEnrollmentChart"></canvas>
+      </div>
+    </div>
+
+    <!-- KOLs & Dosage Breakdown Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🩺</span> Regional Top Prescribers (KOLs)
+        </h3>
+        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading prescribers...</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>💉</span> Regional Dosage & Device Share
+        </h3>
+        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTERED PATIENTS CARDS GRID -->
+    <div class="space-y-3 pt-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>👥</span> Regional Patient Records (<span id="filteredCount">0</span>)
+        </h3>
+      </div>
+      <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+          Loading records...
+        </div>
       </div>
     </div>
 
@@ -169,22 +261,37 @@
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentHos = JSON.parse(sessionStorage.getItem('tt_current_hos') || 'null');
-    let regionalOrders = [];
+    let allOrders = [];
     let regionalManagers = [];
+    let regionalReps = [];
     let feedbackMap = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
+
+    let currentDateScope = "MTD";
+    let filterStartDate = null;
+    let filterEndDate = null;
+
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
     function showAuthTab(type) {
       document.getElementById('authErrorMsg').classList.add('hidden');
       if (type === 'login') {
         document.getElementById('loginForm').classList.remove('hidden');
         document.getElementById('signupForm').classList.add('hidden');
-        document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       } else {
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('signupForm').classList.remove('hidden');
-        document.getElementById('signupTabBtn').className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        document.getElementById('loginTabBtn').className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        document.getElementById('signupTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('loginTabBtn').className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       }
     }
 
@@ -192,10 +299,11 @@
       if (currentHos && currentHos.sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('hosNameDisplay').innerText = `${currentHos.full_name} (${currentHos.region})`;
+        document.getElementById('hosNameDisplay').innerHTML = `${currentHos.full_name} <span class="text-indigo-400">(${currentHos.region})</span>`;
         document.getElementById('hosRegionBadge').innerText = `${currentHos.region} Region`;
         document.getElementById('hosSapDisplay').innerText = currentHos.sap_id;
-        fetchHosData();
+        setDatePreset('MTD');
+        fetchEverything();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -267,146 +375,353 @@
       checkHosSession();
     }
 
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Region)";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        applyAllFilters();
+      }
+    }
+
     function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
     }
 
-    async function fetchHosData() {
+    async function fetchEverything() {
       if (!currentHos) return;
-      const grid = document.getElementById('hosCardsGrid');
-      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">Loading regional records...</div>';
 
-      // 1. Fetch Zonal Managers under this region
+      // 1. Fetch ZSMs belonging to this HOS Region
       const { data: managers } = await client
         .from('managers')
         .select('*')
         .eq('region', currentHos.region);
 
       regionalManagers = managers || [];
-      const managerSapIds = regionalManagers.map(m => m.manager_sap_id);
+      const managerSaps = regionalManagers.map(m => m.manager_sap_id);
 
-      const mgrFilter = document.getElementById('hosManagerFilter');
-      mgrFilter.innerHTML = '<option value="ALL">All Zonal Managers</option>' +
-        regionalManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region})</option>`).join('');
-
-      // 2. Fetch Orders belonging to these Managers (or fallback to all if initial rollout)
+      // 2. Fetch Orders for this region
       let query = client.from('orders').select('*').order('created_at', { ascending: false });
-      if (managerSapIds.length > 0) {
-        query = query.in('manager_sap_id', managerSapIds);
+      if (managerSaps.length > 0) {
+        query = query.in('manager_sap_id', managerSaps);
+      }
+      const { data: orders } = await query;
+      allOrders = orders || [];
+
+      // 3. Fetch Reps under this region's ZSMs
+      if (managerSaps.length > 0) {
+        const { data: reps } = await client.from('reps').select('*').in('manager_sap_id', managerSaps);
+        regionalReps = reps || [];
+      } else {
+        regionalReps = [];
       }
 
-      const { data: orders, error } = await query;
-
-      if (error) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-500 text-sm">Error: ${error.message}</div>`;
-        return;
-      }
-
-      regionalOrders = orders || [];
-
-      // 3. Fetch Feedbacks
-      const orderIds = regionalOrders.map(o => o.id);
-      const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
-
+      // 4. Feedbacks
+      const { data: feedbacks } = await client.from('feedback').select('*');
       feedbackMap = {};
       (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
 
-      renderHosCards();
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
     }
 
-    function renderHosCards() {
-      const selectedMgr = document.getElementById('hosManagerFilter')?.value || 'ALL';
-      const selectedStatus = document.getElementById('hosStatusFilter')?.value || 'ALL';
-      const searchTerm = (document.getElementById('hosSearchInput')?.value || '').toLowerCase().trim();
-      const grid = document.getElementById('hosCardsGrid');
+    function populateManagerDropdown() {
+      const mgrSelect = document.getElementById('filterManager');
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in My Region</option>' +
+        regionalManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+    }
 
-      let filtered = regionalOrders.filter(order => {
-        const matchesMgr = selectedMgr === 'ALL' || order.manager_sap_id === selectedMgr;
-        const matchesStatus = selectedStatus === 'ALL' || order.status === selectedStatus;
+    function populateRepDropdown() {
+      const selectedManagerSap = document.getElementById('filterManager').value;
+      const repSelect = document.getElementById('filterRep');
+
+      let filteredReps = regionalReps;
+      if (selectedManagerSap !== 'ALL') {
+        filteredReps = regionalReps.filter(r => r.manager_sap_id === selectedManagerSap);
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+    }
+
+    function onManagerChange() {
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function applyAllFilters() {
+      const managerSap = document.getElementById('filterManager').value;
+      const repCode = document.getElementById('filterRep').value;
+      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
+
+      const hierarchyMatchedOrders = allOrders.filter(o => {
+        const matchesManager = managerSap === 'ALL' || o.manager_sap_id === managerSap;
+        const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
         const matchesSearch = !searchTerm ||
-          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (order.mobile || '').includes(searchTerm) ||
-          (order.order_id || '').toLowerCase().includes(searchTerm) ||
-          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (order.city || '').toLowerCase().includes(searchTerm);
+          (o.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (o.mobile || '').includes(searchTerm) ||
+          (o.order_id || '').toLowerCase().includes(searchTerm) ||
+          (o.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (o.city || '').toLowerCase().includes(searchTerm) ||
+          (o.delivery_address || '').toLowerCase().includes(searchTerm);
 
-        return matchesMgr && matchesStatus && matchesSearch;
+        return matchesManager && matchesRep && matchesSearch;
       });
 
-      if (!filtered || filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">No orders found for this selection.</div>';
-        document.getElementById('statTotal').innerText = '0';
-        document.getElementById('statProcess').innerText = '0';
-        document.getElementById('statDelivered').innerText = '0';
-        document.getElementById('statFeedback').innerText = '0';
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statProcess').innerText = inProcess;
+      document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('filteredCount').innerText = total;
+
+      const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
+      if (ratings.length > 0) {
+        const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        document.getElementById('statRating').innerText = `${avg} ⭐`;
+      } else {
+        document.getElementById('statRating').innerText = '5.0 ⭐';
+      }
+    }
+
+    function updateDailyChart(ordersToGraph) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      ordersToGraph.forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(99, 102, 241, 0.85)',
+            hoverBackgroundColor: 'rgba(129, 140, 248, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#818cf8',
+              bodyColor: '#ffffff',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
+      const docCount = {};
+      activeFilteredOrders.forEach(o => {
+        const d = (o.doctor_name || 'Unassigned').trim();
+        docCount[d] = (docCount[d] || 0) + 1;
+      });
+      const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedDocs.length ? sortedDocs.map(([doc, count], idx) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">${count} Patients</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this date window.</div>';
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
+          <span class="font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">${count} Prescriptions</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('hosCardsGrid');
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selection.</div>';
         return;
       }
 
-      document.getElementById('statTotal').innerText = filtered.length;
-      document.getElementById('statProcess').innerText = filtered.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
-      document.getElementById('statDelivered').innerText = filtered.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      document.getElementById('statFeedback').innerText = filtered.filter(o => feedbackMap[o.id]).length;
-
-      grid.innerHTML = filtered.map(order => {
+      grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
         return `
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between space-y-4">
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
                 <div class="flex items-center gap-1.5">
-                  <span class="font-mono font-black text-slate-900 text-xs tracking-tight">${order.order_id || 'N/A'}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">Rep: ${order.rep_code || 'Direct'}</span>
+                  <span class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-bold border border-indigo-500/20">Rep: ${order.rep_code || 'Direct'}</span>
                 </div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 text-indigo-400 border border-slate-700">
                 ${order.status}
               </span>
             </div>
 
             <div class="space-y-1.5 text-xs">
-              <div class="font-bold text-slate-900 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-              <div class="text-slate-500 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-[11px]">
+              <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
+              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
                 📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
               </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-900 text-white space-y-1.5 text-xs">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 text-[11px]">Doctor</span>
-                <span class="font-bold text-emerald-300">Dr. ${order.doctor_name || 'N/A'}</span>
+                <span class="font-bold text-indigo-300">Dr. ${order.doctor_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Dose & Device</span>
-                <span class="font-bold text-white">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
               </div>
             </div>
 
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 pt-2">
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
               <span class="text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function exportRegionalCSV() {
-      if (!regionalOrders || regionalOrders.length === 0) {
-        alert("No records to export!");
-        return;
-      }
-      let csv = "Order ID,Date,Region,Manager SAP,Rep Code,Patient Name,Mobile,City,Doctor,Dose,Status\n";
-      regionalOrders.forEach(o => {
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${currentHos.region}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.mobile || ''}","${o.city || ''}","${o.doctor_name || ''}","${o.prescribed_dose || ''}","${o.status || ''}"\n`;
+    function exportFilteredCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
+      let csv = "Order ID,Date,Region,Manager SAP,Rep Code,Patient Name,Mobile,City,Doctor,Dose,Device,Status\n";
+      activeFilteredOrders.forEach(o => {
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${currentHos.region}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.mobile || ''}","${o.city || ''}","${o.doctor_name || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_${currentHos.region}_Region_Report.csv`;
+      a.download = `TirzaTrim_HOS_${currentHos.region}_${currentDateScope}_Export.csv`;
       a.click();
     }
 
