@@ -4,73 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TirzaTrim — Doctor Portal</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#059669">
+  <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 md:p-6">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 p-4 md:p-6">
 
-  <div class="max-w-6xl mx-auto space-y-6">
+  <div class="max-w-7xl mx-auto space-y-5">
+    
     <!-- Header with Home Button -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border">
       <div>
         <div class="flex items-center gap-2 mb-1">
           <a href="/" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all">
             🏠 Home
           </a>
-          <h1 class="text-2xl font-bold text-slate-800" id="portalHeader">TirzaTrim Doctor Portal</h1>
+          <h1 class="text-xl md:text-2xl font-extrabold text-slate-900" id="portalHeader">TirzaTrim Doctor Portal</h1>
         </div>
         <p class="text-xs text-slate-500" id="portalSubheader">Patient Prescription, Delivery & Service Feedback Tracker</p>
       </div>
-      <div class="flex items-center gap-2">
-        <div id="searchContainer" class="hidden">
-          <input type="text" id="manualDoctorInput" placeholder="Enter Doctor Name..." class="px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-          <button onclick="handleManualSearch()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg ml-2">
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div id="searchContainer" class="hidden flex items-center gap-2">
+          <input type="text" id="manualDoctorInput" placeholder="Enter Doctor Name..." class="px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+          <button onclick="handleManualSearch()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
             View Patients
           </button>
         </div>
-        <button onclick="fetchDoctorPatients()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg">
+        <button onclick="fetchDoctorPatients()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
           🔄 Refresh
         </button>
       </div>
     </div>
 
     <!-- Summary Metrics -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-5 rounded-xl border shadow-sm">
-        <div class="text-xs font-semibold uppercase text-slate-400">Total Referred Patients</div>
-        <div id="metricTotal" class="text-2xl font-bold text-slate-800 mt-1">0</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-white p-4 rounded-2xl border shadow-sm">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Referred Patients</div>
+        <div id="metricTotal" class="text-2xl font-black text-slate-800 mt-1">0</div>
       </div>
-      <div class="bg-white p-5 rounded-xl border shadow-sm">
-        <div class="text-xs font-semibold uppercase text-slate-400">Completed Deliveries</div>
-        <div id="metricCompleted" class="text-2xl font-bold text-emerald-600 mt-1">0</div>
+      <div class="bg-white p-4 rounded-2xl border shadow-sm">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Completed Deliveries</div>
+        <div id="metricCompleted" class="text-2xl font-black text-emerald-600 mt-1">0</div>
       </div>
-      <div class="bg-white p-5 rounded-xl border shadow-sm">
-        <div class="text-xs font-semibold uppercase text-slate-400">Feedback Submissions</div>
-        <div id="metricFeedback" class="text-2xl font-bold text-purple-600 mt-1">0</div>
+      <div class="bg-white p-4 rounded-2xl border shadow-sm">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback Submissions</div>
+        <div id="metricFeedback" class="text-2xl font-black text-purple-600 mt-1">0</div>
       </div>
     </div>
 
-    <!-- Patient Records Table -->
-    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-600">
-          <thead class="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider border-b">
-            <tr>
-              <th class="p-4">Patient & City</th>
-              <th class="p-4">Dose & Pen Device</th>
-              <th class="p-4">Status</th>
-              <th class="p-4">Prescription</th>
-              <th class="p-4">Patient Feedback</th>
-            </tr>
-          </thead>
-          <tbody id="doctorTableBody" class="divide-y">
-            <tr>
-              <td colspan="5" class="p-6 text-center text-slate-400">Loading patient records...</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Filter & Search Controls -->
+    <div class="bg-white p-3 md:p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-2.5 items-center justify-between">
+      <div class="w-full md:w-1/2 relative">
+        <input type="text" id="doctorSearchInput" oninput="applyDoctorFilters()" placeholder="🔍 Search patient name, city, or dose..." class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50">
+      </div>
+      <div class="w-full md:w-auto">
+        <select id="doctorStatusFilter" onchange="applyDoctorFilters()" class="w-full md:w-auto px-3.5 py-2 border rounded-xl text-xs font-medium bg-slate-50 outline-none text-slate-700 focus:ring-2 focus:ring-emerald-500">
+          <option value="ALL">All Delivery Statuses</option>
+          <option value="New Patient">New Patient</option>
+          <option value="Prescription Verified">Prescription Verified</option>
+          <option value="Order Processing">Order Processing</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Feedback Submitted">Feedback Submitted</option>
+        </select>
       </div>
     </div>
+
+    <!-- MODERN DOCTOR PATIENT CARDS CONTAINER -->
+    <div id="doctorCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="col-span-full py-12 text-center text-slate-400 text-sm">
+        Loading patient records...
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -81,10 +89,12 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let targetDoctor = urlParams.get('dr') ? urlParams.get('dr').trim() : '';
+    let rawDoctorOrders = [];
+    let feedbackMap = {};
 
     if (targetDoctor) {
       document.getElementById('portalHeader').innerText = `${targetDoctor}'s Portal`;
-      document.getElementById('portalSubheader').innerText = `Live prescription tracker and feedback for ${targetDoctor}`;
+      document.getElementById('portalSubheader').innerText = `Live prescription tracker and fulfillment feedback for ${targetDoctor}`;
       document.getElementById('searchContainer').classList.add('hidden');
     } else {
       document.getElementById('searchContainer').classList.remove('hidden');
@@ -98,26 +108,27 @@
       }
       targetDoctor = val;
       document.getElementById('portalHeader').innerText = `${targetDoctor}'s Portal`;
+      document.getElementById('portalSubheader').innerText = `Live prescription tracker and fulfillment feedback for ${targetDoctor}`;
       fetchDoctorPatients();
     }
 
     function renderStars(rating) {
       if (!rating) return '<span class="text-xs text-slate-400 italic">No rating</span>';
-      return '⭐'.repeat(rating) + ` <span class="text-xs text-slate-500">(${rating}/5)</span>`;
+      return '⭐'.repeat(rating) + ` <span class="text-xs text-slate-500 font-semibold">(${rating}/5)</span>`;
     }
 
     async function fetchDoctorPatients() {
-      const tbody = document.getElementById('doctorTableBody');
+      const grid = document.getElementById('doctorCardsGrid');
 
       if (!targetDoctor) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">Please provide or search your Doctor Name to view your referred patient records.</td></tr>';
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm font-medium">Please provide or search your Doctor Name above to view your referred patient records.</div>';
         document.getElementById('metricTotal').innerText = '0';
         document.getElementById('metricCompleted').innerText = '0';
         document.getElementById('metricFeedback').innerText = '0';
         return;
       }
 
-      tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Loading your patient records...</td></tr>';
+      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">Loading your patient records...</div>';
 
       const cleanName = targetDoctor.replace(/^Dr\.?\s*/i, '').trim();
 
@@ -128,64 +139,131 @@
         .order('created_at', { ascending: false });
 
       if (orderErr) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-500">Error: ${orderErr.message}</td></tr>`;
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-500 text-sm">Error: ${orderErr.message}</div>`;
         return;
       }
 
-      if (!orders || orders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">No patient prescriptions found for <strong>${targetDoctor}</strong>.</td></tr>`;
+      rawDoctorOrders = orders || [];
+
+      if (rawDoctorOrders.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-sm">No patient prescriptions found for <strong>${targetDoctor}</strong>.</div>`;
         document.getElementById('metricTotal').innerText = '0';
         document.getElementById('metricCompleted').innerText = '0';
         document.getElementById('metricFeedback').innerText = '0';
         return;
       }
 
-      const orderIds = orders.map(o => o.id);
+      const orderIds = rawDoctorOrders.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
         .select('*')
         .in('order_id', orderIds);
 
-      const feedbackMap = {};
+      feedbackMap = {};
       (feedbacks || []).forEach(f => {
         feedbackMap[f.order_id] = f;
       });
 
-      document.getElementById('metricTotal').innerText = orders.length;
-      document.getElementById('metricCompleted').innerText = orders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      document.getElementById('metricTotal').innerText = rawDoctorOrders.length;
+      document.getElementById('metricCompleted').innerText = rawDoctorOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       document.getElementById('metricFeedback').innerText = feedbacks ? feedbacks.length : 0;
 
-      tbody.innerHTML = orders.map(order => {
+      applyDoctorFilters();
+    }
+
+    function applyDoctorFilters() {
+      const searchTerm = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('doctorStatusFilter')?.value || 'ALL';
+      const grid = document.getElementById('doctorCardsGrid');
+
+      let filtered = rawDoctorOrders.filter(order => {
+        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+        const matchesSearch = !searchTerm ||
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.prescribed_dose || '').toLowerCase().includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm);
+
+        return matchesStatus && matchesSearch;
+      });
+
+      if (!filtered || filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">No matching records found.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(order => {
         const fb = feedbackMap[order.id];
         return `
-          <tr class="hover:bg-slate-50 transition-colors">
-            <td class="p-4">
-              <div class="font-semibold text-slate-800">${order.patient_name} ${order.age ? `<span class="text-xs font-normal text-slate-500">(${order.age} yrs)</span>` : ''}</div>
-              <div class="text-xs text-slate-400 mt-0.5">📍 ${order.city}</div>
-            </td>
-            <td class="p-4">
-              <div class="text-xs font-bold text-emerald-600">${order.prescribed_dose || 'N/A'}</div>
-              <div class="text-xs text-purple-700 font-medium mt-0.5">${order.device || 'N/A'}</div>
-              <div class="text-xs text-slate-400 mt-0.5">${order.indication || ''}</div>
-            </td>
-            <td class="p-4">
-              <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                ${order.status}
-              </span>
-            </td>
-            <td class="p-4">
-              ${order.prescription_url 
-                ? `<a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800 font-medium">📄 View Rx</a>` 
-                : '<span class="text-xs text-slate-400">None</span>'}
-            </td>
-            <td class="p-4">
-              ${fb ? `
-                <div class="text-xs font-semibold">${renderStars(fb.overall_rating)}</div>
-                ${fb.comments ? `<div class="text-xs text-slate-600 italic mt-1">"${fb.comments}"</div>` : '<div class="text-xs text-slate-400 mt-1">No written comments</div>'}
-                <div class="text-[11px] text-slate-400 mt-0.5">Recommend: <strong>${fb.would_recommend || 'N/A'}</strong></div>
-              ` : '<span class="text-xs text-slate-400 italic">Pending feedback</span>'}
-            </td>
-          </tr>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4">
+            
+            <!-- Card Header: ID, Date & Read-only Status -->
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <div class="font-mono font-black text-slate-900 text-xs tracking-tight">${order.order_id || 'N/A'}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+              </div>
+              <div>
+                <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                  ${order.status}
+                </span>
+              </div>
+            </div>
+
+            <!-- Patient Information (Privacy-Safe for Doctor Portal) -->
+            <div class="space-y-1.5 text-xs">
+              <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                <span>👤</span>
+                <span>${order.patient_name}</span>
+                ${order.age ? `<span class="text-xs font-medium text-slate-400">(${order.age} yrs)</span>` : ''}
+              </div>
+              <div class="text-slate-500 font-medium text-[11px]">
+                📍 Location: <strong class="text-slate-700">${order.city || 'Pakistan'}</strong>
+              </div>
+            </div>
+
+            <!-- Clinical & Prescription Details -->
+            <div class="p-3 rounded-xl bg-slate-900 text-white space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
+                <span class="font-bold text-emerald-300">${order.prescribed_dose || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
+                <span class="text-slate-400 text-[11px]">Pen Device</span>
+                <span class="font-bold text-white">${order.device || 'N/A'}</span>
+              </div>
+              ${order.indication ? `
+                <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
+                  <span class="text-slate-400 text-[11px]">Indication</span>
+                  <span class="text-slate-300">${order.indication}</span>
+                </div>
+              ` : ''}
+              <div class="border-t border-slate-800 pt-2 text-right">
+                ${order.prescription_url 
+                  ? `<a href="${order.prescription_url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 underline font-semibold">📄 View Rx Prescription</a>` 
+                  : '<span class="text-[11px] text-slate-500">No Rx Document</span>'}
+              </div>
+            </div>
+
+            <!-- Verified Patient Feedback -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-medium text-[11px]">Patient Feedback:</span>
+                <div>${fb ? renderStars(fb.overall_rating) : '<span class="text-[11px] text-slate-400 italic">Pending delivery</span>'}</div>
+              </div>
+              ${fb && fb.comments ? `
+                <div class="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border border-slate-100 mt-1">
+                  "${fb.comments}"
+                </div>
+              ` : ''}
+              ${fb && fb.would_recommend ? `
+                <div class="text-[10px] text-slate-500 font-medium pt-0.5">
+                  Recommends Service: <strong class="text-emerald-700">${fb.would_recommend}</strong>
+                </div>
+              ` : ''}
+            </div>
+
+          </div>
         `;
       }).join('');
     }
