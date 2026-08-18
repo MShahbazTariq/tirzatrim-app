@@ -9,8 +9,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js for High-Performance Responsive Executive Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-950 min-h-screen font-sans text-slate-100">
+<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
 
   <!-- PIN AUTH MODAL -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -38,10 +40,10 @@
     </div>
   </div>
 
-  <!-- NATIONAL COMMAND DASHBOARD -->
-  <div id="dashboardContent" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
+  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
     
-    <!-- Top Header -->
+    <!-- Top Executive Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
       <div>
         <div class="flex items-center gap-2">
@@ -51,61 +53,134 @@
           <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">National <span class="text-emerald-400">Command Center</span></h1>
           <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">HQ Live</span>
         </div>
-        <p class="text-xs text-slate-400 mt-1">Nationwide Commercial Performance, KOL Doctor Analytics & Multi-Dose Pen Fulfillment</p>
+        <p class="text-xs text-slate-400 mt-1">Multi-Tier Hierarchy Analytics: HOS (Regions) → ZSM (Zones) → Field Reps (T-Codes)</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="exportNationalCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
-          📥 Download Master National CSV
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
+          📥 Download Filtered CSV
         </button>
-        <button onclick="handleHeadOfficeLogout()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">
+        <button onclick="fetchEverything()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">
+          🔄 Refresh
+        </button>
+        <button onclick="handleHeadOfficeLogout()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
           🚪 Lock Suite
         </button>
       </div>
     </div>
 
-    <!-- 4 High-Level National Metric Cards -->
+    <!-- National KPI Strip -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Nationwide Patients</div>
-        <div id="natTotal" class="text-3xl font-black text-white mt-1">0</div>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Enrolled Patients</div>
+        <div id="statTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-400">Active In-Fulfillment</div>
-        <div id="natProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">In Fulfillment</div>
+        <div id="statProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Delivered & Confirmed</div>
-        <div id="natDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Delivered & Completed</div>
+        <div id="statDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-xs font-bold uppercase tracking-wider text-purple-400">Avg. Service Rating</div>
-        <div id="natRating" class="text-3xl font-black text-purple-400 mt-1">5.0 ⭐</div>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Avg Service Rating</div>
+        <div id="statRating" class="text-3xl font-black text-purple-400 mt-1">5.0 ⭐</div>
       </div>
     </div>
 
-    <!-- National Breakdown & Top Prescribers -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- CASCADING DRILL-DOWN SEARCH & FILTER BAR -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
+      <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+        <span>🔍</span> Multi-Level Hierarchy Search & Filter Engine
+      </div>
       
-      <!-- Top 5 KOL Prescribing Doctors -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- 1. HOS / Region -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">1. Region (HOS)</label>
+          <select id="filterRegion" onchange="onRegionChange()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Regions (National)</option>
+            <option value="Central">Central Region</option>
+            <option value="North">North Region</option>
+            <option value="South">South Region</option>
+          </select>
+        </div>
+
+        <!-- 2. ZSM / Zone -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">2. Zonal Manager (ZSM)</label>
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All ZSMs in Region</option>
+          </select>
+        </div>
+
+        <!-- 3. Territory Rep / T-Code -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">3. Field Rep (T-Code)</label>
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Reps in Zone</option>
+          </select>
+        </div>
+
+        <!-- 4. Global Search Text -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">4. Keyword Search</label>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Dr, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500 placeholder-slate-600">
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
+    <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📊</span> Daily Patient Enrollment Trend
+          </h3>
+          <p class="text-xs text-slate-400" id="chartSubheading">Showing daily prescription entries based on current selection</p>
+        </div>
+        <div class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 self-start">
+          Live Interactive Daily Visualizer
+        </div>
+      </div>
+      <div class="h-64 w-full pt-2">
+        <canvas id="dailyEnrollmentChart"></canvas>
+      </div>
+    </div>
+
+    <!-- KOLs & Dosage Breakdown Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>🩺</span> Top Prescribing Physicians (KOLs)
+          <span>🩺</span> Top Prescribing Doctors (Selected Scope)
         </h3>
         <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
-          <div class="text-slate-500 py-2 text-center">Calculating doctor prescriptions...</div>
+          <div class="text-slate-500 py-2 text-center">Loading prescribers...</div>
         </div>
       </div>
 
-      <!-- Dose Distribution (2.5mg vs 5mg vs 10mg vs 15mg) -->
       <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>💉</span> Dosage & Device Breakdown
+          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
         </h3>
         <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
-          <div class="text-slate-500 py-2 text-center">Calculating dosage share...</div>
+          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
         </div>
       </div>
+    </div>
 
+    <!-- FILTERED PATIENTS CARDS GRID -->
+    <div class="space-y-3 pt-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+        </h3>
+      </div>
+      <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+          Loading records...
+        </div>
+      </div>
     </div>
 
   </div>
@@ -116,15 +191,19 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Default Master Executive Key (Can be changed anytime)
     const MASTER_KEY = "HQ2026";
-    let allNationalOrders = [];
+    let allOrders = [];
+    let allManagers = [];
+    let allReps = [];
+    let feedbackMap = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
 
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        fetchNationalData();
+        fetchEverything();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -147,64 +226,288 @@
       checkHoSession();
     }
 
-    async function fetchNationalData() {
+    function renderStars(rating) {
+      if (!rating) return '';
+      return '⭐'.repeat(rating);
+    }
+
+    async function fetchEverything() {
+      // 1. Fetch Orders
       const { data: orders } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      allOrders = orders || [];
+
+      // 2. Fetch Managers
+      const { data: managers } = await client.from('managers').select('*');
+      allManagers = managers || [];
+
+      // 3. Fetch Reps
+      const { data: reps } = await client.from('reps').select('*');
+      allReps = reps || [];
+
+      // 4. Fetch Feedbacks
       const { data: feedbacks } = await client.from('feedback').select('*');
+      feedbackMap = {};
+      (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
 
-      allNationalOrders = orders || [];
-      const total = allNationalOrders.length;
-      const delivered = allNationalOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      const inProcess = total - delivered;
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    }
 
-      document.getElementById('natTotal').innerText = total;
-      document.getElementById('natProcess').innerText = inProcess;
-      document.getElementById('natDelivered').innerText = delivered;
+    function populateManagerDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const mgrSelect = document.getElementById('filterManager');
+      
+      const filteredManagers = selectedRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
 
-      // Rating calculation
-      if (feedbacks && feedbacks.length > 0) {
-        const avg = (feedbacks.reduce((a, b) => a + (b.overall_rating || 5), 0) / feedbacks.length).toFixed(1);
-        document.getElementById('natRating').innerText = `${avg} ⭐`;
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Selection</option>' +
+        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'}) [SAP: ${m.manager_sap_id}]</option>`).join('');
+    }
+
+    function populateRepDropdown() {
+      const selectedManagerSap = document.getElementById('filterManager').value;
+      const repSelect = document.getElementById('filterRep');
+
+      let filteredReps = allReps;
+      if (selectedManagerSap !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
       }
 
+      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+    }
+
+    function onRegionChange() {
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function onManagerChange() {
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function applyAllFilters() {
+      const region = document.getElementById('filterRegion').value;
+      const managerSap = document.getElementById('filterManager').value;
+      const repCode = document.getElementById('filterRep').value;
+      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
+
+      // Find SAPs belonging to selected region if region != ALL
+      let allowedManagerSaps = [];
+      if (region !== 'ALL') {
+        allowedManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === region)
+          .map(m => m.manager_sap_id);
+      }
+
+      activeFilteredOrders = allOrders.filter(o => {
+        const matchesRegion = region === 'ALL' || allowedManagerSaps.includes(o.manager_sap_id);
+        const matchesManager = managerSap === 'ALL' || o.manager_sap_id === managerSap;
+        const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
+        const matchesSearch = !searchTerm ||
+          (o.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (o.mobile || '').includes(searchTerm) ||
+          (o.order_id || '').toLowerCase().includes(searchTerm) ||
+          (o.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (o.city || '').toLowerCase().includes(searchTerm) ||
+          (o.delivery_address || '').toLowerCase().includes(searchTerm);
+
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+      });
+
+      updateMetrics();
+      updateDailyChart();
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statProcess').innerText = inProcess;
+      document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('filteredCount').innerText = total;
+
+      const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
+      if (ratings.length > 0) {
+        const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        document.getElementById('statRating').innerText = `${avg} ⭐`;
+      } else {
+        document.getElementById('statRating').innerText = '5.0 ⭐';
+      }
+    }
+
+    function updateDailyChart() {
+      // Aggregate by Date for last 14 days
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      activeFilteredOrders.forEach(o => {
+        const orderDate = (o.created_at || '').slice(0, 10);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#34d399',
+              bodyColor: '#ffffff',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
       // Top Doctors
       const docCount = {};
-      allNationalOrders.forEach(o => {
+      activeFilteredOrders.forEach(o => {
         const d = (o.doctor_name || 'Unassigned').trim();
         docCount[d] = (docCount[d] || 0) + 1;
       });
       const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
       
-      document.getElementById('topDoctorsList').innerHTML = sortedDocs.map(([doc, count], idx) => `
+      document.getElementById('topDoctorsList').innerHTML = sortedDocs.length ? sortedDocs.map(([doc, count], idx) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
           <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">${count} Patients</span>
         </div>
-      `).join('');
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this selection.</div>';
 
       // Dose Breakdown
       const doseCount = {};
-      allNationalOrders.forEach(o => {
+      activeFilteredOrders.forEach(o => {
         const dose = o.prescribed_dose || 'Unspecified';
         doseCount[dose] = (doseCount[dose] || 0) + 1;
       });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).map(([dose, count]) => `
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
           <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
         </div>
-      `).join('');
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this selection.</div>';
     }
 
-    function exportNationalCSV() {
-      if (!allNationalOrders || allNationalOrders.length === 0) return alert("No national records.");
+    function renderCards() {
+      const grid = document.getElementById('hoCardsGrid');
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = activeFilteredOrders.map(order => {
+        const fb = feedbackMap[order.id];
+        return `
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+              </div>
+              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 text-emerald-400 border border-slate-700">
+                ${order.status}
+              </span>
+            </div>
+
+            <div class="space-y-1.5 text-xs">
+              <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
+              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 text-[11px]">Doctor</span>
+                <span class="font-bold text-emerald-300">Dr. ${order.doctor_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
+                <span class="text-slate-400 text-[11px]">Dose & Device</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
+              </div>
+            </div>
+
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
+              <span class="text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportFilteredCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
       let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Mobile,City,Doctor,Dose,Device,Status\n";
-      allNationalOrders.forEach(o => {
+      activeFilteredOrders.forEach(o => {
         csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.mobile || ''}","${o.city || ''}","${o.doctor_name || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_NATIONWIDE_MASTER_REPORT_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `TirzaTrim_HQ_Filtered_Export_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
 
