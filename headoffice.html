@@ -9,7 +9,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Chart.js for High-Performance Responsive Executive Graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
@@ -68,10 +67,43 @@
       </div>
     </div>
 
+    <!-- DATE CONTROLS & CALENDAR STRIP -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Timeline & Date Scope
+        </div>
+        
+        <!-- Preset Toggles -->
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">This Month</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+        </div>
+      </div>
+
+      <!-- Custom Calendar Pickers -->
+      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-emerald-500">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-emerald-500">
+        </div>
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+          Showing: Today
+        </span>
+      </div>
+    </div>
+
     <!-- National KPI Strip -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Enrolled Patients</div>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Selected Scope Patients</div>
         <div id="statTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
@@ -88,14 +120,13 @@
       </div>
     </div>
 
-    <!-- CASCADING DRILL-DOWN SEARCH & FILTER BAR -->
+    <!-- CASCADING HIERARCHY SEARCH & FILTER BAR -->
     <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
       <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-        <span>🔍</span> Multi-Level Hierarchy Search & Filter Engine
+        <span>🔍</span> Multi-Level Hierarchy Search Engine
       </div>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <!-- 1. HOS / Region -->
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">1. Region (HOS)</label>
           <select id="filterRegion" onchange="onRegionChange()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
@@ -106,7 +137,6 @@
           </select>
         </div>
 
-        <!-- 2. ZSM / Zone -->
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">2. Zonal Manager (ZSM)</label>
           <select id="filterManager" onchange="onManagerChange()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
@@ -114,7 +144,6 @@
           </select>
         </div>
 
-        <!-- 3. Territory Rep / T-Code -->
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">3. Field Rep (T-Code)</label>
           <select id="filterRep" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
@@ -122,7 +151,6 @@
           </select>
         </div>
 
-        <!-- 4. Global Search Text -->
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">4. Keyword Search</label>
           <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Dr, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500 placeholder-slate-600">
@@ -140,7 +168,7 @@
           <p class="text-xs text-slate-400" id="chartSubheading">Showing daily prescription entries based on current selection</p>
         </div>
         <div class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 self-start">
-          Live Interactive Daily Visualizer
+          Interactive Visualizer
         </div>
       </div>
       <div class="h-64 w-full pt-2">
@@ -199,10 +227,88 @@
     let activeFilteredOrders = [];
     let chartInstance = null;
 
+    // Date Filtering State
+    let currentDateScope = "TODAY";
+    let filterStartDate = null;
+    let filterEndDate = null;
+
+    function initDates() {
+      setDatePreset('TODAY');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+      const formatYMD = (d) => d.toISOString().slice(0, 10);
+
+      // Reset button styles
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = formatYMD(today);
+        filterEndDate = formatYMD(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = formatYMD(y);
+        filterEndDate = formatYMD(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = formatYMD(last7);
+        filterEndDate = formatYMD(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = formatYMD(firstDay);
+        filterEndDate = formatYMD(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        applyAllFilters();
+      }
+    }
+
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
+        initDates();
         fetchEverything();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -232,19 +338,15 @@
     }
 
     async function fetchEverything() {
-      // 1. Fetch Orders
       const { data: orders } = await client.from('orders').select('*').order('created_at', { ascending: false });
       allOrders = orders || [];
 
-      // 2. Fetch Managers
       const { data: managers } = await client.from('managers').select('*');
       allManagers = managers || [];
 
-      // 3. Fetch Reps
       const { data: reps } = await client.from('reps').select('*');
       allReps = reps || [];
 
-      // 4. Fetch Feedbacks
       const { data: feedbacks } = await client.from('feedback').select('*');
       feedbackMap = {};
       (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
@@ -262,8 +364,8 @@
         ? allManagers
         : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
 
-      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Selection</option>' +
-        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'}) [SAP: ${m.manager_sap_id}]</option>`).join('');
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
+        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
     }
 
     function populateRepDropdown() {
@@ -296,7 +398,6 @@
       const repCode = document.getElementById('filterRep').value;
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-      // Find SAPs belonging to selected region if region != ALL
       let allowedManagerSaps = [];
       if (region !== 'ALL') {
         allowedManagerSaps = allManagers
@@ -305,6 +406,13 @@
       }
 
       activeFilteredOrders = allOrders.filter(o => {
+        // Date check
+        const orderDateStr = (o.created_at || '').slice(0, 10);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+
         const matchesRegion = region === 'ALL' || allowedManagerSaps.includes(o.manager_sap_id);
         const matchesManager = managerSap === 'ALL' || o.manager_sap_id === managerSap;
         const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
@@ -317,7 +425,7 @@
           (o.city || '').toLowerCase().includes(searchTerm) ||
           (o.delivery_address || '').toLowerCase().includes(searchTerm);
 
-        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+        return matchesDate && matchesRegion && matchesManager && matchesRep && matchesSearch;
       });
 
       updateMetrics();
@@ -346,7 +454,6 @@
     }
 
     function updateDailyChart() {
-      // Aggregate by Date for last 14 days
       const daysCount = {};
       const datesList = [];
       for (let i = 13; i >= 0; i--) {
@@ -357,7 +464,8 @@
         datesList.push(key);
       }
 
-      activeFilteredOrders.forEach(o => {
+      // If viewing all time or broad date range, tally by order dates
+      allOrders.forEach(o => {
         const orderDate = (o.created_at || '').slice(0, 10);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
@@ -380,7 +488,7 @@
           datasets: [{
             label: 'Patients Enrolled',
             data: dataPoints,
-            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
             hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
             borderRadius: 6,
             borderSkipped: false
@@ -417,7 +525,6 @@
     }
 
     function updateSummaries() {
-      // Top Doctors
       const docCount = {};
       activeFilteredOrders.forEach(o => {
         const d = (o.doctor_name || 'Unassigned').trim();
@@ -430,9 +537,8 @@
           <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
           <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">${count} Patients</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this selection.</div>';
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this date window.</div>';
 
-      // Dose Breakdown
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
         const dose = o.prescribed_dose || 'Unspecified';
@@ -443,13 +549,13 @@
           <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
           <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this selection.</div>';
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
     }
 
     function renderCards() {
       const grid = document.getElementById('hoCardsGrid');
       if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your filters.</div>';
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
       }
 
@@ -507,7 +613,7 @@
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_HQ_Filtered_Export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
       a.click();
     }
 
