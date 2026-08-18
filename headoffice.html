@@ -76,10 +76,10 @@
         
         <!-- Preset Toggles -->
         <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">Today</button>
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
           <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
           <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">This Month</button>
           <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
         </div>
       </div>
@@ -95,7 +95,7 @@
           <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-emerald-500">
         </div>
         <span id="dateScopeBadge" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-          Showing: Today
+          Showing: Month to Date
         </span>
       </div>
     </div>
@@ -163,9 +163,9 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <span>📊</span> Daily Patient Enrollment Trend
+            <span>📊</span> Daily Patient Enrollment Trend (Last 14 Days)
           </h3>
-          <p class="text-xs text-slate-400" id="chartSubheading">Showing daily prescription entries based on current selection</p>
+          <p class="text-xs text-slate-400" id="chartSubheading">Showing daily prescription trends for current hierarchy selection</p>
         </div>
         <div class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 self-start">
           Interactive Visualizer
@@ -226,8 +226,8 @@
     let activeFilteredOrders = [];
     let chartInstance = null;
 
-    // Date Filtering State
-    let currentDateScope = "TODAY";
+    // Date Filtering State (Default to MTD so records are immediately visible)
+    let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
 
@@ -240,7 +240,7 @@
     }
 
     function initDates() {
-      setDatePreset('TODAY');
+      setDatePreset('MTD');
     }
 
     function setDatePreset(type) {
@@ -381,17 +381,14 @@
       let filteredReps = [];
 
       if (selectedManagerSap !== 'ALL') {
-        // Direct manager selection
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
       } else if (selectedRegion !== 'ALL') {
-        // Region selected -> Get SAP IDs belonging to this region only
         const regionManagerSaps = allManagers
           .filter(m => (m.region || 'Central') === selectedRegion)
           .map(m => m.manager_sap_id);
 
         filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
       } else {
-        // National (All Regions)
         filteredReps = allReps;
       }
 
@@ -423,13 +420,8 @@
           .map(m => m.manager_sap_id);
       }
 
-      activeFilteredOrders = allOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-
+      // 1. Hierarchy Filter (used for chart trends over full 14 days)
+      const hierarchyMatchedOrders = allOrders.filter(o => {
         const matchesRegion = region === 'ALL' || allowedManagerSaps.includes(o.manager_sap_id);
         const matchesManager = managerSap === 'ALL' || o.manager_sap_id === managerSap;
         const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
@@ -442,11 +434,21 @@
           (o.city || '').toLowerCase().includes(searchTerm) ||
           (o.delivery_address || '').toLowerCase().includes(searchTerm);
 
-        return matchesDate && matchesRegion && matchesManager && matchesRep && matchesSearch;
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+      });
+
+      // 2. Date-Restricted Filter (used for KPI Cards & Patient List)
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
       });
 
       updateMetrics();
-      updateDailyChart();
+      updateDailyChart(hierarchyMatchedOrders);
       updateSummaries();
       renderCards();
     }
@@ -470,7 +472,7 @@
       }
     }
 
-    function updateDailyChart() {
+    function updateDailyChart(ordersToGraph) {
       const daysCount = {};
       const datesList = [];
       for (let i = 13; i >= 0; i--) {
@@ -481,8 +483,8 @@
         datesList.push(key);
       }
 
-      // Group active filtered orders by local date
-      activeFilteredOrders.forEach(o => {
+      // Graph the selected hierarchy over the full 14 days
+      ordersToGraph.forEach(o => {
         const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
