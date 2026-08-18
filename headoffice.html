@@ -212,7 +212,6 @@
     </div>
 
   </div>
-
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
@@ -232,6 +231,15 @@
     let filterStartDate = null;
     let filterEndDate = null;
 
+    // Helper: Returns local YYYY-MM-DD string to resolve UTC/PKT timezone offset
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function initDates() {
       setDatePreset('TODAY');
     }
@@ -239,7 +247,6 @@
     function setDatePreset(type) {
       currentDateScope = type;
       const today = new Date();
-      const formatYMD = (d) => d.toISOString().slice(0, 10);
 
       // Reset button styles
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
@@ -249,28 +256,28 @@
 
       if (type === 'TODAY') {
         document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = formatYMD(today);
-        filterEndDate = formatYMD(today);
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
       } else if (type === 'YESTERDAY') {
         document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const y = new Date();
         y.setDate(y.getDate() - 1);
-        filterStartDate = formatYMD(y);
-        filterEndDate = formatYMD(y);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
       } else if (type === 'LAST7') {
         document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const last7 = new Date();
         last7.setDate(last7.getDate() - 6);
-        filterStartDate = formatYMD(last7);
-        filterEndDate = formatYMD(today);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
       } else if (type === 'MTD') {
         document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = formatYMD(firstDay);
-        filterEndDate = formatYMD(today);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
       } else if (type === 'ALL') {
         document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
@@ -406,8 +413,8 @@
       }
 
       activeFilteredOrders = allOrders.filter(o => {
-        // Date check
-        const orderDateStr = (o.created_at || '').slice(0, 10);
+        // Date check via local formatted date
+        const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
         if (filterStartDate && filterEndDate) {
           matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
@@ -459,14 +466,14 @@
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
+        const key = getLocalDateKey(d);
         daysCount[key] = 0;
         datesList.push(key);
       }
 
-      // If viewing all time or broad date range, tally by order dates
+      // Group by local Pakistan date
       allOrders.forEach(o => {
-        const orderDate = (o.created_at || '').slice(0, 10);
+        const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
         }
