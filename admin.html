@@ -3,116 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Manager Portal</title>
+  <title>TirzaTrim — Zonal Operations Hub</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#059669">
+  <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
 
-  <!-- ================= AUTH SCREEN ================= -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6 relative">
-      
-      <!-- Home Button on Login Screen -->
-      <a href="/" class="absolute top-5 left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+  <!-- AUTH SCREEN -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      <a href="/" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xs font-semibold">
         🏠 Home
       </a>
-
-      <div class="text-center space-y-1 pt-4">
-        <h2 class="text-2xl font-bold text-slate-800">Manager Operations Hub</h2>
-        <p class="text-xs text-slate-500">Sign in or register your management territory</p>
+      <div class="space-y-2 pt-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto">
+          🏢
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-white">Zonal Operations Hub</h2>
+        <p class="text-xs text-slate-400">Zonal Sales Manager Administration & Territory Portal</p>
       </div>
 
-      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-        <button id="mgrLoginTabBtn" onclick="showMgrAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all">
+      <div class="grid grid-cols-2 p-1 bg-slate-950 rounded-xl text-xs font-semibold border border-slate-800">
+        <button id="mgrLoginTabBtn" onclick="showMgrAuthTab('login')" class="py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">
           Manager Login
         </button>
-        <button id="mgrSignupTabBtn" onclick="showMgrAuthTab('signup')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
-          New Manager Signup
+        <button id="mgrSignupTabBtn" onclick="showMgrAuthTab('signup')" class="py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+          New Registration
         </button>
       </div>
 
       <!-- LOGIN -->
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
-          <input type="text" id="loginMgrSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+          <input type="text" id="loginMgrSap" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-emerald-500">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
-          <input type="password" id="loginMgrPassword" placeholder="Enter your password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
           Unlock My Zone Dashboard
         </button>
       </form>
 
       <!-- SIGNUP -->
-      <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden">
+      <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden text-left">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Manager Full Name *</label>
-          <input type="text" id="regMgrName" placeholder="e.g. M. Shahbaz Tariq" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name *</label>
+          <input type="text" id="regMgrName" placeholder="e.g. M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Team *</label>
-            <input type="text" id="regMgrTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Assigned Region *</label>
+            <select id="regMgrRegion" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
+              <option value="Central">Central</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+            </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Zone / Region *</label>
-            <input type="text" id="regMgrZone" placeholder="e.g. LHR2" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Team *</label>
+            <input type="text" id="regMgrTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs uppercase text-white outline-none focus:border-emerald-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regMgrSapId" placeholder="e.g. 7613" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-emerald-700">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Zone / Territory *</label>
+            <input type="text" id="regMgrZone" placeholder="e.g. LHR2" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Set Password *</label>
-            <input type="password" id="regMgrPassword" placeholder="Create password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Manager SAP ID *</label>
+            <input type="text" id="regMgrSapId" placeholder="e.g. 7613" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-400 font-bold outline-none focus:border-emerald-500">
           </div>
         </div>
-        <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg shadow transition-all mt-2">
-          Register Manager Account
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Set Password *</label>
+          <input type="password" id="regMgrPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
+          Register ZSM Account
         </button>
       </form>
-
-      <p id="mgrAuthErrorMsg" class="text-center text-xs font-medium text-rose-600 hidden"></p>
+      <p id="mgrAuthErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
 
-  <!-- ================= REP & TERRITORY MANAGEMENT MODAL ================= -->
-  <div id="repsModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-6 max-w-3xl w-full shadow-2xl border space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-3">
+  <!-- REP & TERRITORY MANAGEMENT MODAL -->
+  <div id="repsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-lg font-bold text-slate-800">Field Force & Territory Transfers</h3>
-          <p class="text-xs text-slate-500">Manage reps or transfer past patient records between territory codes</p>
+          <h3 class="text-lg font-bold text-white">Field Force & Territory Transfers</h3>
+          <p class="text-xs text-slate-400">Manage reps or transfer past patient records between territory codes</p>
         </div>
-        <button onclick="closeRepsModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+        <button onclick="closeRepsModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
       </div>
 
       <!-- Quick Transfer Section -->
-      <div class="bg-slate-50 border rounded-xl p-4 space-y-3">
-        <h4 class="text-xs font-bold uppercase text-slate-700">Transfer Territory Patients</h4>
+      <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+        <h4 class="text-xs font-bold uppercase text-emerald-400">Transfer Territory Patients</h4>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">From Old Territory Code:</label>
-            <input type="text" id="transferFromCode" placeholder="e.g. QL1.1" class="w-full px-3 py-1.5 border rounded-lg text-xs uppercase font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">From Old Territory Code:</label>
+            <input type="text" id="transferFromCode" placeholder="e.g. QL1.1" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs uppercase font-semibold text-white outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">To Active Rep:</label>
-            <select id="transferToRepSelect" class="w-full px-3 py-1.5 border rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">To Active Rep:</label>
+            <select id="transferToRepSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-emerald-500">
               <option value="">Select Rep...</option>
             </select>
           </div>
           <div class="flex items-end">
-            <button onclick="handleTerritoryTransfer()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
-              Transfer All Records
+            <button onclick="handleTerritoryTransfer()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+              Transfer Records
             </button>
           </div>
         </div>
@@ -120,8 +126,8 @@
 
       <!-- Active Reps Table -->
       <div class="overflow-x-auto pt-2">
-        <table class="w-full text-left text-xs text-slate-600">
-          <thead class="bg-slate-50 text-slate-400 uppercase tracking-wider border-b">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
             <tr>
               <th class="p-3">Rep Name</th>
               <th class="p-3">T.Code</th>
@@ -130,90 +136,179 @@
               <th class="p-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody id="repsModalTableBody" class="divide-y">
-            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading reps...</td></tr>
+          <tbody id="repsModalTableBody" class="divide-y divide-slate-800/60">
+            <tr><td colspan="5" class="p-4 text-center text-slate-500">Loading reps...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= MAIN DASHBOARD ================= -->
-  <div id="dashboardContent" class="p-4 md:p-6 max-w-7xl mx-auto space-y-5 hidden">
+  <!-- MAIN DASHBOARD CONTENT -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
     
     <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all mr-1">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
             🏠 Home
           </a>
-          <h1 class="text-xl md:text-2xl font-extrabold text-slate-900" id="mgrNameDisplay">Zonal Dashboard</h1>
-          <span id="mgrSapBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">SAP ID</span>
+          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="mgrNameDisplay">Zonal <span class="text-emerald-400">Dashboard</span></h1>
+          <span id="mgrSapBadge" class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">SAP ID</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">Zone: <strong id="mgrZoneDisplay" class="text-slate-700">-</strong> | Team: <strong id="mgrTeamDisplay" class="text-slate-700">-</strong></p>
+        <p class="text-xs text-slate-400 mt-1">Zone: <strong id="mgrZoneDisplay" class="text-slate-200">-</strong> | Team: <strong id="mgrTeamDisplay" class="text-slate-200">-</strong></p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="openRepsModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
+        <button onclick="openRepsModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all">
           👥 Manage Reps & Transfers
         </button>
-        <button onclick="exportToCSV()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
+        <button onclick="exportToCSV()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all">
           📊 Export CSV
         </button>
-        <button onclick="fetchManagerOrders()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
+        <button onclick="fetchManagerOrders()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
           🔄 Refresh
         </button>
-        <button onclick="handleMgrLogout()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 shadow-sm transition-all">
+        <button onclick="handleMgrLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
           🚪 Logout
         </button>
       </div>
     </div>
 
+    <!-- TIMELINE & DATE SCOPE CONTROLS -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Timeline & Date Scope
+        </div>
+        
+        <!-- Preset Toggles -->
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+        </div>
+      </div>
+
+      <!-- Custom Calendar Pickers -->
+      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-emerald-500">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-emerald-500">
+        </div>
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+          Showing: Month to Date
+        </span>
+      </div>
+    </div>
+
     <!-- Summary Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Team Orders</div>
-        <div id="statTotal" class="text-2xl font-black text-slate-800 mt-1">0</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Zone Orders</div>
+        <div id="statTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">In Process</div>
-        <div id="statProcess" class="text-2xl font-black text-amber-600 mt-1">0</div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">In Process</div>
+        <div id="statProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Delivered / Confirmed</div>
-        <div id="statDelivered" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Delivered / Confirmed</div>
+        <div id="statDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback Received</div>
-        <div id="statFeedback" class="text-2xl font-black text-purple-600 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- Live Search & Filtering Controls -->
-    <div class="bg-white p-3 md:p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-2.5 items-center justify-between">
-      <div class="w-full md:w-1/2 relative">
-        <input type="text" id="mgrSearchInput" oninput="renderFilteredOrders()" placeholder="🔍 Search patient name, mobile, rep code, doctor, or address..." class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50">
-      </div>
-      <div class="w-full md:w-auto flex flex-wrap gap-2">
-        <select id="subordinateFilter" onchange="renderFilteredOrders()" class="px-3.5 py-2 border rounded-xl text-xs font-semibold bg-slate-50 outline-none text-slate-700 focus:ring-2 focus:ring-emerald-500">
-          <option value="ALL">All My Reps</option>
-        </select>
-        <select id="mgrStatusFilter" onchange="renderFilteredOrders()" class="px-3.5 py-2 border rounded-xl text-xs font-medium bg-slate-50 outline-none text-slate-700 focus:ring-2 focus:ring-emerald-500">
-          <option value="ALL">All Statuses</option>
-          <option value="New Patient">New Patient</option>
-          <option value="Prescription Received">Prescription Received</option>
-          <option value="Order Processing">Order Processing</option>
-          <option value="Dispatched">Dispatched</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Feedback Submitted">Feedback Submitted</option>
-        </select>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Feedback Received</div>
+        <div id="statFeedback" class="text-3xl font-black text-purple-400 mt-1">0</div>
       </div>
     </div>
 
-    <!-- MODERN MANAGER CARDS CONTAINER -->
-    <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full py-12 text-center text-slate-400 text-sm">
-        Loading team orders...
+    <!-- SEARCH & REP FILTER BAR (Single Rep Dropdown) -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
+      <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+        <span>🔍</span> Zone Hierarchy Search Engine
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Choose Territory Rep</label>
+          <select id="subordinateFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All My Reps</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Filter by Status</label>
+          <select id="mgrStatusFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium bg-slate-950 text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Statuses</option>
+            <option value="New Patient">New Patient</option>
+            <option value="Prescription Received">Prescription Received</option>
+            <option value="Order Processing">Order Processing</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Feedback Submitted">Feedback Submitted</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
+          <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500 placeholder-slate-600">
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
+    <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📊</span> Zone Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <p class="text-xs text-slate-400">Daily prescription trends across your zone</p>
+        </div>
+        <div class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 self-start">
+          Zone Trend Tracker
+        </div>
+      </div>
+      <div class="h-64 w-full pt-2">
+        <canvas id="dailyEnrollmentChart"></canvas>
+      </div>
+    </div>
+
+    <!-- KOLs & Dosage Breakdown Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🩺</span> Top Prescribing Doctors in Zone (Selected Scope)
+        </h3>
+        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading prescribers...</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
+        </h3>
+        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENT CARDS CONTAINER -->
+    <div class="space-y-3 pt-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+        </h3>
+      </div>
+      <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+          Loading zone records...
+        </div>
       </div>
     </div>
 
@@ -228,6 +323,12 @@
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
+
+    let currentDateScope = "MTD";
+    let filterStartDate = null;
+    let filterEndDate = null;
 
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
@@ -235,23 +336,26 @@
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
 
-    function showMgrAuthTab(type) {
-      const loginForm = document.getElementById('mgrLoginForm');
-      const signupForm = document.getElementById('mgrSignupForm');
-      const loginBtn = document.getElementById('mgrLoginTabBtn');
-      const signupBtn = document.getElementById('mgrSignupTabBtn');
-      document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
+    function showMgrAuthTab(type) {
+      document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
       if (type === 'login') {
-        loginForm.classList.remove('hidden');
-        signupForm.classList.add('hidden');
-        loginBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        signupBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        document.getElementById('mgrLoginForm').classList.remove('hidden');
+        document.getElementById('mgrSignupForm').classList.add('hidden');
+        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       } else {
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
-        signupBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        document.getElementById('mgrLoginForm').classList.add('hidden');
+        document.getElementById('mgrSignupForm').classList.remove('hidden');
+        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       }
     }
 
@@ -259,10 +363,11 @@
       if (currentManager && currentManager.manager_sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('mgrNameDisplay').innerText = `${currentManager.full_name}'s Zone`;
+        document.getElementById('mgrNameDisplay').innerHTML = `${currentManager.full_name}'s <span class="text-emerald-400">Zone</span>`;
         document.getElementById('mgrSapBadge').innerText = `SAP: ${currentManager.manager_sap_id}`;
         document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region;
         document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name;
+        initDates();
         fetchManagerOrders();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -276,6 +381,7 @@
       err.classList.add('hidden');
 
       const full_name = document.getElementById('regMgrName').value.trim();
+      const region = document.getElementById('regMgrRegion').value;
       const team_name = document.getElementById('regMgrTeam').value.trim().toUpperCase();
       const zone_region = document.getElementById('regMgrZone').value.trim();
       const manager_sap_id = document.getElementById('regMgrSapId').value.trim();
@@ -284,13 +390,11 @@
       try {
         const { data, error } = await client
           .from('managers')
-          .insert([{ full_name, team_name, zone_region, manager_sap_id, password }])
+          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password }])
           .select();
 
         if (error) {
-          if (error.message.includes('unique')) {
-            throw new Error(`Manager SAP ID '${manager_sap_id}' is already registered. Please log in.`);
-          }
+          if (error.message.includes('unique')) throw new Error(`Manager SAP ID '${manager_sap_id}' is already registered.`);
           throw error;
         }
 
@@ -320,9 +424,7 @@
           .limit(1);
 
         if (error) throw error;
-        if (!data || data.length === 0) {
-          throw new Error('Invalid Manager SAP ID or Password.');
-        }
+        if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
         sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
@@ -337,6 +439,76 @@
       sessionStorage.removeItem('tt_current_manager');
       currentManager = null;
       checkMgrSession();
+    }
+
+    function initDates() {
+      setDatePreset('MTD');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Zone)";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        applyAllFilters();
+      }
     }
 
     function renderStars(rating) {
@@ -361,18 +533,18 @@
         registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
 
       if (!registeredReps || registeredReps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">No representatives registered under your team.</td></tr>';
         return;
       }
 
       tbody.innerHTML = registeredReps.map(rep => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-semibold text-slate-800">${rep.full_name}</td>
-          <td class="p-3 font-mono font-bold text-emerald-700">${rep.territory_code}</td>
+        <tr class="hover:bg-slate-900/50">
+          <td class="p-3 font-semibold text-white">${rep.full_name}</td>
+          <td class="p-3 font-mono font-bold text-emerald-400">${rep.territory_code}</td>
           <td class="p-3">${rep.sap_id}</td>
           <td class="p-3 uppercase">${rep.team_name}</td>
           <td class="p-3 text-right">
-            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded border border-rose-200">
+            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-semibold rounded-lg">
               🗑️ Remove
             </button>
           </td>
@@ -431,9 +603,8 @@
 
     async function fetchManagerOrders() {
       if (!currentManager) return;
-      const grid = document.getElementById('mgrCardsGrid');
-      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">Loading team orders...</div>';
 
+      // 1. Fetch Registered Reps
       const { data: repsData } = await client
         .from('reps')
         .select('*')
@@ -451,6 +622,7 @@
         repFilter.value = currentSelected;
       }
 
+      // 2. Fetch Orders for this Manager
       const { data: orders, error } = await client
         .from('orders')
         .select('*')
@@ -458,12 +630,13 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-500 text-sm">Error: ${error.message}</div>`;
+        alert("Error loading orders: " + error.message);
         return;
       }
 
       currentOrdersData = orders || [];
 
+      // 3. Fetch Feedbacks
       const orderIds = currentOrdersData.map(o => o.id);
       const { data: feedbacks } = await client
         .from('feedback')
@@ -475,16 +648,15 @@
         feedbackMap[f.order_id] = f;
       });
 
-      renderFilteredOrders();
+      applyAllFilters();
     }
 
-    function renderFilteredOrders() {
-      const selectedRep = document.getElementById('subordinateFilter').value;
+    function applyAllFilters() {
+      const selectedRep = document.getElementById('subordinateFilter')?.value || 'ALL';
       const selectedStatus = document.getElementById('mgrStatusFilter')?.value || 'ALL';
       const searchTerm = (document.getElementById('mgrSearchInput')?.value || '').toLowerCase().trim();
-      const grid = document.getElementById('mgrCardsGrid');
 
-      let filtered = currentOrdersData.filter(order => {
+      const hierarchyMatchedOrders = currentOrdersData.filter(order => {
         const matchesRep = selectedRep === 'ALL' || order.rep_code === selectedRep;
         const matchesStatus = selectedStatus === 'ALL' || order.status === selectedStatus;
         const matchesSearch = !searchTerm ||
@@ -498,104 +670,207 @@
         return matchesRep && matchesStatus && matchesSearch;
       });
 
-      if (!filtered || filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">No orders found for this selection.</div>';
-        document.getElementById('statTotal').innerText = '0';
-        document.getElementById('statProcess').innerText = '0';
-        document.getElementById('statDelivered').innerText = '0';
-        document.getElementById('statFeedback').innerText = '0';
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statProcess').innerText = inProcess;
+      document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('statFeedback').innerText = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+      document.getElementById('filteredCount').innerText = total;
+    }
+
+    function updateDailyChart(ordersToGraph) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      ordersToGraph.forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#34d399',
+              bodyColor: '#ffffff',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
+      const docCount = {};
+      activeFilteredOrders.forEach(o => {
+        const d = (o.doctor_name || 'Unassigned').trim();
+        docCount[d] = (docCount[d] || 0) + 1;
+      });
+      const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedDocs.length ? sortedDocs.map(([doc, count], idx) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">${count} Patients</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this date window.</div>';
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('mgrCardsGrid');
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selection.</div>';
         return;
       }
 
-      document.getElementById('statTotal').innerText = filtered.length;
-      document.getElementById('statProcess').innerText = filtered.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
-      document.getElementById('statDelivered').innerText = filtered.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      document.getElementById('statFeedback').innerText = filtered.filter(o => feedbackMap[o.id]).length;
-
-      grid.innerHTML = filtered.map(order => {
+      grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
         return `
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
             
-            <!-- Card Header: ID, Date, Rep Badge & Interactive Status -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+            <!-- Card Header: ID, Date, Rep & Status Selector -->
+            <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
                 <div class="flex items-center gap-1.5">
-                  <span class="font-mono font-black text-slate-900 text-xs tracking-tight">${order.order_id || 'N/A'}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">👤 ${order.rep_code || 'Direct'}</span>
+                  <span class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
                 </div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <div>
-                <select onchange="updateStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-200 rounded-lg py-1 px-2 bg-emerald-50/50 text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                <select onchange="updateStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-700 rounded-lg py-1 px-2 bg-slate-950 text-emerald-400 outline-none focus:border-emerald-500 cursor-pointer">
                   ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
               </div>
             </div>
 
-            <!-- Patient Information -->
-            <div class="space-y-2 text-xs">
+            <!-- Patient Info -->
+            <div class="space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                  <span>👤</span>
-                  <span>${order.patient_name}</span>
-                  ${order.age ? `<span class="text-xs font-medium text-slate-400">(${order.age} yrs)</span>` : ''}
-                </div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-all">
-                  <span>📞</span> Call
+                <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold">
+                  📞 Call
                 </a>
               </div>
-
-              <div class="text-slate-500 font-mono text-[11px]">${order.mobile}</div>
-              
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-[11px] leading-relaxed">
-                📍 <strong class="text-slate-700">${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
+              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
               </div>
             </div>
 
-            <!-- Clinical & Prescription Details -->
-            <div class="p-3 rounded-xl bg-slate-900 text-white space-y-2 text-xs">
+            <!-- Doctor & Prescription Details -->
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 text-[11px]">Doctor</span>
                 <span class="font-bold text-emerald-300">Dr. ${order.doctor_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
-                <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
-                <span class="font-bold text-white">${order.prescribed_dose || 'N/A'}</span>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
+                <span class="text-slate-400 text-[11px]">Dose & Device</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
-                <span class="text-slate-400 text-[11px]">Device Strength</span>
-                <span class="text-slate-300">${order.device || 'N/A'}</span>
-              </div>
-              <div class="border-t border-slate-800 pt-2 text-right">
+              <div class="border-t border-slate-800 pt-1 text-right">
                 ${order.prescription_url 
-                  ? `<a href="${order.prescription_url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 underline font-semibold">📄 View Rx Prescription</a>` 
-                  : '<span class="text-[11px] text-slate-500">No Rx Uploaded</span>'}
+                  ? `<a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a>` 
+                  : '<span class="text-[11px] text-slate-500">No Rx Document</span>'}
               </div>
             </div>
 
-            <!-- Patient Feedback Status -->
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 pt-2">
-              <span class="text-slate-400 font-medium">Feedback:</span>
-              <span>
-                ${fb ? `
-                  <span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>
-                  ${fb.comments ? `<span class="text-slate-500 italic ml-1 truncate max-w-[120px] inline-block align-bottom">"${fb.comments}"</span>` : ''}
-                ` : '<span class="text-slate-400 italic">Pending</span>'}
-              </span>
+            <!-- Feedback -->
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
+              <span class="text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
             </div>
 
-            <!-- Manager Action Bar (Status, Feedback & Delete) -->
+            <!-- Actions & Delete Button Access -->
             <div class="space-y-2 pt-1">
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm">
+                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[11px] font-bold rounded-xl border border-emerald-500/20 flex items-center justify-center gap-1 transition-all">
                   💬 Status
                 </button>
-                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2 px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm">
+                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
                   ⭐ Feedback
                 </button>
               </div>
-              <button onclick="deleteOrder('${order.id}', '${order.patient_name}')" class="w-full py-2 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold rounded-xl text-center border border-rose-200 transition-all">
+              <button onclick="deleteOrder('${order.id}', '${order.patient_name}')" class="w-full py-2 px-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] font-bold rounded-xl border border-rose-500/20 transition-all flex items-center justify-center gap-1">
                 🗑️ Delete Record
               </button>
             </div>
@@ -611,7 +886,7 @@
     }
 
     async function deleteOrder(orderId, patientName) {
-      const confirmDelete = confirm(`Are you sure you want to delete the order for "${patientName}"? This cannot be undone.`);
+      const confirmDelete = confirm(`Are you sure you want to delete the record for "${patientName}"? This cannot be undone.`);
       if (!confirmDelete) return;
 
       try {
@@ -657,19 +932,19 @@
     }
 
     function exportToCSV() {
-      if (!currentOrdersData || currentOrdersData.length === 0) {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) {
         alert("No orders to export!");
         return;
       }
       let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Indication,Dose,Device,Status\n";
-      currentOrdersData.forEach(o => {
+      activeFilteredOrders.forEach(o => {
         csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `TirzaTrim_${currentManager.manager_sap_id}_Orders.csv`;
+      a.download = `TirzaTrim_${currentManager.manager_sap_id}_${currentDateScope}_Orders.csv`;
       a.click();
     }
 
