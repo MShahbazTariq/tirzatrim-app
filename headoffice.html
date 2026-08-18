@@ -147,7 +147,7 @@
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">3. Field Rep (T-Code)</label>
           <select id="filterRep" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All Reps in Zone</option>
+            <option value="ALL">All Reps in Selection</option>
           </select>
         </div>
 
@@ -231,7 +231,6 @@
     let filterStartDate = null;
     let filterEndDate = null;
 
-    // Helper: Returns local YYYY-MM-DD string to resolve UTC/PKT timezone offset
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
       const year = d.getFullYear();
@@ -248,7 +247,6 @@
       currentDateScope = type;
       const today = new Date();
 
-      // Reset button styles
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
         if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
@@ -376,12 +374,25 @@
     }
 
     function populateRepDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
       const selectedManagerSap = document.getElementById('filterManager').value;
       const repSelect = document.getElementById('filterRep');
 
-      let filteredReps = allReps;
+      let filteredReps = [];
+
       if (selectedManagerSap !== 'ALL') {
+        // Direct manager selection
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
+      } else if (selectedRegion !== 'ALL') {
+        // Region selected -> Get SAP IDs belonging to this region only
+        const regionManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === selectedRegion)
+          .map(m => m.manager_sap_id);
+
+        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
+      } else {
+        // National (All Regions)
+        filteredReps = allReps;
       }
 
       repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
@@ -413,7 +424,6 @@
       }
 
       activeFilteredOrders = allOrders.filter(o => {
-        // Date check via local formatted date
         const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
         if (filterStartDate && filterEndDate) {
@@ -471,8 +481,8 @@
         datesList.push(key);
       }
 
-      // Group by local Pakistan date
-      allOrders.forEach(o => {
+      // Group active filtered orders by local date
+      activeFilteredOrders.forEach(o => {
         const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
