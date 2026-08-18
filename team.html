@@ -3,31 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Field Rep Portal</title>
+  <title>TirzaTrim — Field Rep Operations Portal</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#059669">
+  <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
 
   <!-- AUTH SCREEN -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border space-y-6 relative">
-      <a href="/" class="absolute top-5 left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      <a href="/" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xs font-semibold">
         🏠 Home
       </a>
-      <div class="text-center space-y-1 pt-4">
-        <h2 class="text-2xl font-bold text-slate-800">TirzaTrim Rep Portal</h2>
-        <p class="text-xs text-slate-500">Sign in to track orders or register your territory</p>
+      <div class="space-y-2 pt-4">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto">
+          💼
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-white">Territory Rep Hub</h2>
+        <p class="text-xs text-slate-400">Sign in to track orders or register your territory code</p>
       </div>
 
-      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-        <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all">
+      <div class="grid grid-cols-2 p-1 bg-slate-950 rounded-xl text-xs font-semibold border border-slate-800">
+        <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all">
           Rep Login
         </button>
-        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
+        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-400 hover:text-white transition-all">
           New Registration
         </button>
       </div>
@@ -35,151 +39,235 @@
       <!-- LOGIN FORM -->
       <form id="loginForm" onsubmit="handleRepLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Territory Code (T.Code) *</label>
-          <input type="text" id="loginTCode" placeholder="e.g. QL2.1" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+          <input type="text" id="loginTCode" placeholder="Territory Code (e.g. QL2.1)" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold uppercase text-white outline-none focus:border-teal-500">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Password *</label>
-          <input type="password" id="loginPassword" placeholder="Enter your password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow transition-all">
-          Login to Territory
+        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+          Unlock My Territory
         </button>
       </form>
 
       <!-- SIGNUP FORM -->
-      <form id="signupForm" onsubmit="handleRepSignup(event)" class="space-y-3 hidden">
+      <form id="signupForm" onsubmit="handleRepSignup(event)" class="space-y-3 hidden text-left">
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Full Name *</label>
-          <input type="text" id="regName" placeholder="e.g. Talha Saadat" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name *</label>
+          <input type="text" id="regName" placeholder="e.g. Talha Saadat" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Team *</label>
-            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Team *</label>
+            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs uppercase text-white outline-none focus:border-teal-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">T.Code *</label>
-            <input type="text" id="regTCode" placeholder="e.g. QL2.1" required class="w-full px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Territory Code *</label>
+            <input type="text" id="regTCode" placeholder="e.g. QL2.1" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold uppercase text-white outline-none focus:border-teal-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Rep SAP ID *</label>
-            <input type="text" id="regSap" placeholder="e.g. 7585" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Rep SAP ID *</label>
+            <input type="text" id="regSap" placeholder="e.g. 7585" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regManagerSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-emerald-700">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Manager SAP ID *</label>
+            <input type="text" id="regManagerSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-400 font-bold outline-none focus:border-teal-500">
           </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Set Password *</label>
-          <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Set Password *</label>
+          <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
         </div>
-        <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg shadow transition-all mt-2">
-          Register & Generate My Link
+        <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
+          Register & Get My Territory Link
         </button>
       </form>
-      <p id="authErrorMsg" class="text-center text-xs font-medium text-rose-600 hidden"></p>
+      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
 
   <!-- MAIN REP DASHBOARD -->
-  <div id="dashboardContent" class="p-4 md:p-6 max-w-7xl mx-auto space-y-5 hidden">
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
     
     <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all mr-1">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
             🏠 Home
           </a>
-          <h1 class="text-xl md:text-2xl font-extrabold text-slate-900" id="repNameDisplay">Territory Dashboard</h1>
-          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">T.Code</span>
+          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="repNameDisplay">Territory <span class="text-teal-400">Dashboard</span></h1>
+          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">T.Code</span>
         </div>
-        <div class="flex flex-wrap gap-x-3 text-xs text-slate-500 mt-1">
-          <span>Team: <strong id="repTeamDisplay" class="text-slate-700">-</strong></span>
+        <div class="flex flex-wrap gap-x-3 text-xs text-slate-400 mt-1">
+          <span>Team: <strong id="repTeamDisplay" class="text-slate-200">-</strong></span>
           <span>•</span>
-          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-700">-</strong></span>
+          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-200">-</strong></span>
           <span>•</span>
-          <span>Manager SAP: <strong id="repManagerSapDisplay" class="text-slate-700">-</strong></span>
+          <span>Manager SAP: <strong id="repManagerSapDisplay" class="text-slate-200">-</strong></span>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button onclick="copyMyPatientLink()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="copyMyPatientLink()" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all">
           📋 Copy Patient Order Link
         </button>
-        <button onclick="fetchRepOrders()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
+        <button onclick="fetchRepOrders()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl shadow transition-all">
           🔄 Refresh
         </button>
-        <button onclick="handleRepLogout()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 shadow-sm transition-all">
+        <button onclick="handleRepLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
           🚪 Logout
         </button>
       </div>
     </div>
 
-    <!-- Doctor Link Tool -->
-    <div class="bg-white p-4 md:p-5 rounded-2xl border shadow-sm space-y-3">
+    <!-- Doctor Link Generator Tool -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
       <div>
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span>🩺</span> Generate Doctor Portal Link
+        <h2 class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+          <span>🩺</span> Generate Doctor Monitoring Portal Link
         </h2>
-        <p class="text-xs text-slate-400">Create a personalized tracking link for your prescribing doctor.</p>
+        <p class="text-xs text-slate-400 mt-0.5">Create and share a live tracking link for your prescribing physician.</p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <input type="text" id="drNameInput" placeholder="Enter Doctor Name (e.g. Dr. Qamar Sajjad)" class="w-full px-3 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-        <button onclick="copyDoctorLink()" class="py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm">
-          📋 Copy Link
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+        <input type="text" id="drNameInput" placeholder="Enter Doctor Name (e.g. Dr. Qamar Sajjad)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+        <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all">
+          📋 Copy Doctor Link
         </button>
-        <button onclick="shareDoctorLinkWhatsApp()" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center justify-center gap-1.5">
+        <button onclick="shareDoctorLinkWhatsApp()" class="py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
           💬 Send via WhatsApp
         </button>
       </div>
     </div>
 
+    <!-- TIMELINE & DATE SCOPE CONTROLS -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
+          <span>📅</span> Timeline & Date Scope
+        </div>
+        
+        <!-- Preset Toggles -->
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+        </div>
+      </div>
+
+      <!-- Custom Calendar Pickers -->
+      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-teal-500">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-teal-500">
+        </div>
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20">
+          Showing: Month to Date
+        </span>
+      </div>
+    </div>
+
     <!-- Summary Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">My Patients</div>
-        <div id="repStatTotal" class="text-2xl font-black text-slate-800 mt-1">0</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">My Territory Patients</div>
+        <div id="repStatTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">In Processing</div>
-        <div id="repStatProcess" class="text-2xl font-black text-amber-600 mt-1">0</div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">In Processing</div>
+        <div id="repStatProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Delivered</div>
-        <div id="repStatDelivered" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Delivered & Confirmed</div>
+        <div id="repStatDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
       </div>
-      <div class="bg-white p-4 rounded-2xl border shadow-sm">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback Done</div>
-        <div id="repStatFeedback" class="text-2xl font-black text-purple-600 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- Live Search & Filtering -->
-    <div class="bg-white p-3 md:p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-2.5 items-center justify-between">
-      <div class="w-full md:w-1/2 relative">
-        <input type="text" id="patientSearchInput" oninput="applyFilters()" placeholder="🔍 Search patient name, mobile, doctor, or location..." class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50">
-      </div>
-      <div class="w-full md:w-auto">
-        <select id="statusFilterSelect" onchange="applyFilters()" class="w-full md:w-auto px-3.5 py-2 border rounded-xl text-xs font-medium bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
-          <option value="ALL">All Statuses</option>
-          <option value="New Patient">New Patient</option>
-          <option value="Prescription Received">Prescription Received</option>
-          <option value="Order Processing">Order Processing</option>
-          <option value="Dispatched">Dispatched</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Feedback Submitted">Feedback Submitted</option>
-        </select>
+      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Feedback Submissions</div>
+        <div id="repStatFeedback" class="text-3xl font-black text-purple-400 mt-1">0</div>
       </div>
     </div>
 
-    <!-- MODERN PATIENT CARDS CONTAINER -->
-    <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full py-12 text-center text-slate-400 text-sm">
-        Loading territory records...
+    <!-- SEARCH & STATUS CONTROLS -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
+      <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
+        <span>🔍</span> Territory Search & Filter Engine
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Filter by Status</label>
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium bg-slate-950 text-white outline-none focus:border-teal-500">
+            <option value="ALL">All Statuses</option>
+            <option value="New Patient">New Patient</option>
+            <option value="Prescription Received">Prescription Received</option>
+            <option value="Order Processing">Order Processing</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Feedback Submitted">Feedback Submitted</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600">
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
+    <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📊</span> My Daily Enrollment Trend (Last 14 Days)
+          </h3>
+          <p class="text-xs text-slate-400">Daily prescription trends for your assigned territory code</p>
+        </div>
+        <div class="text-[11px] font-semibold text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20 self-start">
+          Territory Trend Tracker
+        </div>
+      </div>
+      <div class="h-64 w-full pt-2">
+        <canvas id="dailyEnrollmentChart"></canvas>
+      </div>
+    </div>
+
+    <!-- KOLs & Dosage Breakdown Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🩺</span> Top Prescribing Doctors (Selected Scope)
+        </h3>
+        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading prescribers...</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
+        </h3>
+        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
+          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENT CARDS CONTAINER -->
+    <div class="space-y-3 pt-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
+        </h3>
+      </div>
+      <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+          Loading territory records...
+        </div>
       </div>
     </div>
 
@@ -193,12 +281,26 @@
     let currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
     let rawOrders = [];
     let cachedFeedbacks = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
+
+    let currentDateScope = "MTD";
+    let filterStartDate = null;
+    let filterEndDate = null;
 
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
       'Order Processing', 'Dispatched', 'Delivered', 'Patient Confirmed',
       'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
     ];
+
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
     function showAuthTab(type) {
       const loginForm = document.getElementById('loginForm');
@@ -210,13 +312,13 @@
       if (type === 'login') {
         loginForm.classList.remove('hidden');
         signupForm.classList.add('hidden');
-        loginBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        signupBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        loginBtn.className = "py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        signupBtn.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       } else {
         loginForm.classList.add('hidden');
         signupForm.classList.remove('hidden');
-        signupBtn.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 transition-all";
-        loginBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+        signupBtn.className = "py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        loginBtn.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
       }
     }
 
@@ -224,11 +326,12 @@
       if (currentRep && currentRep.territory_code) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('repNameDisplay').innerText = `${currentRep.full_name}'s Territory`;
+        document.getElementById('repNameDisplay').innerHTML = `${currentRep.full_name}'s <span class="text-teal-400">Territory</span>`;
         document.getElementById('activeRepBadge').innerText = currentRep.territory_code;
         document.getElementById('repTeamDisplay').innerText = currentRep.team_name;
         document.getElementById('repSapDisplay').innerText = currentRep.sap_id;
         document.getElementById('repManagerSapDisplay').innerText = currentRep.manager_sap_id || 'N/A';
+        initDates();
         fetchRepOrders();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -341,6 +444,76 @@
       openWhatsAppUniversal("", message);
     }
 
+    function initDates() {
+      setDatePreset('MTD');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        applyAllFilters();
+      }
+    }
+
     function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
@@ -348,8 +521,6 @@
 
     async function fetchRepOrders() {
       if (!currentRep) return;
-      const grid = document.getElementById('repCardsGrid');
-      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">Loading territory records...</div>';
 
       const { data: orders, error } = await client
         .from('orders')
@@ -358,20 +529,11 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-500 text-sm">Error: ${error.message}</div>`;
+        alert("Error loading territory records: " + error.message);
         return;
       }
 
       rawOrders = orders || [];
-
-      if (rawOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">No patients recorded yet under your link.</div>';
-        document.getElementById('repStatTotal').innerText = '0';
-        document.getElementById('repStatProcess').innerText = '0';
-        document.getElementById('repStatDelivered').innerText = '0';
-        document.getElementById('repStatFeedback').innerText = '0';
-        return;
-      }
 
       const orderIds = rawOrders.map(o => o.id);
       const { data: feedbacks } = await client
@@ -384,20 +546,15 @@
         cachedFeedbacks[f.order_id] = f;
       });
 
-      document.getElementById('repStatTotal').innerText = rawOrders.length;
-      document.getElementById('repStatProcess').innerText = rawOrders.filter(o => ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing', 'Dispatched'].includes(o.status)).length;
-      document.getElementById('repStatDelivered').innerText = rawOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      document.getElementById('repStatFeedback').innerText = feedbacks ? feedbacks.length : 0;
-
-      applyFilters();
+      applyAllFilters();
     }
 
-    function applyFilters() {
+    function applyAllFilters() {
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
-      const grid = document.getElementById('repCardsGrid');
 
-      let filtered = rawOrders.filter(order => {
+      const hierarchyMatchedOrders = rawOrders.filter(order => {
+        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
         const matchesSearch = !searchTerm || 
           (order.patient_name || '').toLowerCase().includes(searchTerm) ||
           (order.mobile || '').includes(searchTerm) ||
@@ -405,95 +562,202 @@
           (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
           (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-        let matchesStatus = true;
-        if (statusFilter !== 'ALL') {
-          matchesStatus = order.status === statusFilter;
-        }
-
-        return matchesSearch && matchesStatus;
+        return matchesStatus && matchesSearch;
       });
 
-      if (filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-sm">No matching orders found.</div>';
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('repStatTotal').innerText = total;
+      document.getElementById('repStatProcess').innerText = inProcess;
+      document.getElementById('repStatDelivered').innerText = delivered;
+      document.getElementById('repStatFeedback').innerText = activeFilteredOrders.filter(o => cachedFeedbacks[o.id]).length;
+      document.getElementById('filteredCount').innerText = total;
+    }
+
+    function updateDailyChart(ordersToGraph) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      ordersToGraph.forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(20, 184, 166, 0.85)',
+            hoverBackgroundColor: 'rgba(45, 212, 191, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#2dd4bf',
+              bodyColor: '#ffffff',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
+      const docCount = {};
+      activeFilteredOrders.forEach(o => {
+        const d = (o.doctor_name || 'Unassigned').trim();
+        docCount[d] = (docCount[d] || 0) + 1;
+      });
+      const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedDocs.length ? sortedDocs.map(([doc, count], idx) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20">${count} Patients</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this date window.</div>';
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
+        </div>
+      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('repCardsGrid');
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
       }
 
-      grid.innerHTML = filtered.map(order => {
+      grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = cachedFeedbacks[order.id];
         return `
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
             
-            <!-- Card Header: ID, Date & Interactive Status -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+            <!-- Card Header: ID, Date & Interactive Status Selector -->
+            <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
-                <div class="font-mono font-black text-slate-900 text-xs tracking-tight">${order.order_id || 'N/A'}</div>
+                <div class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <div>
-                <select onchange="updateRepOrderStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-200 rounded-lg py-1 px-2 bg-emerald-50/50 text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                <select onchange="updateRepOrderStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-700 rounded-lg py-1 px-2 bg-slate-950 text-teal-400 outline-none focus:border-teal-500 cursor-pointer">
                   ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
               </div>
             </div>
 
             <!-- Patient Information -->
-            <div class="space-y-2 text-xs">
+            <div class="space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                  <span>👤</span>
-                  <span>${order.patient_name}</span>
-                  ${order.age ? `<span class="text-xs font-medium text-slate-400">(${order.age} yrs)</span>` : ''}
-                </div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-all">
-                  <span>📞</span> Call
+                <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold">
+                  📞 Call
                 </a>
               </div>
-
-              <div class="text-slate-500 font-mono text-[11px]">${order.mobile}</div>
-              
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-[11px] leading-relaxed">
-                📍 <strong class="text-slate-700">${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
+              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
               </div>
             </div>
 
-            <!-- Clinical & Prescription Details -->
-            <div class="p-3 rounded-xl bg-slate-900 text-white space-y-2 text-xs">
+            <!-- Doctor & Prescription Details -->
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 text-[11px]">Doctor</span>
-                <span class="font-bold text-emerald-300">Dr. ${order.doctor_name || 'N/A'}</span>
+                <span class="font-bold text-teal-300">Dr. ${order.doctor_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
-                <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
-                <span class="font-bold text-white">${order.prescribed_dose || 'N/A'}</span>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
+                <span class="text-slate-400 text-[11px]">Dose & Device</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
-                <span class="text-slate-400 text-[11px]">Device Strength</span>
-                <span class="text-slate-300">${order.device || 'N/A'}</span>
-              </div>
-              <div class="border-t border-slate-800 pt-2 text-right">
+              <div class="border-t border-slate-800 pt-1 text-right">
                 ${order.prescription_url 
-                  ? `<a href="${order.prescription_url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 underline font-semibold">📄 View Rx Prescription</a>` 
-                  : '<span class="text-[11px] text-slate-500">No Rx Uploaded</span>'}
+                  ? `<a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a>` 
+                  : '<span class="text-[11px] text-slate-500">No Rx Document</span>'}
               </div>
             </div>
 
-            <!-- Patient Feedback Status -->
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 pt-2">
-              <span class="text-slate-400 font-medium">Feedback:</span>
-              <span>
-                ${fb ? `
-                  <span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>
-                  ${fb.comments ? `<span class="text-slate-500 italic ml-1 truncate max-w-[120px] inline-block align-bottom">"${fb.comments}"</span>` : ''}
-                ` : '<span class="text-slate-400 italic">Pending</span>'}
-              </span>
+            <!-- Patient Feedback -->
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
+              <span class="text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
             </div>
 
-            <!-- Direct Contact Actions -->
+            <!-- Direct Contact Actions (2 Clean Buttons) -->
             <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm">
+              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
                 💬 Status
               </button>
-              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm">
+              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
                 ⭐ Feedback
               </button>
             </div>
