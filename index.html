@@ -5,15 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TirzaTrim — Operations Hub</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#059669">
+  <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="/logo.png">
   <link rel="icon" type="image/png" href="/logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 min-h-screen flex items-center justify-center p-4 md:p-8 font-sans">
 
-  <div class="max-w-3xl w-full space-y-8">
+  <div class="max-w-5xl w-full space-y-8">
     
     <!-- Transparent Vector Logo Header -->
     <div class="text-center space-y-1">
@@ -37,52 +36,74 @@
           Operations <span class="text-emerald-400">Hub</span>
         </h1>
         <p class="text-slate-400 text-xs md:text-sm max-w-md mx-auto mt-1">
-          Select your portal to manage operations, fulfill prescriptions, or track doctor feedback.
+          Select your portal to manage operations, dispatch orders, or track doctor feedback.
         </p>
       </div>
     </div>
 
-    <!-- 2 Main Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- 3 Main Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-      <!-- TirzaTrim Team Portal Card (Triggers Popup) -->
-      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 flex flex-col justify-between hover:border-emerald-500/50 hover:shadow-2xl transition-all group">
+      <!-- 1. Internal Team Portal -->
+      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-500/50 hover:shadow-2xl transition-all group">
         <div class="space-y-3">
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
             🏢
           </div>
           <div>
             <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Internal Operations</span>
-            <h3 class="text-xl font-bold text-white mt-0.5">TirzaTrim Team Portal</h3>
+            <h3 class="text-lg font-bold text-white mt-0.5">TirzaTrim Team Portal</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Dedicated hierarchy access for Head Office, HOS, Zonal Managers, Territory Field Reps, and Delivery Distributors.
+              Hierarchy access for Head Office, HOS, Zonal Managers, and Territory Field Reps.
             </p>
           </div>
         </div>
-        <div class="pt-6">
-          <button onclick="openRoleModal()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+        <div class="pt-5">
+          <button onclick="openRoleModal()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5">
             <span>Enter Team Portal</span>
             <span>→</span>
           </button>
         </div>
       </div>
 
-      <!-- Doctor Portal Card -->
-      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-500/50 hover:shadow-2xl transition-all group">
+      <!-- 2. Distributor & Rider Dispatch Hub -->
+      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-5 flex flex-col justify-between hover:border-amber-500/50 hover:shadow-2xl transition-all group">
         <div class="space-y-3">
-          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+          <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+            🛵
+          </div>
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-400">Supply Chain</span>
+            <h3 class="text-lg font-bold text-white mt-0.5">Distributor & Rider</h3>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Direct dispatch console for delivery riders to mark orders Out for Delivery and Collected.
+            </p>
+          </div>
+        </div>
+        <div class="pt-5">
+          <a href="/rider.html" class="block w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold text-center shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-1.5">
+            <span>Rider Dispatch Portal</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. Doctor Portal -->
+      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-5 flex flex-col justify-between hover:border-blue-500/50 hover:shadow-2xl transition-all group">
+        <div class="space-y-3">
+          <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
             🩺
           </div>
           <div>
             <span class="text-[10px] font-bold uppercase tracking-widest text-blue-400">Healthcare Provider</span>
-            <h3 class="text-xl font-bold text-white mt-0.5">Doctor Portal</h3>
+            <h3 class="text-lg font-bold text-white mt-0.5">Doctor Portal</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Read-only fulfillment tracker for prescribing doctors to review patient delivery progress and verified service feedback.
+              Read-only fulfillment tracker for prescribing doctors to review patient delivery progress.
             </p>
           </div>
         </div>
-        <div class="pt-6">
-          <a href="/doctor.html" class="block w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold text-center border border-slate-700 transition-all flex items-center justify-center gap-2">
+        <div class="pt-5">
+          <a href="/doctor.html" class="block w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold text-center border border-slate-700 transition-all flex items-center justify-center gap-1.5">
             <span>Doctor Tracking Portal</span>
             <span>→</span>
           </a>
@@ -95,9 +116,8 @@
 
   <!-- ROLE SELECTION MODAL -->
   <div id="roleModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
       
-      <!-- Close Button -->
       <button onclick="closeRoleModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition-colors">
         ✕
       </button>
@@ -118,7 +138,6 @@
           <div class="text-left flex-1">
             <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">National Command</div>
             <div class="text-sm font-semibold text-white">Head Office Executive Suite</div>
-            <p class="text-[10px] text-slate-400">CEO, CCO, Director Sales & Marketing, General Manager.</p>
           </div>
           <div class="text-slate-500 group-hover:text-emerald-400 font-bold text-sm">→</div>
         </a>
@@ -131,7 +150,6 @@
           <div class="text-left flex-1">
             <div class="text-[10px] font-bold text-indigo-400 uppercase tracking-wide">Regional Oversight</div>
             <div class="text-sm font-semibold text-white">Head of Sales (HOS)</div>
-            <p class="text-[10px] text-slate-400">Supervisory control for Central, North & South Regions.</p>
           </div>
           <div class="text-slate-500 group-hover:text-indigo-400 font-bold text-sm">→</div>
         </a>
@@ -144,7 +162,6 @@
           <div class="text-left flex-1">
             <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">Zonal Management</div>
             <div class="text-sm font-semibold text-white">ZSM Manager Hub</div>
-            <p class="text-[10px] text-slate-400">Zone administration, territory transfers & CSV data export.</p>
           </div>
           <div class="text-slate-500 group-hover:text-emerald-400 font-bold text-sm">→</div>
         </a>
@@ -157,22 +174,8 @@
           <div class="text-left flex-1">
             <div class="text-[10px] font-bold text-teal-400 uppercase tracking-wide">Field Execution</div>
             <div class="text-sm font-semibold text-white">Territory Sales Rep</div>
-            <p class="text-[10px] text-slate-400">Patient order link generation, delivery status & patient contact.</p>
           </div>
           <div class="text-slate-500 group-hover:text-teal-400 font-bold text-sm">→</div>
-        </a>
-
-        <!-- 5. Distributor & Rider Dispatch Hub -->
-        <a href="/rider.html" class="flex items-center gap-3.5 p-3 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/40 transition-all group">
-          <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
-            🛵
-          </div>
-          <div class="text-left flex-1">
-            <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wide">Supply Chain & Fulfillment</div>
-            <div class="text-sm font-semibold text-white">Distributor & Rider Dispatch Hub</div>
-            <p class="text-[10px] text-slate-400">Out-for-delivery tracking, cold-chain handover & instant completion.</p>
-          </div>
-          <div class="text-slate-500 group-hover:text-amber-400 font-bold text-sm">→</div>
         </a>
 
       </div>
@@ -191,15 +194,6 @@
     document.getElementById('roleModal').addEventListener('click', function(e) {
       if (e.target === this) closeRoleModal();
     });
-
-    // PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((reg) => console.log('PWA Service Worker active:', reg.scope))
-          .catch((err) => console.log('Service Worker failed:', err));
-      });
-    }
   </script>
 </body>
 </html>
