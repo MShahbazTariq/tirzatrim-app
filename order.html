@@ -96,14 +96,21 @@
           <div>
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Prescribed Dose *</label>
             <select id="prescribedDose" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-teal-500 transition-all">
-              <option value="5mg">TirzaTrim 5mg</option>
+              <option value="2.5mg">TirzaTrim 2.5mg</option>
+              <option value="5mg" selected>TirzaTrim 5mg</option>
+              <option value="7.5mg">TirzaTrim 7.5mg</option>
               <option value="10mg">TirzaTrim 10mg</option>
+              <option value="12.5mg">TirzaTrim 12.5mg</option>
               <option value="15mg">TirzaTrim 15mg</option>
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Device Type</label>
-            <input type="text" id="deviceType" value="Multi-Dose Pen" readonly class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800 text-slate-400 rounded-xl text-xs font-bold outline-none cursor-not-allowed">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Device Type *</label>
+            <select id="deviceType" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-teal-500 transition-all">
+              <option value="5mg Multi-Dose Pen">5mg Multi-Dose Pen</option>
+              <option value="10mg Multi-Dose Pen">10mg Multi-Dose Pen</option>
+              <option value="15mg Multi-Dose Pen">15mg Multi-Dose Pen</option>
+            </select>
           </div>
         </div>
 
