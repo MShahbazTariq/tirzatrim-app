@@ -188,7 +188,7 @@
         .replace(/^(dr\.?|doctor)\s+/i, '')
         .replace(/[^a-z0-9]/g, '');
 
-      // Standardize common phonetic equivalents
+      // Phonetic equivalents
       s = s.replace(/ph/g, 'f')
            .replace(/q|k/g, 'k')
            .replace(/z|x/g, 's')
@@ -201,10 +201,10 @@
       if (s.length === 0) return '';
       const firstChar = s[0];
 
-      // Remove internal vowels while retaining phonetic consonants
+      // Remove vowels and collapse identical consonants
       const rest = s.slice(1)
         .replace(/[aeiouwyh]/g, '')
-        .replace(/([a-z])\1+/g, '$1'); // Collapse duplicates (e.g., sjjd -> sjd)
+        .replace(/([a-z])\1+/g, '$1');
 
       return (firstChar + rest).replace(/([a-z])\1+/g, '$1');
     }
@@ -246,7 +246,6 @@
 
         if (!oRaw) return false;
 
-        // Acronym match (e.g., FMH for Fatima Memorial Hospital)
         const clinicAcronym = oClinic
           .split(/[\s\(\)\-\/]+/)
           .filter(Boolean)
@@ -460,6 +459,7 @@
           (order.patient_name || '').toLowerCase().includes(searchTerm) ||
           (order.city || '').toLowerCase().includes(searchTerm) ||
           (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
           (order.delivery_address || '').toLowerCase().includes(searchTerm) ||
           (order.prescribed_dose || '').toLowerCase().includes(searchTerm) ||
           (order.order_id || '').toLowerCase().includes(searchTerm);
@@ -605,8 +605,12 @@
 
             <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
+                <span class="text-slate-400 text-[11px]">Prescribed By</span>
+                <span class="font-bold text-blue-400">Dr. ${order.doctor_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
-                <span class="font-bold text-blue-300">${order.clinic_name || 'N/A'}</span>
+                <span class="font-semibold text-blue-200">${order.clinic_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Indication</span>
@@ -614,7 +618,7 @@
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
-                <span class="font-bold text-blue-400">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+                <span class="font-bold text-slate-100">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
             </div>
 
