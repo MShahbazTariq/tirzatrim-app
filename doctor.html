@@ -25,16 +25,56 @@
           <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="docHeaderName">
             Doctor <span class="text-blue-400">Monitoring Portal</span>
           </h1>
+          <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full">HCP Live</span>
         </div>
-        <p class="text-xs text-slate-400 mt-1">Live patient cold-chain fulfillment tracking and verified service reviews</p>
+        <p class="text-xs text-slate-400 mt-1" id="docSubHeader">Live prescription tracker and fulfillment feedback for healthcare providers</p>
       </div>
 
-      <!-- Prescribing Doctor Switcher Input -->
+      <!-- Prescribing Doctor Switcher & Reset Engine -->
       <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-48 sm:w-64 font-medium">
-        <button onclick="applyDoctorSearch()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
-          Search
+        <input type="text" id="docNameQueryInput" placeholder="Enter Doctor Name..." class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-56 font-medium">
+        <button onclick="applyDoctorSearch()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
+          View Patients
         </button>
+        <button onclick="resetDoctorFilter()" title="Clear doctor and reset portal" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-all">
+          ✕
+        </button>
+        <button onclick="fetchDoctorOrders()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all" title="Refresh records">
+          🔄
+        </button>
+      </div>
+    </div>
+
+    <!-- TIMELINE & DATE SCOPE CONTROLS -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-2">
+          <span>📅</span> Timeline & Date Scope
+        </div>
+        
+        <!-- Preset Toggles -->
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+        </div>
+      </div>
+
+      <!-- Custom Calendar Pickers -->
+      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-blue-500">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-blue-500">
+        </div>
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
+          Showing: Month to Date
+        </span>
       </div>
     </div>
 
@@ -72,7 +112,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, city, dose, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-blue-500 placeholder-slate-600">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, city, dose, order ID..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-blue-500 placeholder-slate-600">
         </div>
       </div>
     </div>
@@ -136,24 +176,126 @@
     let chartInstance = null;
     let currentDoctorName = "";
 
+    let currentDateScope = "MTD";
+    let filterStartDate = null;
+    let filterEndDate = null;
+
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function initDoctorPortal() {
       const urlParams = new URLSearchParams(window.location.search);
       currentDoctorName = (urlParams.get('dr') || '').trim();
 
+      const input = document.getElementById('docNameQueryInput');
+      const header = document.getElementById('docHeaderName');
+      const subHeader = document.getElementById('docSubHeader');
+
       if (currentDoctorName) {
-        document.getElementById('docNameQueryInput').value = currentDoctorName;
-        document.getElementById('docHeaderName').innerHTML = `Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}'s <span class="text-blue-400">Monitoring Portal</span>`;
+        input.value = currentDoctorName;
+        header.innerHTML = `Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}'s <span class="text-blue-400">Portal</span>`;
+        subHeader.innerText = `Live prescription tracker and fulfillment feedback for Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}`;
+      } else {
+        input.value = '';
+        header.innerHTML = `Doctor <span class="text-blue-400">Monitoring Portal</span>`;
+        subHeader.innerText = `Live prescription tracker and fulfillment feedback for healthcare providers`;
       }
 
+      initDates();
       fetchDoctorOrders();
     }
 
     function applyDoctorSearch() {
       const name = document.getElementById('docNameQueryInput').value.trim();
       if (!name) {
-        window.location.href = '/doctor.html';
+        window.history.pushState({}, '', '/doctor.html');
+        currentDoctorName = '';
       } else {
-        window.location.href = `/doctor.html?dr=${encodeURIComponent(name)}`;
+        window.history.pushState({}, '', `/doctor.html?dr=${encodeURIComponent(name)}`);
+        currentDoctorName = name;
+      }
+      initDoctorPortal();
+    }
+
+    function resetDoctorFilter() {
+      document.getElementById('docNameQueryInput').value = '';
+      window.history.pushState({}, '', '/doctor.html');
+      currentDoctorName = '';
+      initDoctorPortal();
+    }
+
+    function initDates() {
+      setDatePreset('MTD');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        applyAllFilters();
       }
     }
 
@@ -175,7 +317,7 @@
       const { data: orders, error } = await query;
 
       if (error) {
-        alert("Error loading doctor records: " + error.message);
+        alert("Error loading records: " + error.message);
         return;
       }
 
@@ -201,7 +343,7 @@
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
 
-      activeFilteredOrders = rawOrders.filter(order => {
+      const hierarchyMatched = rawOrders.filter(order => {
         let matchesStatus = true;
         const s = order.status || '';
 
@@ -225,8 +367,17 @@
         return matchesStatus && matchesSearch;
       });
 
+      activeFilteredOrders = hierarchyMatched.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
       updateMetrics();
-      updateDailyChart();
+      updateDailyChart(hierarchyMatched);
       updateSummaries();
       renderCards();
     }
@@ -242,19 +393,19 @@
       document.getElementById('filteredCount').innerText = total;
     }
 
-    function updateDailyChart() {
+    function updateDailyChart(ordersToGraph) {
       const daysCount = {};
       const datesList = [];
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const key = d.toISOString().split('T')[0];
+        const key = getLocalDateKey(d);
         daysCount[key] = 0;
         datesList.push(key);
       }
 
-      rawOrders.forEach(o => {
-        const orderDate = new Date(o.created_at).toISOString().split('T')[0];
+      ordersToGraph.forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
         }
@@ -314,7 +465,7 @@
       const grid = document.getElementById('doctorCardsGrid');
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-sm">
-          No patient records found ${currentDoctorName ? `for Dr. ${currentDoctorName}` : ''}. Type a city, name, or change your status filter.
+          No patient records found ${currentDoctorName ? `for Dr. ${currentDoctorName}` : 'in this scope'}.
         </div>`;
         return;
       }
