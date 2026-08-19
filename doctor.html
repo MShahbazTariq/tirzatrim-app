@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TirzaTrim — Doctor Monitoring Portal</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,121 +22,78 @@
           <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
             🏠 Home
           </a>
-          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="portalHeader">Doctor <span class="text-sky-400">Monitoring Portal</span></h1>
-          <span class="px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-bold rounded-full">HCP Live</span>
+          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="docHeaderName">
+            Doctor <span class="text-blue-400">Monitoring Portal</span>
+          </h1>
         </div>
-        <p class="text-xs text-slate-400 mt-1" id="portalSubheader">Patient Prescription Fulfillment & Verified Care Feedback Tracker</p>
+        <p class="text-xs text-slate-400 mt-1">Live patient cold-chain fulfillment tracking and verified service reviews</p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <div id="searchContainer" class="hidden flex items-center gap-2">
-          <input type="text" id="manualDoctorInput" placeholder="Enter Doctor Name..." class="px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-sky-500">
-          <button onclick="handleManualSearch()" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition-all">
-            View Patients
-          </button>
-        </div>
-        <button onclick="fetchDoctorPatients()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl shadow transition-all">
-          🔄 Refresh
+      <!-- Prescribing Doctor Switcher Input -->
+      <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-48 sm:w-64 font-medium">
+        <button onclick="applyDoctorSearch()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
+          Search
         </button>
       </div>
     </div>
 
-    <!-- TIMELINE & DATE SCOPE CONTROLS -->
-    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
-          <span>📅</span> Timeline & Date Scope
-        </div>
-        
-        <!-- Preset Toggles -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
-        </div>
-      </div>
-
-      <!-- Custom Calendar Pickers -->
-      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-sky-500">
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-sky-500">
-        </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20">
-          Showing: Month to Date
-        </span>
-      </div>
-    </div>
-
     <!-- Summary Metrics -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
         <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Referred Patients</div>
-        <div id="metricTotal" class="text-3xl font-black text-white mt-1">0</div>
+        <div id="statTotal" class="text-3xl font-black text-white mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
         <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Completed Deliveries</div>
-        <div id="metricCompleted" class="text-3xl font-black text-emerald-400 mt-1">0</div>
+        <div id="statDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
       </div>
       <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
         <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Feedback Submissions</div>
-        <div id="metricFeedback" class="text-3xl font-black text-purple-400 mt-1">0</div>
+        <div id="statFeedback" class="text-3xl font-black text-purple-400 mt-1">0</div>
       </div>
     </div>
 
-    <!-- SEARCH & STATUS FILTER CONTROLS -->
+    <!-- SEARCH & STATUS CONTROLS -->
     <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
-      <div class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+      <div class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-2">
         <span>🔍</span> Patient Search & Filter
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">Filter by Fulfillment Status</label>
-          <select id="doctorStatusFilter" onchange="applyDoctorFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white outline-none focus:border-sky-500">
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white outline-none focus:border-blue-500">
             <option value="ALL">All Delivery Statuses</option>
-            <option value="New Patient">New Patient</option>
-            <option value="Prescription Verified">Prescription Verified</option>
-            <option value="Order Processing">Order Processing</option>
-            <option value="Dispatched">Dispatched</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Feedback Submitted">Feedback Submitted</option>
+            <option value="Delivered">Delivered & Confirmed</option>
+            <option value="Dispatched">Dispatched / Out for Delivery</option>
+            <option value="Processing">Order Processing / In Transit</option>
+            <option value="Feedback">Feedback Submitted</option>
           </select>
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="doctorSearchInput" oninput="applyDoctorFilters()" placeholder="Patient name, city, dose..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-sky-500 placeholder-slate-600">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, city, dose, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-blue-500 placeholder-slate-600">
         </div>
       </div>
     </div>
 
-    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH & DOSAGE BREAKDOWN -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- GRAPHS & DOSAGE BREAKDOWN -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       
-      <!-- 14-Day Dynamic Graph -->
-      <div class="lg:col-span-2 bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+      <!-- Daily Trend Chart -->
+      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
         <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>📊</span> Daily Prescription Referral Trend (Last 14 Days)
-            </h3>
-            <p class="text-xs text-slate-400">Daily patient referrals initiated by your clinic</p>
-          </div>
-          <div class="text-[11px] font-semibold text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
-            Daily Trend
-          </div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📊</span> Daily Prescription Referral Trend (Last 14 Days)
+          </h3>
+          <span class="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">Daily Trend</span>
         </div>
         <div class="h-56 w-full pt-2">
-          <canvas id="dailyDoctorChart"></canvas>
+          <canvas id="dailyChart"></canvas>
         </div>
       </div>
 
-      <!-- Prescribed Dosage Breakdown -->
+      <!-- Dosage & Device Share -->
       <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4 flex flex-col justify-between">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -144,8 +101,8 @@
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">Distribution across TirzaTrim multi-dose strengths</p>
         </div>
-        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60 flex-1 flex flex-col justify-center">
-          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
+        <div id="doseShareList" class="space-y-2 text-xs divide-y divide-slate-800/60 my-auto">
+          <div class="text-slate-500 py-4 text-center">No dosage records found.</div>
         </div>
       </div>
 
@@ -160,7 +117,7 @@
       </div>
       <div id="doctorCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="col-span-full py-12 text-center text-slate-500 text-sm">
-          Loading patient records...
+          Loading doctor patient records...
         </div>
       </div>
     </div>
@@ -173,224 +130,131 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let targetDoctor = urlParams.get('dr') ? urlParams.get('dr').trim() : '';
-    let rawDoctorOrders = [];
-    let feedbackMap = {};
+    let rawOrders = [];
+    let cachedFeedbacks = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let currentDoctorName = "";
 
-    let currentDateScope = "MTD";
-    let filterStartDate = null;
-    let filterEndDate = null;
+    function initDoctorPortal() {
+      const urlParams = new URLSearchParams(window.location.search);
+      currentDoctorName = (urlParams.get('dr') || '').trim();
 
-    function getLocalDateKey(dateInput) {
-      const d = dateInput ? new Date(dateInput) : new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    if (targetDoctor) {
-      document.getElementById('portalHeader').innerHTML = `Dr. ${targetDoctor.replace(/^Dr\.?\s*/i, '')}'s <span class="text-sky-400">Portal</span>`;
-      document.getElementById('portalSubheader').innerText = `Live prescription tracker and fulfillment feedback for Dr. ${targetDoctor.replace(/^Dr\.?\s*/i, '')}`;
-      document.getElementById('searchContainer').classList.add('hidden');
-    } else {
-      document.getElementById('searchContainer').classList.remove('hidden');
-    }
-
-    function handleManualSearch() {
-      const val = document.getElementById('manualDoctorInput').value.trim();
-      if (!val) {
-        alert("Please enter a doctor name.");
-        return;
-      }
-      targetDoctor = val;
-      document.getElementById('portalHeader').innerHTML = `Dr. ${targetDoctor.replace(/^Dr\.?\s*/i, '')}'s <span class="text-sky-400">Portal</span>`;
-      document.getElementById('portalSubheader').innerText = `Live prescription tracker and fulfillment feedback for Dr. ${targetDoctor.replace(/^Dr\.?\s*/i, '')}`;
-      fetchDoctorPatients();
-    }
-
-    function initDates() {
-      setDatePreset('MTD');
-    }
-
-    function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
-
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
-      });
-
-      if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all";
-        filterStartDate = getLocalDateKey(today);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-      } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all";
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-        filterStartDate = getLocalDateKey(y);
-        filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-      } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all";
-        const last7 = new Date();
-        last7.setDate(last7.getDate() - 6);
-        filterStartDate = getLocalDateKey(last7);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-      } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all";
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = getLocalDateKey(firstDay);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-      } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition-all";
-        filterStartDate = null;
-        filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Record)";
+      if (currentDoctorName) {
+        document.getElementById('docNameQueryInput').value = currentDoctorName;
+        document.getElementById('docHeaderName').innerHTML = `Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}'s <span class="text-blue-400">Monitoring Portal</span>`;
       }
 
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
-
-      applyDoctorFilters();
+      fetchDoctorOrders();
     }
 
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
-        });
-
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        applyDoctorFilters();
+    function applyDoctorSearch() {
+      const name = document.getElementById('docNameQueryInput').value.trim();
+      if (!name) {
+        window.location.href = '/doctor.html';
+      } else {
+        window.location.href = `/doctor.html?dr=${encodeURIComponent(name)}`;
       }
     }
 
     function renderStars(rating) {
-      if (!rating) return '<span class="text-xs text-slate-500 italic">No rating</span>';
-      return '⭐'.repeat(rating) + ` <span class="text-xs text-slate-400 font-semibold">(${rating}/5)</span>`;
+      if (!rating) return '';
+      return '⭐'.repeat(rating);
     }
 
-    async function fetchDoctorPatients() {
-      const grid = document.getElementById('doctorCardsGrid');
-
-      if (!targetDoctor) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm font-medium">Please provide or search your Doctor Name above to view your referred patient records.</div>';
-        document.getElementById('metricTotal').innerText = '0';
-        document.getElementById('metricCompleted').innerText = '0';
-        document.getElementById('metricFeedback').innerText = '0';
-        return;
-      }
-
-      grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">Loading your patient records...</div>';
-
-      const cleanName = targetDoctor.replace(/^Dr\.?\s*/i, '').trim();
-
-      const { data: orders, error: orderErr } = await client
+    async function fetchDoctorOrders() {
+      let query = client
         .from('orders')
         .select('*')
-        .ilike('doctor_name', `%${cleanName}%`)
         .order('created_at', { ascending: false });
 
-      if (orderErr) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-500 text-sm">Error: ${orderErr.message}</div>`;
+      if (currentDoctorName) {
+        query = query.ilike('doctor_name', `%${currentDoctorName.replace(/^Dr\.?\s*/i, '').trim()}%`);
+      }
+
+      const { data: orders, error } = await query;
+
+      if (error) {
+        alert("Error loading doctor records: " + error.message);
         return;
       }
 
-      rawDoctorOrders = orders || [];
+      rawOrders = orders || [];
 
-      if (rawDoctorOrders.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient prescriptions found for <strong>Dr. ${cleanName}</strong>.</div>`;
-        document.getElementById('metricTotal').innerText = '0';
-        document.getElementById('metricCompleted').innerText = '0';
-        document.getElementById('metricFeedback').innerText = '0';
-        return;
+      if (rawOrders.length > 0) {
+        const orderIds = rawOrders.map(o => o.id);
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
+
+        cachedFeedbacks = {};
+        (feedbacks || []).forEach(f => {
+          cachedFeedbacks[f.order_id] = f;
+        });
       }
 
-      const orderIds = rawDoctorOrders.map(o => o.id);
-      const { data: feedbacks } = await client
-        .from('feedback')
-        .select('*')
-        .in('order_id', orderIds);
-
-      feedbackMap = {};
-      (feedbacks || []).forEach(f => {
-        feedbackMap[f.order_id] = f;
-      });
-
-      applyDoctorFilters();
+      applyAllFilters();
     }
 
-    function applyDoctorFilters() {
-      const searchTerm = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
-      const statusFilter = document.getElementById('doctorStatusFilter')?.value || 'ALL';
+    function applyAllFilters() {
+      const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
 
-      const hierarchyMatchedOrders = rawDoctorOrders.filter(order => {
-        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
-        const matchesSearch = !searchTerm ||
+      activeFilteredOrders = rawOrders.filter(order => {
+        let matchesStatus = true;
+        const s = order.status || '';
+
+        if (statusFilter === 'Delivered') {
+          matchesStatus = ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(s);
+        } else if (statusFilter === 'Dispatched') {
+          matchesStatus = s === 'Dispatched';
+        } else if (statusFilter === 'Processing') {
+          matchesStatus = ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing'].includes(s);
+        } else if (statusFilter === 'Feedback') {
+          matchesStatus = !!cachedFeedbacks[order.id];
+        }
+
+        const matchesSearch = !searchTerm || 
           (order.patient_name || '').toLowerCase().includes(searchTerm) ||
           (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm) ||
           (order.prescribed_dose || '').toLowerCase().includes(searchTerm) ||
           (order.order_id || '').toLowerCase().includes(searchTerm);
 
         return matchesStatus && matchesSearch;
       });
 
-      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-        return matchesDate;
-      });
-
       updateMetrics();
-      updateDailyChart(hierarchyMatchedOrders);
+      updateDailyChart();
       updateSummaries();
       renderCards();
     }
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
-      const completed = activeFilteredOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      const feedbackCount = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(o.status)).length;
+      const feedbackCount = activeFilteredOrders.filter(o => cachedFeedbacks[o.id]).length;
 
-      document.getElementById('metricTotal').innerText = total;
-      document.getElementById('metricCompleted').innerText = completed;
-      document.getElementById('metricFeedback').innerText = feedbackCount;
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('statFeedback').innerText = feedbackCount;
       document.getElementById('filteredCount').innerText = total;
     }
 
-    function updateDailyChart(ordersToGraph) {
+    function updateDailyChart() {
       const daysCount = {};
       const datesList = [];
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const key = getLocalDateKey(d);
+        const key = d.toISOString().split('T')[0];
         daysCount[key] = 0;
         datesList.push(key);
       }
 
-      ordersToGraph.forEach(o => {
-        const orderDate = getLocalDateKey(o.created_at);
+      rawOrders.forEach(o => {
+        const orderDate = new Date(o.created_at).toISOString().split('T')[0];
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
         }
@@ -402,7 +266,7 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const ctx = document.getElementById('dailyDoctorChart').getContext('2d');
+      const ctx = document.getElementById('dailyChart').getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
       chartInstance = new Chart(ctx, {
@@ -410,10 +274,10 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Prescriptions',
+            label: 'Referrals',
             data: dataPoints,
-            backgroundColor: 'rgba(56, 189, 248, 0.85)',
-            hoverBackgroundColor: 'rgba(125, 211, 252, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.85)',
+            hoverBackgroundColor: 'rgba(96, 165, 250, 1)',
             borderRadius: 6,
             borderSkipped: false
           }]
@@ -421,28 +285,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              titleColor: '#38bdf8',
-              bodyColor: '#ffffff',
-              borderColor: '#334155',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: false
-            }
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: '#94a3b8', font: { size: 10 } }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(51, 65, 85, 0.3)' },
-              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
-            }
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 } }
           }
         }
       });
@@ -451,93 +297,67 @@
     function updateSummaries() {
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
-        const dose = o.prescribed_dose || 'Unspecified';
+        const dose = o.prescribed_dose || '5mg';
         doseCount[dose] = (doseCount[dose] || 0) + 1;
       });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+
+      const entries = Object.entries(doseCount);
+      document.getElementById('doseShareList').innerHTML = entries.length ? entries.map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
-          <span class="font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">${count} Prescriptions</span>
+          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Patients</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
+      `).join('') : '<div class="text-slate-500 py-4 text-center">No dosage records in this view.</div>';
     }
 
     function renderCards() {
       const grid = document.getElementById('doctorCardsGrid');
       if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selection.</div>';
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-sm">
+          No patient records found ${currentDoctorName ? `for Dr. ${currentDoctorName}` : ''}. Type a city, name, or change your status filter.
+        </div>`;
         return;
       }
 
       grid.innerHTML = activeFilteredOrders.map(order => {
-        const fb = feedbackMap[order.id];
+        const fb = cachedFeedbacks[order.id];
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+
         return `
           <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
             
-            <!-- Card Header: ID, Date & Read-Only Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
-                <div class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</div>
+                <div class="font-mono font-bold text-white text-xs">${order.order_id}</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <div>
-                <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 text-sky-400 border border-slate-700">
-                  ${order.status}
-                </span>
-              </div>
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20')}">
+                ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'Processing'))}
+              </span>
             </div>
 
-            <!-- Patient Information (Privacy-Safe) -->
             <div class="space-y-1.5 text-xs">
-              <div class="font-bold text-slate-100 text-sm flex items-center gap-1.5">
-                <span>👤</span>
-                <span>${order.patient_name}</span>
-                ${order.age ? `<span class="text-xs font-medium text-slate-400">(${order.age} yrs)</span>` : ''}
-              </div>
-              <div class="text-slate-400 font-medium text-[11px]">
-                📍 Location: <strong class="text-slate-200">${order.city || 'Pakistan'}</strong>
+              <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px] leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
               </div>
             </div>
 
-            <!-- Clinical & Prescription Details -->
             <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
-                <span class="font-bold text-sky-300">${order.prescribed_dose || 'N/A'}</span>
+                <span class="text-slate-400 text-[11px]">Indication</span>
+                <span class="font-semibold text-slate-200">${order.indication || 'Weight Management'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
-                <span class="text-slate-400 text-[11px]">Multi-Dose Pen</span>
-                <span class="font-bold text-slate-200">${order.device || 'N/A'}</span>
-              </div>
-              ${order.indication ? `
-                <div class="flex items-center justify-between border-t border-slate-800 pt-1">
-                  <span class="text-slate-400 text-[11px]">Indication</span>
-                  <span class="text-slate-300">${order.indication}</span>
-                </div>
-              ` : ''}
-              <div class="border-t border-slate-800 pt-1 text-right">
-                ${order.prescription_url 
-                  ? `<a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline font-semibold">📄 View Rx Document</a>` 
-                  : '<span class="text-[11px] text-slate-500">No Rx Document</span>'}
+                <span class="text-slate-400 text-[11px]">Prescribed Dose</span>
+                <span class="font-bold text-blue-400">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
             </div>
 
-            <!-- Verified Feedback Section -->
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400 font-medium text-[11px]">Patient Feedback:</span>
-                <div>${fb ? renderStars(fb.overall_rating) : '<span class="text-[11px] text-slate-500 italic">Pending delivery</span>'}</div>
-              </div>
-              ${fb && fb.comments ? `
-                <div class="text-[11px] text-slate-300 italic bg-slate-900 p-2 rounded-lg border border-slate-800 mt-1">
-                  "${fb.comments}"
-                </div>
-              ` : ''}
-              ${fb && fb.would_recommend ? `
-                <div class="text-[10px] text-slate-400 font-medium pt-0.5">
-                  Recommends Service: <strong class="text-emerald-400">${fb.would_recommend}</strong>
-                </div>
-              ` : ''}
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
+              <span class="text-slate-400 font-medium">Verified Patient Review:</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
             </div>
 
           </div>
@@ -545,8 +365,7 @@
       }).join('');
     }
 
-    initDates();
-    fetchDoctorPatients();
+    initDoctorPortal();
   </script>
 </body>
 </html>
