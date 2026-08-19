@@ -10,6 +10,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Fast, Client-side QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
 
@@ -109,8 +111,11 @@
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="copyMyPatientLink()" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all">
-          📋 Copy Patient Order Link
+        <button onclick="copyMyPatientLink()" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
+          📋 Copy Patient Link
+        </button>
+        <button onclick="showPatientQRModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
+          📱 Show Patient QR
         </button>
         <button onclick="fetchRepOrders()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl shadow transition-all">
           🔄 Refresh
@@ -125,14 +130,17 @@
     <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
       <div>
         <h2 class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-          <span>🩺</span> Generate Doctor Monitoring Portal Link
+          <span>🩺</span> Generate Doctor Monitoring Portal Link & QR
         </h2>
-        <p class="text-xs text-slate-400 mt-0.5">Create and share a live tracking link for your prescribing physician.</p>
+        <p class="text-xs text-slate-400 mt-0.5">Create, share, or generate an instant QR Code for your prescribing physician.</p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-        <input type="text" id="drNameInput" placeholder="Enter Doctor Name (e.g. Dr. Qamar Sajjad)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Qamar Sajjad)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
         <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all">
           📋 Copy Doctor Link
+        </button>
+        <button onclick="showDoctorQRModal()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
+          📱 Doctor Portal QR
         </button>
         <button onclick="shareDoctorLinkWhatsApp()" class="py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
           💬 Send via WhatsApp
@@ -201,7 +209,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">Filter by Status</label>
-          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium bg-slate-950 text-white outline-none focus:border-teal-500">
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white outline-none focus:border-teal-500">
             <option value="ALL">All Statuses</option>
             <option value="New Patient">New Patient</option>
             <option value="Prescription Received">Prescription Received</option>
@@ -272,6 +280,40 @@
     </div>
 
   </div>
+
+  <!-- QR CODE POPUP MODAL -->
+  <div id="qrModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 text-center relative">
+      
+      <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-base w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition-colors">
+        ✕
+      </button>
+
+      <div class="space-y-1">
+        <h3 class="text-lg font-black text-white" id="qrModalTitle">Instant QR Code</h3>
+        <p class="text-xs text-slate-400" id="qrModalSubtitle">Scan to open link directly</p>
+      </div>
+
+      <!-- White Frame Container for Crisp Scanning -->
+      <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto border-4 border-slate-800">
+        <div id="qrcodeContainer"></div>
+      </div>
+
+      <div class="text-[11px] font-mono text-teal-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800 break-all" id="qrLinkDisplay">
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="downloadQRCode()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all">
+          💾 Save Image
+        </button>
+        <button onclick="copyModalLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-all">
+          📋 Copy Link
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
@@ -283,6 +325,7 @@
     let cachedFeedbacks = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let currentModalLink = "";
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
@@ -442,6 +485,74 @@
       const message = `Respected ${doc.name},\n\nThank you for prescribing TirzaTrim.\n\n📲 *Patient Prescription Submission Link:*\n${patientOrderLink}\n\n📊 *Your Dedicated Doctor Monitoring Portal:*\n${doc.url}\n\nYou can track all your referred patients' fulfillment and verified service feedback live using the portal link above.\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
 
       openWhatsAppUniversal("", message);
+    }
+
+    /* QR CODE MODAL HANDLERS */
+    function renderQRCodeModal(title, subtitle, url) {
+      currentModalLink = url;
+      document.getElementById('qrModalTitle').innerText = title;
+      document.getElementById('qrModalSubtitle').innerText = subtitle;
+      document.getElementById('qrLinkDisplay').innerText = url;
+
+      const container = document.getElementById('qrcodeContainer');
+      container.innerHTML = "";
+
+      new QRCode(container, {
+        text: url,
+        width: 190,
+        height: 190,
+        colorDark: "#020617",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function showPatientQRModal() {
+      if (!currentRep) return;
+      const link = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      renderQRCodeModal(
+        `Patient Order QR Code`,
+        `Territory Code: ${currentRep.territory_code}`,
+        link
+      );
+    }
+
+    function showDoctorQRModal() {
+      const doc = getGeneratedDoctorLink();
+      if (!doc) return;
+      renderQRCodeModal(
+        `Dr. ${doc.name.replace(/^Dr\.?\s*/i, '')}'s Portal QR`,
+        `Prescribing Doctor Tracking Hub`,
+        doc.url
+      );
+    }
+
+    function closeQRModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    function copyModalLink() {
+      if (currentModalLink) {
+        navigator.clipboard.writeText(currentModalLink);
+        alert(`Copied link to clipboard:\n${currentModalLink}`);
+      }
+    }
+
+    function downloadQRCode() {
+      const img = document.querySelector('#qrcodeContainer img');
+      const canvas = document.querySelector('#qrcodeContainer canvas');
+      const url = img ? img.src : (canvas ? canvas.toDataURL('image/png') : null);
+
+      if (url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `TirzaTrim-QR-${Date.now()}.png`;
+        link.click();
+      } else {
+        alert("QR Code image is still generating. Please try again in a moment.");
+      }
     }
 
     function initDates() {
@@ -752,7 +863,7 @@
               <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
             </div>
 
-            <!-- Direct Contact Actions (2 Clean Buttons) -->
+            <!-- Direct Contact Actions -->
             <div class="grid grid-cols-2 gap-2 pt-1">
               <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
                 💬 Status
