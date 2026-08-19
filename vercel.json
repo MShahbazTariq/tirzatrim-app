@@ -1,8 +1,27 @@
 {
-  "crons": [
+  "version": 2,
+  "headers": [
     {
-      "path": "/api/cron-reminders",
-      "schedule": "0 5 * * *"
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
     }
   ]
 }
