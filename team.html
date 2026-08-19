@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TirzaTrim — Field Rep Operations Portal</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -294,7 +294,6 @@
         <p class="text-xs text-slate-400" id="qrModalSubtitle">Scan to open link directly</p>
       </div>
 
-      <!-- White Frame Container for Crisp Scanning -->
       <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto border-4 border-slate-800">
         <div id="qrcodeContainer"></div>
       </div>
@@ -330,12 +329,6 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
-
-    const statuses = [
-      'New Patient', 'Prescription Received', 'Prescription Verified',
-      'Order Processing', 'Dispatched', 'Delivered', 'Patient Confirmed',
-      'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
-    ];
 
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
@@ -810,33 +803,34 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = cachedFeedbacks[order.id];
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Feedback Submitted', 'Completed'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+
         return `
           <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
             
-            <!-- Card Header: ID, Date & Interactive Status Selector -->
+            <!-- Card Header: ID, Date & Auto-Synced Status Badge -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
                 <div class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <div>
-                <select onchange="updateRepOrderStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-700 rounded-lg py-1 px-2 bg-slate-950 text-teal-400 outline-none focus:border-teal-500 cursor-pointer">
-                  ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
-              </div>
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-400 border border-teal-500/20')}">
+                ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
+              </span>
             </div>
 
             <!-- Patient Information -->
             <div class="space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold">
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[11px] font-bold">
                   📞 Call
                 </a>
               </div>
               <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px] leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
@@ -848,48 +842,34 @@
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Dose & Device</span>
-                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
-              <div class="border-t border-slate-800 pt-1 text-right">
-                ${order.prescription_url 
-                  ? `<a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a>` 
-                  : '<span class="text-[11px] text-slate-500">No Rx Document</span>'}
-              </div>
+              ${order.prescription_url ? `
+                <div class="border-t border-slate-800 pt-1 text-right">
+                  <a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a>
+                </div>
+              ` : ''}
             </div>
 
             <!-- Patient Feedback -->
             <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
               <span class="text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending</span>'}</span>
+              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending Submission</span>'}</span>
             </div>
 
-            <!-- Direct Contact Actions -->
+            <!-- Direct WhatsApp Actions for Reps -->
             <div class="grid grid-cols-2 gap-2 pt-1">
               <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
-                💬 Status
+                💬 Inform Status
               </button>
               <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
-                ⭐ Feedback
+                ⭐ Ask Feedback
               </button>
             </div>
 
           </div>
         `;
       }).join('');
-    }
-
-    async function updateRepOrderStatus(orderId, newStatus) {
-      try {
-        const { error } = await client
-          .from('orders')
-          .update({ status: newStatus })
-          .eq('id', orderId);
-
-        if (error) throw error;
-        fetchRepOrders();
-      } catch (err) {
-        alert("Failed to update status: " + err.message);
-      }
     }
 
     function formatPakistanMobile(mobile) {
