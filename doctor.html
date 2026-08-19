@@ -15,8 +15,8 @@
 
   <div class="max-w-7xl mx-auto space-y-6">
     
-    <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
+    <!-- Top Header & Dual Search Input Bar -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
       <div>
         <div class="flex items-center gap-2">
           <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
@@ -30,10 +30,11 @@
         <p class="text-xs text-slate-400 mt-1" id="docSubHeader">Live prescription tracker and fulfillment feedback for healthcare providers</p>
       </div>
 
-      <!-- Prescribing Doctor Search Form -->
-      <form onsubmit="handleDoctorSearchSubmit(event)" class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-        <input type="text" id="docNameQueryInput" placeholder="Enter Doctor Name (e.g. Dr. Nauman Butt)..." class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-52 sm:w-64 font-medium">
-        <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
+      <!-- Prescribing Doctor Dual-Auth Search Box -->
+      <form onsubmit="handleDoctorSearchSubmit(event)" class="flex flex-wrap items-center gap-2 bg-slate-950 p-2 rounded-2xl border border-slate-800">
+        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Nauman J Butt)" required class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
+        <input type="text" id="clinicQueryInput" placeholder="Clinic / Hospital (e.g. IDC)" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-40 sm:w-44 font-medium focus:border-blue-500">
+        <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/20">
           View Patients
         </button>
         <button type="button" onclick="resetDoctorFilter()" title="Clear and reset to zero" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-all">
@@ -49,7 +50,6 @@
           <span>📅</span> Timeline & Date Scope
         </div>
         
-        <!-- Preset Toggles -->
         <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
           <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all">This Month</button>
           <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
@@ -59,7 +59,6 @@
         </div>
       </div>
 
-      <!-- Custom Calendar Pickers -->
       <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
         <div class="flex items-center gap-2">
           <span class="text-slate-400 font-medium">From:</span>
@@ -117,7 +116,6 @@
     <!-- GRAPHS & DOSAGE BREAKDOWN -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       
-      <!-- Daily Trend Chart -->
       <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -130,7 +128,6 @@
         </div>
       </div>
 
-      <!-- Dosage & Device Share -->
       <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4 flex flex-col justify-between">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -154,7 +151,7 @@
       </div>
       <div id="doctorCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="col-span-full py-16 text-center text-slate-500 text-sm">
-          Please enter doctor name above to load referred patients.
+          Please enter doctor name and clinic above to load referred patients.
         </div>
       </div>
     </div>
@@ -172,6 +169,7 @@
     let activeFilteredOrders = [];
     let chartInstance = null;
     let currentDoctorName = "";
+    let currentClinicName = "";
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
@@ -185,8 +183,7 @@
       return `${year}-${month}-${day}`;
     }
 
-    // Fuzzy clean helper: normalizes common variants like nauman/noman, butt/but
-    function cleanDoctorToken(str) {
+    function cleanToken(str) {
       return (str || '')
         .toLowerCase()
         .replace(/^(dr\.?|doctor)\s+/i, '')
@@ -197,38 +194,47 @@
         .replace(/oo/g, 'u');
     }
 
-    function isDoctorMatch(orderDocName, searchDocName) {
-      if (!searchDocName) return false;
-      const cleanSearch = cleanDoctorToken(searchDocName);
-      const cleanOrder = cleanDoctorToken(orderDocName);
+    function isDoctorAndClinicMatch(order, searchDoc, searchClinic) {
+      if (!searchDoc) return false;
 
-      if (cleanOrder.includes(cleanSearch) || cleanSearch.includes(cleanOrder)) {
-        return true;
+      // 1. Doctor Name Matching
+      const cleanSearchDoc = cleanToken(searchDoc);
+      const cleanOrderDoc = cleanToken(order.doctor_name);
+      const docMatches = cleanOrderDoc.includes(cleanSearchDoc) || cleanSearchDoc.includes(cleanOrderDoc);
+
+      if (!docMatches) return false;
+
+      // 2. Clinic Matching (if clinic entered)
+      if (searchClinic) {
+        const cleanSearchClinic = cleanToken(searchClinic);
+        const cleanOrderClinic = cleanToken(order.clinic_name || '');
+        const clinicMatches = cleanOrderClinic.includes(cleanSearchClinic) || cleanSearchClinic.includes(cleanOrderClinic);
+        return clinicMatches;
       }
 
-      // Token-based matching (matches if primary tokens overlap)
-      const searchTokens = (searchDocName || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanDoctorToken).filter(t => t.length > 2);
-      const orderTokens = (orderDocName || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanDoctorToken).filter(t => t.length > 2);
-
-      return searchTokens.some(st => orderTokens.some(ot => ot.includes(st) || st.includes(ot)));
+      return true;
     }
 
     function initDoctorPortal() {
       const urlParams = new URLSearchParams(window.location.search);
       currentDoctorName = (urlParams.get('dr') || '').trim();
+      currentClinicName = (urlParams.get('clinic') || '').trim();
 
-      const input = document.getElementById('docNameQueryInput');
+      const docInput = document.getElementById('docNameQueryInput');
+      const clinicInput = document.getElementById('clinicQueryInput');
       const header = document.getElementById('docHeaderName');
       const subHeader = document.getElementById('docSubHeader');
       const badge = document.getElementById('hcpBadge');
 
       if (currentDoctorName) {
-        input.value = currentDoctorName;
-        header.innerHTML = `Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}'s <span class="text-blue-400">Portal</span>`;
+        docInput.value = currentDoctorName;
+        clinicInput.value = currentClinicName;
+        header.innerHTML = `Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')} ${currentClinicName ? `<span class="text-slate-400 text-lg">(${currentClinicName})</span>` : ''}'s <span class="text-blue-400">Portal</span>`;
         subHeader.innerText = `Live prescription tracker and fulfillment feedback for Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}`;
         badge.classList.remove('hidden');
       } else {
-        input.value = '';
+        docInput.value = '';
+        clinicInput.value = '';
         header.innerHTML = `Doctor <span class="text-blue-400">Monitoring Portal</span>`;
         subHeader.innerText = `Live prescription tracker and fulfillment feedback for healthcare providers`;
         badge.classList.add('hidden');
@@ -244,19 +250,26 @@
     }
 
     function applyDoctorSearch() {
-      const name = document.getElementById('docNameQueryInput').value.trim();
-      if (!name) {
+      const docName = document.getElementById('docNameQueryInput').value.trim();
+      const clinicName = document.getElementById('clinicQueryInput').value.trim();
+
+      if (!docName) {
         resetDoctorFilter();
       } else {
-        window.history.pushState({}, '', `/doctor.html?dr=${encodeURIComponent(name)}`);
+        const queryParams = new URLSearchParams();
+        queryParams.set('dr', docName);
+        if (clinicName) queryParams.set('clinic', clinicName);
+        window.history.pushState({}, '', `/doctor.html?${queryParams.toString()}`);
         initDoctorPortal();
       }
     }
 
     function resetDoctorFilter() {
       document.getElementById('docNameQueryInput').value = '';
+      document.getElementById('clinicQueryInput').value = '';
       window.history.pushState({}, '', '/doctor.html');
       currentDoctorName = '';
+      currentClinicName = '';
       rawOrders = [];
       cachedFeedbacks = {};
       initDoctorPortal();
@@ -338,7 +351,6 @@
     }
 
     async function fetchDoctorOrders() {
-      // By default with no doctor query, keep rawOrders empty to show 0
       if (!currentDoctorName) {
         rawOrders = [];
         cachedFeedbacks = {};
@@ -356,8 +368,7 @@
         return;
       }
 
-      // Filter matched orders using fuzzy/variant matcher
-      rawOrders = (allOrders || []).filter(o => isDoctorMatch(o.doctor_name, currentDoctorName));
+      rawOrders = (allOrders || []).filter(o => isDoctorAndClinicMatch(o, currentDoctorName, currentClinicName));
 
       if (rawOrders.length > 0) {
         const orderIds = rawOrders.map(o => o.id);
@@ -398,6 +409,7 @@
         const matchesSearch = !searchTerm || 
           (order.patient_name || '').toLowerCase().includes(searchTerm) ||
           (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
           (order.delivery_address || '').toLowerCase().includes(searchTerm) ||
           (order.prescribed_dose || '').toLowerCase().includes(searchTerm) ||
           (order.order_id || '').toLowerCase().includes(searchTerm);
@@ -504,14 +516,14 @@
       
       if (!currentDoctorName) {
         grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 text-sm">
-          Please enter doctor name above to load referred patients.
+          Please enter doctor name and clinic above to load referred patients.
         </div>`;
         return;
       }
 
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 text-sm">
-          No patient records found matching Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}.
+          No patient records found matching Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')} ${currentClinicName ? `(${currentClinicName})` : ''}.
         </div>`;
         return;
       }
@@ -543,6 +555,10 @@
 
             <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
+                <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
+                <span class="font-bold text-blue-300">${order.clinic_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Indication</span>
                 <span class="font-semibold text-slate-200">${order.indication || 'Weight Management'}</span>
               </div>
