@@ -135,7 +135,7 @@
         <p class="text-xs text-slate-400 mt-0.5">Create, share, or generate an instant QR Code for your prescribing physician.</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Qamar Sajjad)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
         <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all">
           📋 Copy Doctor Link
         </button>
@@ -221,7 +221,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, clinic, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600">
         </div>
       </div>
     </div>
@@ -454,7 +454,7 @@
     function getGeneratedDoctorLink() {
       const drName = document.getElementById('drNameInput').value.trim();
       if (!drName) {
-        alert("Please enter Doctor Name first (e.g. Dr. Qamar Sajjad)");
+        alert("Please enter Doctor Name first (e.g. Dr. Nauman J Butt)");
         return null;
       }
       return {
@@ -664,6 +664,7 @@
           (order.mobile || '').includes(searchTerm) ||
           (order.order_id || '').toLowerCase().includes(searchTerm) ||
           (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
           (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
         return matchesStatus && matchesSearch;
@@ -834,11 +835,15 @@
               </div>
             </div>
 
-            <!-- Doctor & Prescription Details -->
+            <!-- Doctor, Clinic & Prescription Details -->
             <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 text-[11px]">Doctor</span>
                 <span class="font-bold text-teal-300">Dr. ${order.doctor_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
+                <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Dose & Device</span>
