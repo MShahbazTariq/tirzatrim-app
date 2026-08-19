@@ -14,15 +14,14 @@
 
   <div class="max-w-2xl w-full bg-slate-900/80 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl space-y-6">
     
-    <div class="flex items-center justify-between border-b border-slate-800 pb-5">
-      <a href="/" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5">
-        <span>🏠</span> Home
-      </a>
-      <span class="text-[11px] font-bold text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20">
-        Patient Support Care
+    <!-- Top Header (No Home Button) -->
+    <div class="flex items-center justify-center border-b border-slate-800 pb-4">
+      <span class="text-xs font-bold text-teal-400 bg-teal-500/10 px-4 py-1.5 rounded-full border border-teal-500/20">
+        TirzaTrim Patient Support Care
       </span>
     </div>
 
+    <!-- Title Header -->
     <div class="text-center space-y-1.5">
       <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">
         TirzaTrim <span class="text-teal-400">Patient Support</span>
@@ -32,6 +31,7 @@
       </p>
     </div>
 
+    <!-- ORDER FORM -->
     <form id="patientOrderForm" onsubmit="submitPatientOrder(event)" class="space-y-6">
       
       <!-- 1. PERSONAL DETAILS -->
@@ -96,7 +96,7 @@
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Clinic / Hospital Name *</label>
-            <input type="text" id="clinicName" list="clinicSuggestions" required placeholder="Type to auto-suggest or enter new" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <input type="text" id="clinicName" list="clinicSuggestions" required placeholder="Type or select clinic" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
             <datalist id="clinicSuggestions"></datalist>
           </div>
         </div>
@@ -141,6 +141,7 @@
         </div>
       </div>
 
+      <!-- Submit Action -->
       <div class="pt-2 space-y-3">
         <button type="submit" id="submitBtn" class="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white text-xs md:text-sm font-bold rounded-2xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
           <span>🚀</span>
@@ -151,20 +152,26 @@
 
     </form>
 
-    <div id="successView" class="text-center space-y-4 py-8 hidden">
+    <!-- SUCCESS CONFIRMATION VIEW -->
+    <div id="successView" class="text-center space-y-5 py-6 hidden">
       <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-3xl flex items-center justify-center mx-auto text-emerald-400">
         ✓
       </div>
-      <div class="space-y-1">
+      <div class="space-y-1.5">
         <h2 class="text-xl font-black text-white">Order Received!</h2>
         <p class="text-xs text-slate-400 max-w-sm mx-auto">
-          Your order ID is <strong id="generatedOrderId" class="text-teal-400 font-mono">TT-XXXXX</strong>. Our patient support team will contact you on WhatsApp shortly.
+          Your order ID is <strong id="generatedOrderId" class="text-teal-400 font-mono text-sm">TT-XXXXX</strong>. Our patient support team will contact you on WhatsApp shortly.
         </p>
       </div>
-      <div class="pt-2">
-        <a href="/" class="inline-block px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all">
-          Return to Home
-        </a>
+
+      <!-- Custom Actions (Submit Another & Close) -->
+      <div class="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+        <button onclick="resetForAnotherOrder()" class="w-full py-3 px-4 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-1.5">
+          <span>➕</span> Submit Another Order
+        </button>
+        <button onclick="closeCurrentWindow()" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+          <span>✕</span> Close Window
+        </button>
       </div>
     </div>
 
@@ -176,7 +183,6 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Pakistan Major Hospital/Clinic Database by City
     const PAKISTAN_CLINICS = {
       "Lahore": [
         "IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", 
@@ -226,7 +232,6 @@
 
       let list = PAKISTAN_CLINICS[city] || [];
       if (list.length === 0) {
-        // Fallback or merge common diagnostic chains
         list = GENERAL_CLINICS;
       } else {
         list = [...new Set([...list, ...GENERAL_CLINICS])];
@@ -239,12 +244,10 @@
       });
     }
 
-    // Auto-capture rep URL param
     const urlParams = new URLSearchParams(window.location.search);
     const assignedRep = urlParams.get('rep') ? urlParams.get('rep').trim().toUpperCase() : 'DIRECT';
     document.getElementById('territoryRepCode').value = assignedRep;
 
-    // Prefill suggestions on start
     updateClinicSuggestions();
 
     async function submitPatientOrder(e) {
@@ -322,6 +325,32 @@
         statusMsg.innerText = "Failed to submit order: " + err.message;
         submitBtn.disabled = false;
       }
+    }
+
+    function resetForAnotherOrder() {
+      document.getElementById('patientOrderForm').reset();
+      document.getElementById('territoryRepCode').value = assignedRep;
+      document.getElementById('submissionStatus').classList.add('hidden');
+      document.getElementById('submitBtn').disabled = false;
+
+      document.getElementById('successView').classList.add('hidden');
+      document.getElementById('patientOrderForm').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeCurrentWindow() {
+      window.close();
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-950 font-sans text-center">
+            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-3">
+              <div class="text-3xl text-emerald-400">✓</div>
+              <h3 class="text-base font-bold text-white">Order Submitted Successfully</h3>
+              <p class="text-xs text-slate-400">You may now safely close this browser tab.</p>
+            </div>
+          </div>
+        `;
+      }, 300);
     }
   </script>
 </body>
