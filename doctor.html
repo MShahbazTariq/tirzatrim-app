@@ -32,7 +32,7 @@
 
       <!-- Prescribing Doctor Search Form -->
       <form onsubmit="handleDoctorSearchSubmit(event)" class="flex flex-wrap items-center gap-2 bg-slate-950 p-2 rounded-2xl border border-slate-800">
-        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Qamar Sajad)" required class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
+        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Qamar Sajjad)" required class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
         <input type="text" id="clinicQueryInput" placeholder="Clinic / Hospital (e.g. FMH)" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-40 sm:w-44 font-medium focus:border-blue-500">
         <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/20">
           View Patients
@@ -181,84 +181,72 @@
       return `${year}-${month}-${day}`;
     }
 
-    // Levenshtein edit distance calculation
-    function calcLevenshtein(a, b) {
-      if (!a || !b) return (a || '').length + (b || '').length;
-      const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-      for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-      for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-
-      for (let i = 1; i <= a.length; i++) {
-        for (let j = 1; j <= b.length; j++) {
-          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j - 1] + cost
-          );
-        }
-      }
-      return matrix[a.length][b.length];
-    }
-
-    // Normalizes common doctor title, transliterations, and duplicate consonants
-    function normalizePhonetic(str) {
-      return (str || '')
-        .toLowerCase()
+    // Sound-based Phonetic Root Generator
+    function getPhoneticSoundRoot(word) {
+      if (!word) return '';
+      let s = word.toLowerCase()
         .replace(/^(dr\.?|doctor)\s+/i, '')
-        .replace(/[^a-z0-9]/g, '')
-        .replace(/mohamm?ad|mohd|muhamm?ed|mohamad/g, 'muhammad')
-        .replace(/nauman|nouman/g, 'noman')
-        .replace(/([a-z])\1+/g, '$1'); // Collapse duplicate letters (sajjad -> sajad, butt -> but)
+        .replace(/[^a-z0-9]/g, '');
+
+      // Standardize common phonetic equivalents
+      s = s.replace(/ph/g, 'f')
+           .replace(/q|k/g, 'k')
+           .replace(/z|x/g, 's')
+           .replace(/c(?=[iey])/g, 's')
+           .replace(/c/g, 'k')
+           .replace(/mohamm?ad|mohd|muhamm?ed|mohamad|mhamd/g, 'mhmd')
+           .replace(/nauman|nouman|noman/g, 'nmn')
+           .replace(/j|z/g, 'j');
+
+      if (s.length === 0) return '';
+      const firstChar = s[0];
+
+      // Remove internal vowels while retaining phonetic consonants
+      const rest = s.slice(1)
+        .replace(/[aeiouwyh]/g, '')
+        .replace(/([a-z])\1+/g, '$1'); // Collapse duplicates (e.g., sjjd -> sjd)
+
+      return (firstChar + rest).replace(/([a-z])\1+/g, '$1');
     }
 
-    function isSingleWordFuzzyMatch(w1, w2) {
-      const n1 = normalizePhonetic(w1);
-      const n2 = normalizePhonetic(w2);
-      if (!n1 || !n2) return false;
-      if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
-
-      const dist = calcLevenshtein(n1, n2);
-
-      // Strict tolerance: Only allow 1 character variation on words of 5+ letters
-      // Excludes completely mutated words like 'Qambar' vs 'Qamar' or 'Sojod' vs 'Sajjad'
-      if (n1.length >= 5 && n2.length >= 5) {
-        return dist <= 1;
-      }
-      return false;
+    function isWordSoundMatch(w1, w2) {
+      const p1 = getPhoneticSoundRoot(w1);
+      const p2 = getPhoneticSoundRoot(w2);
+      if (!p1 || !p2) return false;
+      return p1 === p2 || p1.includes(p2) || p2.includes(p1);
     }
 
     function isDoctorAndClinicMatch(order, searchDoc, searchClinic) {
       if (!searchDoc) return false;
 
-      // 1. Doctor Name Matching
+      // 1. Doctor Name Phonetic Matching
       const searchDocTokens = (searchDoc || '')
         .toLowerCase()
         .replace(/^(dr\.?|doctor)\s+/i, '')
         .split(/\s+/)
-        .filter(w => w.length > 1);
+        .filter(w => w.length > 0);
 
       const orderDocTokens = (order.doctor_name || '')
         .toLowerCase()
         .replace(/^(dr\.?|doctor)\s+/i, '')
         .split(/\s+/)
-        .filter(w => w.length > 1);
+        .filter(w => w.length > 0);
 
-      const docMatches = searchDocTokens.length > 0 && searchDocTokens.every(st => 
-        orderDocTokens.some(ot => isSingleWordFuzzyMatch(st, ot))
+      const docMatches = searchDocTokens.every(st => 
+        orderDocTokens.some(ot => isWordSoundMatch(st, ot))
       );
 
       if (!docMatches) return false;
 
-      // 2. Clinic Matching (Supports acronyms like FMH for Fatima Memorial Hospital, Shalimar, IDC, etc.)
+      // 2. Clinic Matching
       if (searchClinic && searchClinic.trim().length > 0) {
-        const sClinicNorm = normalizePhonetic(searchClinic);
         const oClinic = (order.clinic_name || '').toLowerCase();
-        const oClinicNorm = normalizePhonetic(oClinic);
+        const sClinic = searchClinic.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const oRaw = oClinic.replace(/[^a-z0-9]/g, '');
 
-        if (!oClinicNorm) return false;
+        if (!oRaw) return false;
 
-        // Generate acronym (e.g., Fatima Memorial Hospital -> fmh)
+        // Acronym match (e.g., FMH for Fatima Memorial Hospital)
         const clinicAcronym = oClinic
           .split(/[\s\(\)\-\/]+/)
           .filter(Boolean)
@@ -266,15 +254,10 @@
           .join('')
           .toLowerCase();
 
-        const sRaw = searchClinic.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const oRaw = oClinic.replace(/[^a-z0-9]/g, '');
-
-        const clinicMatches = oRaw.includes(sRaw) ||
-                              sRaw.includes(oRaw) ||
-                              clinicAcronym.includes(sRaw) ||
-                              oClinicNorm.includes(sClinicNorm) ||
-                              sClinicNorm.includes(oClinicNorm) ||
-                              isSingleWordFuzzyMatch(searchClinic, order.clinic_name);
+        const clinicMatches = oRaw.includes(sClinic) || 
+                              sClinic.includes(oRaw) || 
+                              clinicAcronym.includes(sClinic) || 
+                              isWordSoundMatch(searchClinic, order.clinic_name);
 
         return clinicMatches;
       }
@@ -425,7 +408,6 @@
         return;
       }
 
-      // Fetch all orders and perform client-side phonetic/fuzzy filtering
       const { data: allOrders, error } = await client
         .from('orders')
         .select('*')
