@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TirzaTrim — Head Office Executive Suite</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -55,10 +55,10 @@
         <p class="text-xs text-slate-400 mt-1">Multi-Tier Hierarchy Analytics: HOS (Regions) → ZSM (Zones) → Field Reps (T-Codes)</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
+        <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
           📥 Download Filtered CSV
         </button>
-        <button onclick="fetchEverything()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">
+        <button onclick="fetchEverything()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
           🔄 Refresh
         </button>
         <button onclick="handleHeadOfficeLogout()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
@@ -153,7 +153,7 @@
 
         <div>
           <label class="block text-[11px] font-semibold text-slate-400 mb-1">4. Keyword Search</label>
-          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Dr, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500 placeholder-slate-600">
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic, Address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-emerald-500 placeholder-slate-600">
         </div>
       </div>
     </div>
@@ -212,6 +212,7 @@
     </div>
 
   </div>
+
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
@@ -226,7 +227,6 @@
     let activeFilteredOrders = [];
     let chartInstance = null;
 
-    // Date Filtering State (Default to MTD so records are immediately visible)
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
@@ -343,7 +343,11 @@
     }
 
     async function fetchEverything() {
-      const { data: orders } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      if (orderErr) {
+        alert("Error loading orders: " + orderErr.message);
+        return;
+      }
       allOrders = orders || [];
 
       const { data: managers } = await client.from('managers').select('*');
@@ -352,9 +356,14 @@
       const { data: reps } = await client.from('reps').select('*');
       allReps = reps || [];
 
-      const { data: feedbacks } = await client.from('feedback').select('*');
-      feedbackMap = {};
-      (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
+      if (allOrders.length > 0) {
+        const orderIds = allOrders.map(o => o.id);
+        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
+      } else {
+        feedbackMap = {};
+      }
 
       populateManagerDropdown();
       populateRepDropdown();
@@ -364,6 +373,7 @@
     function populateManagerDropdown() {
       const selectedRegion = document.getElementById('filterRegion').value;
       const mgrSelect = document.getElementById('filterManager');
+      const currentVal = mgrSelect.value;
       
       const filteredManagers = selectedRegion === 'ALL'
         ? allManagers
@@ -371,12 +381,17 @@
 
       mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
         filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+
+      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
+        mgrSelect.value = currentVal;
+      }
     }
 
     function populateRepDropdown() {
       const selectedRegion = document.getElementById('filterRegion').value;
       const selectedManagerSap = document.getElementById('filterManager').value;
       const repSelect = document.getElementById('filterRep');
+      const currentVal = repSelect.value;
 
       let filteredReps = [];
 
@@ -394,6 +409,10 @@
 
       repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
         filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+        repSelect.value = currentVal;
+      }
     }
 
     function onRegionChange() {
@@ -408,22 +427,40 @@
     }
 
     function applyAllFilters() {
-      const region = document.getElementById('filterRegion').value;
-      const managerSap = document.getElementById('filterManager').value;
-      const repCode = document.getElementById('filterRep').value;
+      const region = document.getElementById('filterRegion')?.value || 'ALL';
+      const managerSap = document.getElementById('filterManager')?.value || 'ALL';
+      const repCode = document.getElementById('filterRep')?.value || 'ALL';
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
       let allowedManagerSaps = [];
+      let allowedReps = [];
+
       if (region !== 'ALL') {
         allowedManagerSaps = allManagers
           .filter(m => (m.region || 'Central') === region)
           .map(m => m.manager_sap_id);
+        allowedReps = allReps
+          .filter(r => allowedManagerSaps.includes(r.manager_sap_id))
+          .map(r => r.territory_code);
       }
 
-      // 1. Hierarchy Filter (used for chart trends over full 14 days)
+      if (managerSap !== 'ALL') {
+        allowedReps = allReps
+          .filter(r => r.manager_sap_id === managerSap)
+          .map(r => r.territory_code);
+      }
+
       const hierarchyMatchedOrders = allOrders.filter(o => {
-        const matchesRegion = region === 'ALL' || allowedManagerSaps.includes(o.manager_sap_id);
-        const matchesManager = managerSap === 'ALL' || o.manager_sap_id === managerSap;
+        let matchesRegion = true;
+        if (region !== 'ALL') {
+          matchesRegion = allowedManagerSaps.includes(o.manager_sap_id) || allowedReps.includes(o.rep_code);
+        }
+
+        let matchesManager = true;
+        if (managerSap !== 'ALL') {
+          matchesManager = o.manager_sap_id === managerSap || allowedReps.includes(o.rep_code);
+        }
+
         const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
         const matchesSearch = !searchTerm ||
           (o.patient_name || '').toLowerCase().includes(searchTerm) ||
@@ -431,13 +468,13 @@
           (o.order_id || '').toLowerCase().includes(searchTerm) ||
           (o.rep_code || '').toLowerCase().includes(searchTerm) ||
           (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (o.clinic_name || '').toLowerCase().includes(searchTerm) ||
           (o.city || '').toLowerCase().includes(searchTerm) ||
           (o.delivery_address || '').toLowerCase().includes(searchTerm);
 
         return matchesRegion && matchesManager && matchesRep && matchesSearch;
       });
 
-      // 2. Date-Restricted Filter (used for KPI Cards & Patient List)
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
@@ -455,7 +492,7 @@
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
-      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       const inProcess = total - delivered;
 
       document.getElementById('statTotal').innerText = total;
@@ -483,8 +520,7 @@
         datesList.push(key);
       }
 
-      // Graph the selected hierarchy over the full 14 days
-      ordersToGraph.forEach(o => {
+      (ordersToGraph || []).forEach(o => {
         const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
@@ -544,19 +580,27 @@
     }
 
     function updateSummaries() {
-      const docCount = {};
-      activeFilteredOrders.forEach(o => {
-        const d = (o.doctor_name || 'Unassigned').trim();
-        docCount[d] = (docCount[d] || 0) + 1;
-      });
-      const sortedDocs = Object.entries(docCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const prescriberCount = {};
       
-      document.getElementById('topDoctorsList').innerHTML = sortedDocs.length ? sortedDocs.map(([doc, count], idx) => `
+      activeFilteredOrders.forEach(o => {
+        const doc = (o.doctor_name || 'Unassigned').trim();
+        const clinic = (o.clinic_name || '').trim();
+        
+        // Distinct grouping by Doctor Name + Clinic
+        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
+        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
+      });
+
+      const sortedPrescribers = Object.entries(prescriberCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-200">#${idx + 1} Dr. ${doc.replace(/^Dr\.?\s*/i, '')}</span>
-          <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">${count} Patients</span>
+          <span class="font-semibold text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center">No doctor records in this date window.</div>';
+      `).join('') : '<div class="text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
 
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
@@ -565,10 +609,10 @@
       });
       document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Prescriptions</span>
+          <span class="font-semibold text-slate-300 text-xs">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center">No dosage records in this date window.</div>';
+      `).join('') : '<div class="text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
 
     function renderCards() {
@@ -580,8 +624,12 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+
         return `
           <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+            
             <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
               <div>
                 <div class="flex items-center gap-1.5">
@@ -590,16 +638,16 @@
                 </div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 text-emerald-400 border border-slate-700">
-                ${order.status}
+              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-emerald-400 border border-slate-700')}">
+                ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
               </span>
             </div>
 
             <div class="space-y-1.5 text-xs">
               <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px]">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px] leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
@@ -609,9 +657,16 @@
                 <span class="font-bold text-emerald-300">Dr. ${order.doctor_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
-                <span class="text-slate-400 text-[11px]">Dose & Device</span>
-                <span class="font-bold text-slate-200">${order.prescribed_dose || 'N/A'} (${order.device || 'N/A'})</span>
+                <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
+                <span class="text-slate-400 text-[11px]">Dose & Device</span>
+                <span class="font-bold text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              ${order.prescription_url 
+                ? `<div class="border-t border-slate-800 pt-1 text-right"><a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                : ''}
             </div>
 
             <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
@@ -625,13 +680,18 @@
 
     function exportFilteredCSV() {
       if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
-      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Mobile,City,Doctor,Dose,Device,Status\n";
+      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Rating\n";
+      
       activeFilteredOrders.forEach(o => {
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.mobile || ''}","${o.city || ''}","${o.doctor_name || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+        const fb = feedbackMap[o.id];
+        const rating = fb ? fb.overall_rating : "Pending";
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${rating}"\n`;
       });
+
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
+      a.href = url;
       a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
       a.click();
     }
