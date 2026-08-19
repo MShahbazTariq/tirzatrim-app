@@ -32,8 +32,8 @@
 
       <!-- Prescribing Doctor Search Form -->
       <form onsubmit="handleDoctorSearchSubmit(event)" class="flex flex-wrap items-center gap-2 bg-slate-950 p-2 rounded-2xl border border-slate-800">
-        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Mohammad Ali)" required class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
-        <input type="text" id="clinicQueryInput" placeholder="Clinic / Hospital (e.g. Shalimar)" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-40 sm:w-44 font-medium focus:border-blue-500">
+        <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Qamar Sajjad)" required class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
+        <input type="text" id="clinicQueryInput" placeholder="Clinic / Hospital (e.g. FMH)" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white outline-none placeholder-slate-500 w-40 sm:w-44 font-medium focus:border-blue-500">
         <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/20">
           View Patients
         </button>
@@ -181,43 +181,89 @@
       return `${year}-${month}-${day}`;
     }
 
-    // Comprehensive South Asian name & phonetics normalizer
+    // Built-in Pure JS Levenshtein Distance Calculator
+    function levenshteinDistance(a, b) {
+      if (!a || !b) return (a || '').length + (b || '').length;
+      const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+      for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+      for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[a.length][b.length];
+    }
+
+    // Token cleaning and phonetic standardization
     function cleanToken(str) {
       return (str || '')
         .toLowerCase()
         .replace(/^(dr\.?|doctor)\s+/i, '')
         .replace(/[^a-z0-9]/g, '')
-        .replace(/mohamm?ad|mohd|muhamm?ed|mohammad/g, 'mhd')
-        .replace(/muhamm?ad/g, 'mhd')
-        .replace(/nauman|nouman|noman/g, 'nmn')
-        .replace(/butt|but/g, 'bt')
-        .replace(/qamar|kamar/g, 'qmr')
-        .replace(/sajjad|sajid/g, 'sjd')
-        .replace(/hospital|clinic|center|centre|complex/g, '');
+        .replace(/mohamm?ad|mohd|muhamm?ed|mohammad/g, 'muhammad')
+        .replace(/(.)\1+/g, '$1'); // Collapse duplicate letters: sajjad->sajad, butt->but, nauman->nauman
+    }
+
+    function isFuzzyWordMatch(wordA, wordB) {
+      const cA = cleanToken(wordA);
+      const cB = cleanToken(wordB);
+      if (!cA || !cB) return false;
+      if (cA === cB || cA.includes(cB) || cB.includes(cA)) return true;
+      
+      const maxLen = Math.max(cA.length, cB.length);
+      const dist = levenshteinDistance(cA, cB);
+      // Allow 1 typo for short words, 2 typos for medium/long words
+      const allowedErrors = maxLen <= 4 ? 1 : 2;
+      return dist <= allowedErrors;
     }
 
     function isDoctorAndClinicMatch(order, searchDoc, searchClinic) {
       if (!searchDoc) return false;
 
-      // 1. Doctor Name Match
-      const cleanSearchDoc = cleanToken(searchDoc);
-      const cleanOrderDoc = cleanToken(order.doctor_name);
+      // 1. Doctor Name Matching
+      const searchWords = (searchDoc || '')
+        .toLowerCase()
+        .replace(/^(dr\.?|doctor)\s+/i, '')
+        .split(/\s+/)
+        .filter(w => w.length > 1);
 
-      const docWords = (searchDoc || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanToken).filter(w => w.length > 0);
-      const orderWords = (order.doctor_name || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanToken).filter(w => w.length > 0);
+      const orderWords = (order.doctor_name || '')
+        .toLowerCase()
+        .replace(/^(dr\.?|doctor)\s+/i, '')
+        .split(/\s+/)
+        .filter(w => w.length > 1);
 
-      // Matches if overall string matches or key words overlap
-      const docMatches = cleanOrderDoc.includes(cleanSearchDoc) || 
-                         cleanSearchDoc.includes(cleanOrderDoc) || 
-                         (docWords.length > 0 && docWords.every(dw => orderWords.some(ow => ow.includes(dw) || dw.includes(ow))));
-
+      // Matches if every search word has a fuzzy match in the doctor's name
+      const docMatches = searchWords.every(sw => orderWords.some(ow => isFuzzyWordMatch(sw, ow)));
       if (!docMatches) return false;
 
-      // 2. Clinic Match (tolerant matching if clinic specified)
+      // 2. Clinic Matching (Handles acronyms like FMH for Fatima Memorial Hospital, IDC, Mayo, etc.)
       if (searchClinic && searchClinic.trim().length > 0) {
-        const cleanSearchClinic = cleanToken(searchClinic);
-        const cleanOrderClinic = cleanToken(order.clinic_name || '');
-        return cleanOrderClinic.includes(cleanSearchClinic) || cleanSearchClinic.includes(cleanOrderClinic);
+        const sClinic = searchClinic.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const oClinic = (order.clinic_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (!oClinic) return false;
+
+        // Check if substring, acronym, or fuzzy match
+        const acronym = (order.clinic_name || '')
+          .split(/\s+/)
+          .map(w => w[0])
+          .join('')
+          .toLowerCase();
+
+        const clinicMatches = oClinic.includes(sClinic) || 
+                              sClinic.includes(oClinic) || 
+                              acronym.includes(sClinic) || 
+                              isFuzzyWordMatch(searchClinic, order.clinic_name);
+
+        return clinicMatches;
       }
 
       return true;
@@ -376,7 +422,7 @@
         return;
       }
 
-      // Enhanced tolerant matching across database records
+      // Filter matched orders using fuzzy/variant matcher
       rawOrders = (allOrders || []).filter(o => isDoctorAndClinicMatch(o, currentDoctorName, currentClinicName));
 
       if (rawOrders.length > 0) {
