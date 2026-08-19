@@ -606,7 +606,7 @@
             <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 text-[11px]">Prescribed By</span>
-                <span class="font-bold text-blue-400">Dr. ${order.doctor_name || 'N/A'}</span>
+                <span class="font-bold text-blue-400">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-1">
                 <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
