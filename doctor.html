@@ -25,24 +25,21 @@
           <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="docHeaderName">
             Doctor <span class="text-blue-400">Monitoring Portal</span>
           </h1>
-          <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full">HCP Live</span>
+          <span id="hcpBadge" class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full hidden">HCP Live</span>
         </div>
         <p class="text-xs text-slate-400 mt-1" id="docSubHeader">Live prescription tracker and fulfillment feedback for healthcare providers</p>
       </div>
 
-      <!-- Prescribing Doctor Switcher & Reset Engine -->
-      <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-        <input type="text" id="docNameQueryInput" placeholder="Enter Doctor Name..." class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-44 sm:w-56 font-medium">
-        <button onclick="applyDoctorSearch()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
+      <!-- Prescribing Doctor Search Form -->
+      <form onsubmit="handleDoctorSearchSubmit(event)" class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+        <input type="text" id="docNameQueryInput" placeholder="Enter Doctor Name (e.g. Dr. Nauman Butt)..." class="px-3 py-1.5 bg-transparent text-xs text-white outline-none placeholder-slate-500 w-52 sm:w-64 font-medium">
+        <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
           View Patients
         </button>
-        <button onclick="resetDoctorFilter()" title="Clear doctor and reset portal" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-all">
+        <button type="button" onclick="resetDoctorFilter()" title="Clear and reset to zero" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-all">
           ✕
         </button>
-        <button onclick="fetchDoctorOrders()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all" title="Refresh records">
-          🔄
-        </button>
-      </div>
+      </form>
     </div>
 
     <!-- TIMELINE & DATE SCOPE CONTROLS -->
@@ -142,7 +139,7 @@
           <p class="text-xs text-slate-400 mt-0.5">Distribution across TirzaTrim multi-dose strengths</p>
         </div>
         <div id="doseShareList" class="space-y-2 text-xs divide-y divide-slate-800/60 my-auto">
-          <div class="text-slate-500 py-4 text-center">No dosage records found.</div>
+          <div class="text-slate-500 py-4 text-center">No doctor selected.</div>
         </div>
       </div>
 
@@ -156,8 +153,8 @@
         </h3>
       </div>
       <div id="doctorCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
-          Loading doctor patient records...
+        <div class="col-span-full py-16 text-center text-slate-500 text-sm">
+          Please enter doctor name above to load referred patients.
         </div>
       </div>
     </div>
@@ -188,6 +185,34 @@
       return `${year}-${month}-${day}`;
     }
 
+    // Fuzzy clean helper: normalizes common variants like nauman/noman, butt/but
+    function cleanDoctorToken(str) {
+      return (str || '')
+        .toLowerCase()
+        .replace(/^(dr\.?|doctor)\s+/i, '')
+        .replace(/[^a-z0-9]/g, '')
+        .replace(/au/g, 'o') // nauman -> noman
+        .replace(/tt/g, 't')  // butt -> but
+        .replace(/ee/g, 'i')
+        .replace(/oo/g, 'u');
+    }
+
+    function isDoctorMatch(orderDocName, searchDocName) {
+      if (!searchDocName) return false;
+      const cleanSearch = cleanDoctorToken(searchDocName);
+      const cleanOrder = cleanDoctorToken(orderDocName);
+
+      if (cleanOrder.includes(cleanSearch) || cleanSearch.includes(cleanOrder)) {
+        return true;
+      }
+
+      // Token-based matching (matches if primary tokens overlap)
+      const searchTokens = (searchDocName || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanDoctorToken).filter(t => t.length > 2);
+      const orderTokens = (orderDocName || '').toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '').split(/\s+/).map(cleanDoctorToken).filter(t => t.length > 2);
+
+      return searchTokens.some(st => orderTokens.some(ot => ot.includes(st) || st.includes(ot)));
+    }
+
     function initDoctorPortal() {
       const urlParams = new URLSearchParams(window.location.search);
       currentDoctorName = (urlParams.get('dr') || '').trim();
@@ -195,37 +220,45 @@
       const input = document.getElementById('docNameQueryInput');
       const header = document.getElementById('docHeaderName');
       const subHeader = document.getElementById('docSubHeader');
+      const badge = document.getElementById('hcpBadge');
 
       if (currentDoctorName) {
         input.value = currentDoctorName;
-        header.innerHTML = `Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}'s <span class="text-blue-400">Portal</span>`;
-        subHeader.innerText = `Live prescription tracker and fulfillment feedback for Dr. ${currentDoctorName.replace(/^Dr\.?\s*/i, '')}`;
+        header.innerHTML = `Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}'s <span class="text-blue-400">Portal</span>`;
+        subHeader.innerText = `Live prescription tracker and fulfillment feedback for Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}`;
+        badge.classList.remove('hidden');
       } else {
         input.value = '';
         header.innerHTML = `Doctor <span class="text-blue-400">Monitoring Portal</span>`;
         subHeader.innerText = `Live prescription tracker and fulfillment feedback for healthcare providers`;
+        badge.classList.add('hidden');
       }
 
       initDates();
       fetchDoctorOrders();
     }
 
+    function handleDoctorSearchSubmit(e) {
+      e.preventDefault();
+      applyDoctorSearch();
+    }
+
     function applyDoctorSearch() {
       const name = document.getElementById('docNameQueryInput').value.trim();
       if (!name) {
-        window.history.pushState({}, '', '/doctor.html');
-        currentDoctorName = '';
+        resetDoctorFilter();
       } else {
         window.history.pushState({}, '', `/doctor.html?dr=${encodeURIComponent(name)}`);
-        currentDoctorName = name;
+        initDoctorPortal();
       }
-      initDoctorPortal();
     }
 
     function resetDoctorFilter() {
       document.getElementById('docNameQueryInput').value = '';
       window.history.pushState({}, '', '/doctor.html');
       currentDoctorName = '';
+      rawOrders = [];
+      cachedFeedbacks = {};
       initDoctorPortal();
     }
 
@@ -305,23 +338,26 @@
     }
 
     async function fetchDoctorOrders() {
-      let query = client
+      // By default with no doctor query, keep rawOrders empty to show 0
+      if (!currentDoctorName) {
+        rawOrders = [];
+        cachedFeedbacks = {};
+        applyAllFilters();
+        return;
+      }
+
+      const { data: allOrders, error } = await client
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (currentDoctorName) {
-        query = query.ilike('doctor_name', `%${currentDoctorName.replace(/^Dr\.?\s*/i, '').trim()}%`);
-      }
-
-      const { data: orders, error } = await query;
 
       if (error) {
         alert("Error loading records: " + error.message);
         return;
       }
 
-      rawOrders = orders || [];
+      // Filter matched orders using fuzzy/variant matcher
+      rawOrders = (allOrders || []).filter(o => isDoctorMatch(o.doctor_name, currentDoctorName));
 
       if (rawOrders.length > 0) {
         const orderIds = rawOrders.map(o => o.id);
@@ -334,6 +370,8 @@
         (feedbacks || []).forEach(f => {
           cachedFeedbacks[f.order_id] = f;
         });
+      } else {
+        cachedFeedbacks = {};
       }
 
       applyAllFilters();
@@ -404,7 +442,7 @@
         datesList.push(key);
       }
 
-      ordersToGraph.forEach(o => {
+      (ordersToGraph || []).forEach(o => {
         const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
@@ -458,14 +496,22 @@
           <span class="font-semibold text-slate-300">TirzaTrim ${dose}</span>
           <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Patients</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-4 text-center">No dosage records in this view.</div>';
+      `).join('') : '<div class="text-slate-500 py-4 text-center">No dosage records found.</div>';
     }
 
     function renderCards() {
       const grid = document.getElementById('doctorCardsGrid');
+      
+      if (!currentDoctorName) {
+        grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 text-sm">
+          Please enter doctor name above to load referred patients.
+        </div>`;
+        return;
+      }
+
       if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-sm">
-          No patient records found ${currentDoctorName ? `for Dr. ${currentDoctorName}` : 'in this scope'}.
+        grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500 text-sm">
+          No patient records found matching Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}.
         </div>`;
         return;
       }
