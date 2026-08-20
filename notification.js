@@ -1,4 +1,4 @@
-// Universal TirzaTrim Live Push & In-App Notification System
+// Universal TirzaTrim Live Push & In-App Notification System (High Reliability)
 (function() {
   const TT_SB_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
   const TT_SB_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
@@ -66,9 +66,14 @@
     }, 6000);
   }
 
-  // Trigger Native Push Notification + Toast
+  // Trigger Native Push Notification + Toast + Hardware Vibration
   window.triggerPushNotification = async function(title, body, url = '/', channelType = null) {
     showInAppToast(title, body);
+
+    // Direct Mobile Hardware Vibration trigger
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate([200, 100, 200]); } catch (e) {}
+    }
 
     const isMasterEnabled = localStorage.getItem('tt_notif_enabled') === 'true';
     if (!isMasterEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
@@ -85,14 +90,15 @@
       icon: '/logo.png',
       badge: '/logo.png',
       vibrate: [200, 100, 200],
-      tag: 'tt-alert-' + Date.now(),
+      tag: 'tt-alert-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
       renotify: true,
       data: { url: url }
     };
 
+    // 1. Try active Service Worker Registration (Mobile Preferred)
     if ('serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await navigator.serviceWorker.getRegistration();
         if (reg && reg.showNotification) {
           await reg.showNotification(title, options);
           return;
@@ -100,6 +106,18 @@
       } catch (e) {}
     }
 
+    // 2. Fallback to ready Service Worker
+    if ('serviceWorker' in navigator) {
+      try {
+        const readyReg = await navigator.serviceWorker.ready;
+        if (readyReg && readyReg.showNotification) {
+          await readyReg.showNotification(title, options);
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // 3. Desktop Fallback
     try {
       new Notification(title, options);
     } catch (e) {}
@@ -113,9 +131,8 @@
       const isRep = path.includes('team');
       const currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
 
-      const channelName = 'public-orders-' + Math.floor(Math.random() * 1000);
-      
-      sb.channel(channelName)
+      // Fixed persistent channel name for stability
+      sb.channel('tirzatrim_realtime_orders')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
           const o = payload.new;
           console.log('⚡ Live order event received:', o);
