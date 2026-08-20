@@ -16,13 +16,13 @@
     }
 
     const modalHtml = `
-      <div id="broadcastModal" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div id="broadcastModal" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 relative">
           <div class="flex items-center justify-between">
             <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeColor} flex items-center gap-1.5">
-              <span>${icon}</span> ${bc.category}
+              <span>${icon}</span> ${bc.category || 'Announcement'}
             </span>
-            <button onclick="dismissBroadcast('${seenKey}')" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
+            <button onclick="dismissBroadcast('${seenKey}')" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors">✕</button>
           </div>
           
           <div class="space-y-2">
@@ -51,17 +51,29 @@
   };
 
   window.checkGlobalBroadcast = async function(targetRole) {
-    // Determine target role from parameter or current URL path
-    let role = targetRole;
-    if (!role) {
-      const path = window.location.pathname.toLowerCase();
-      if (path.includes('doctor')) role = 'doctor';
-      else if (path.includes('distributor')) role = 'distributor';
-      else if (path.includes('team')) role = 'team';
-      else role = 'patient';
+    const path = window.location.pathname.toLowerCase();
+
+    // 1. NEVER show popups inside Admin / Management portals
+    if (path.includes('admin') || path.includes('head') || path.includes('hos')) {
+      return;
     }
 
-    // Direct REST API fetch to eliminate client initialization race conditions
+    // 2. Accurate Portal Role Mapping
+    let role = targetRole;
+    if (!role) {
+      if (path.includes('doctor')) {
+        role = 'doctor';
+      } else if (path.includes('distributor')) {
+        role = 'distributor';
+      } else if (path.includes('team')) {
+        role = 'team';
+      } else if (path.includes('order') || path.includes('feedback') || path.includes('patient') || path === '/' || path.includes('index')) {
+        role = 'patient';
+      }
+    }
+
+    if (!role) return;
+
     try {
       const response = await fetch(`${TT_SB_URL}/rest/v1/broadcasts?is_active=eq.true&order=created_at.desc`, {
         headers: {
@@ -77,11 +89,20 @@
       const now = new Date();
 
       const activeBroadcast = broadcasts.find(b => {
-        const audience = Array.isArray(b.target_audience) ? b.target_audience : [];
+        let audience = b.target_audience;
+        if (typeof audience === 'string') {
+          try { audience = JSON.parse(audience); } catch(e) { audience = [audience]; }
+        }
+        if (!Array.isArray(audience)) audience = [audience];
+
+        // Check if current role matches
         const matchesRole = audience.includes(role) || audience.includes('all');
         if (!matchesRole) return false;
 
+        // Start time check
         if (b.start_time && new Date(b.start_time) > now) return false;
+
+        // Expiry check
         if (b.expires_at && new Date(b.expires_at) <= now) return false;
 
         return true;
@@ -92,7 +113,6 @@
       const seenKey = `tt_seen_broadcast_${activeBroadcast.id}`;
       if (sessionStorage.getItem(seenKey)) return;
 
-      // Ensure DOM is ready before rendering
       if (document.body) {
         renderBroadcastModal(activeBroadcast, seenKey);
       } else {
@@ -103,7 +123,7 @@
     }
   };
 
-  // Automatically execute on load
+  // Run automatically when the DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => window.checkGlobalBroadcast());
   } else {
