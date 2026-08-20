@@ -12,6 +12,43 @@
   <script src="/broadcast.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+  <style>
+    /* Quill Editor Styling for Light & Dark Mode */
+    .ql-toolbar {
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+      background: #f8fafc;
+      border-color: #cbd5e1 !important;
+    }
+    .dark .ql-toolbar {
+      background: #020617;
+      border-color: #1e293b !important;
+    }
+    .dark .ql-snow .ql-stroke { stroke: #94a3b8; }
+    .dark .ql-snow .ql-fill { fill: #94a3b8; }
+    .dark .ql-snow .ql-picker { color: #94a3b8; }
+    .ql-container {
+      border-bottom-left-radius: 0.75rem;
+      border-bottom-right-radius: 0.75rem;
+      font-size: 13px;
+      min-height: 140px;
+      background: #ffffff;
+      border-color: #cbd5e1 !important;
+    }
+    .dark .ql-container {
+      background: #020617;
+      border-color: #1e293b !important;
+      color: #e2e8f0;
+    }
+    .ql-editor {
+      min-height: 140px;
+    }
+  </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
 
@@ -250,12 +287,13 @@
           </div>
         </div>
 
+        <!-- Quill Rich Text Editor Container -->
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Detailed Message Content *</label>
-          <textarea id="bcMessage" rows="3" required placeholder="Type announcement details here..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 resize-none placeholder-slate-400 dark:placeholder-slate-600"></textarea>
+          <div id="bcEditor"></div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 pt-2">
           <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
             <span>🚀</span> Publish Announcement
           </button>
@@ -443,6 +481,20 @@
     let filterStartDate = null;
     let filterEndDate = null;
 
+    // Initialize Quill Rich Text Editor
+    const quill = new Quill('#bcEditor', {
+      theme: 'snow',
+      placeholder: 'Paste from Word or write announcement details here...',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['clean']
+        ]
+      }
+    });
+
     const statuses = [
       'New Patient', 'Prescription Received', 'Prescription Verified',
       'Order Processing', 'Dispatched', 'Delivered', 'Patient Confirmed',
@@ -618,7 +670,13 @@
       const id = document.getElementById('editBroadcastId').value;
       const title = document.getElementById('bcTitle').value.trim();
       const category = document.getElementById('bcCategory').value;
-      const message = document.getElementById('bcMessage').value.trim();
+      
+      // Extract formatted HTML from Quill
+      const message = quill.root.innerHTML.trim();
+      if (!message || message === '<p><br></p>') {
+        alert("Please enter announcement message content.");
+        return;
+      }
       
       const startTimeInput = document.getElementById('bcStartTime').value;
       const expiresAtInput = document.getElementById('bcExpiresAt').value;
@@ -667,7 +725,9 @@
       document.getElementById('editBroadcastId').value = bc.id;
       document.getElementById('bcTitle').value = bc.title;
       document.getElementById('bcCategory').value = bc.category;
-      document.getElementById('bcMessage').value = bc.message;
+      
+      // Load rich HTML into Quill
+      quill.root.innerHTML = bc.message || '';
       
       document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
       document.getElementById('bcExpiresAt').value = toLocalDatetimeInput(bc.expires_at);
@@ -685,7 +745,7 @@
     function cancelBroadcastEdit() {
       document.getElementById('editBroadcastId').value = '';
       document.getElementById('bcTitle').value = '';
-      document.getElementById('bcMessage').value = '';
+      quill.root.innerHTML = '';
       document.getElementById('bcStartTime').value = '';
       document.getElementById('bcExpiresAt').value = '';
       document.querySelectorAll('input[name="targetRole"]').forEach(cb => cb.checked = false);
