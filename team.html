@@ -7,33 +7,49 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Fast, Client-side QR Code Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
 
   <!-- AUTH SCREEN -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
-      <a href="/" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xs font-semibold">
-        🏠 Home
-      </a>
-      <div class="space-y-2 pt-4">
-        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto">
-          💼
-        </div>
-        <h2 class="text-xl font-black tracking-tight text-white">Territory Rep Hub</h2>
-        <p class="text-xs text-slate-400">Sign in to track orders or register your territory code</p>
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
+          🏠 Home
+        </a>
+        <button 
+          onclick="toggleTheme()" 
+          type="button"
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1"
+          title="Toggle Theme"
+        >
+          <span class="theme-icon">🌙</span>
+        </button>
       </div>
 
-      <div class="grid grid-cols-2 p-1 bg-slate-950 rounded-xl text-xs font-semibold border border-slate-800">
+      <div class="space-y-2 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">
+          💼
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Territory Rep Hub</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Sign in to track orders or register your territory code</p>
+      </div>
+
+      <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
         <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all">
           Rep Login
         </button>
-        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+        <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
           New Registration
         </button>
       </div>
@@ -41,12 +57,12 @@
       <!-- LOGIN FORM -->
       <form id="loginForm" onsubmit="handleRepLogin(event)" class="space-y-4">
         <div>
-          <input type="text" id="loginTCode" placeholder="Territory Code (e.g. QL2.1)" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold uppercase text-white outline-none focus:border-teal-500">
+          <input type="text" id="loginTCode" placeholder="Territory Code (e.g. QL2.1)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold uppercase text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 font-mono">
         </div>
         <div>
-          <input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+          <input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600">
         </div>
-        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-600/20 transition-all">
           Unlock My Territory
         </button>
       </form>
@@ -54,32 +70,32 @@
       <!-- SIGNUP FORM -->
       <form id="signupForm" onsubmit="handleRepSignup(event)" class="space-y-3 hidden text-left">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name *</label>
-          <input type="text" id="regName" placeholder="e.g. Talha Saadat" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
+          <input type="text" id="regName" placeholder="e.g. Talha Saadat" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Team *</label>
-            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs uppercase text-white outline-none focus:border-teal-500">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Team *</label>
+            <input type="text" id="regTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Territory Code *</label>
-            <input type="text" id="regTCode" placeholder="e.g. QL2.1" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold uppercase text-white outline-none focus:border-teal-500">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Territory Code *</label>
+            <input type="text" id="regTCode" placeholder="e.g. QL2.1" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold uppercase text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Rep SAP ID *</label>
-            <input type="text" id="regSap" placeholder="e.g. 7585" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Rep SAP ID *</label>
+            <input type="text" id="regSap" placeholder="e.g. 7585" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regManagerSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-400 font-bold outline-none focus:border-teal-500">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Manager SAP ID *</label>
+            <input type="text" id="regManagerSap" placeholder="e.g. 7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-teal-500">
           </div>
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Set Password *</label>
-          <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Set Password *</label>
+          <input type="password" id="regPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
         </div>
         <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
           Register & Get My Territory Link
@@ -93,50 +109,59 @@
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
     
     <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm dark:shadow-none">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold mr-1">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1 transition-all">
             🏠 Home
           </a>
-          <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="repNameDisplay">Territory <span class="text-teal-400">Dashboard</span></h1>
-          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">T.Code</span>
+          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="repNameDisplay">Territory <span class="text-teal-600 dark:text-teal-400">Dashboard</span></h1>
+          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">T.Code</span>
         </div>
-        <div class="flex flex-wrap gap-x-3 text-xs text-slate-400 mt-1">
-          <span>Team: <strong id="repTeamDisplay" class="text-slate-200">-</strong></span>
+        <div class="flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <span>Team: <strong id="repTeamDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
           <span>•</span>
-          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-200">-</strong></span>
+          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
           <span>•</span>
-          <span>Manager SAP: <strong id="repManagerSapDisplay" class="text-slate-200">-</strong></span>
+          <span>Manager SAP: <strong id="repManagerSapDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <button 
+          onclick="toggleTheme()" 
+          type="button"
+          class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+          title="Toggle Dark / Light Mode"
+        >
+          <span class="theme-icon">🌙</span>
+          <span class="theme-label">Dark</span>
+        </button>
         <button onclick="copyMyPatientLink()" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
           📋 Copy Patient Link
         </button>
         <button onclick="showPatientQRModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
           📱 Show Patient QR
         </button>
-        <button onclick="fetchRepOrders()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl shadow transition-all">
+        <button onclick="fetchRepOrders()" class="px-3.5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl shadow-sm transition-all">
           🔄 Refresh
         </button>
-        <button onclick="handleRepLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
+        <button onclick="handleRepLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
           🚪 Logout
         </button>
       </div>
     </div>
 
     <!-- Doctor Link Generator Tool -->
-    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
       <div>
-        <h2 class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
           <span>🩺</span> Generate Doctor Monitoring Portal Link & QR
         </h2>
-        <p class="text-xs text-slate-400 mt-0.5">Create, share, or generate an instant QR Code for your prescribing physician.</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Create, share, or generate an instant QR Code for your prescribing physician.</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500">
-        <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all">
+        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600">
+        <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl shadow-sm transition-all">
           📋 Copy Doctor Link
         </button>
         <button onclick="showDoctorQRModal()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
@@ -149,33 +174,33 @@
     </div>
 
     <!-- TIMELINE & DATE SCOPE CONTROLS -->
-    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3">
+    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-2">
           <span>📅</span> Timeline & Date Scope
         </div>
         
         <!-- Preset Toggles -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold">
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
           <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all">All Time</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
         </div>
       </div>
 
       <!-- Custom Calendar Pickers -->
       <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
         <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-teal-500">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono outline-none focus:border-teal-500">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
         </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20">
+        <span id="dateScopeBadge" class="text-[11px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20">
           Showing: Month to Date
         </span>
       </div>
@@ -183,33 +208,33 @@
 
     <!-- Summary Metrics -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">My Territory Patients</div>
-        <div id="repStatTotal" class="text-3xl font-black text-white mt-1">0</div>
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">My Territory Patients</div>
+        <div id="repStatTotal" class="text-3xl font-black text-slate-900 dark:text-white mt-1">0</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">In Processing</div>
-        <div id="repStatProcess" class="text-3xl font-black text-amber-400 mt-1">0</div>
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Processing</div>
+        <div id="repStatProcess" class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Delivered & Confirmed</div>
-        <div id="repStatDelivered" class="text-3xl font-black text-emerald-400 mt-1">0</div>
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered & Confirmed</div>
+        <div id="repStatDelivered" class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Feedback Submissions</div>
-        <div id="repStatFeedback" class="text-3xl font-black text-purple-400 mt-1">0</div>
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedback Submissions</div>
+        <div id="repStatFeedback" class="text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
       </div>
     </div>
 
     <!-- SEARCH & STATUS CONTROLS -->
-    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4">
-      <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
+    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
+      <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-2">
         <span>🔍</span> Territory Search & Filter Engine
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Filter by Status</label>
-          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white outline-none focus:border-teal-500">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Status</label>
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500">
             <option value="ALL">All Statuses</option>
             <option value="New Patient">New Patient</option>
             <option value="Prescription Received">Prescription Received</option>
@@ -220,22 +245,22 @@
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, clinic, address..." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Keyword Search</label>
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, clinic, address..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600">
         </div>
       </div>
     </div>
 
     <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
-    <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-3">
+    <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>📊</span> My Daily Enrollment Trend (Last 14 Days)
           </h3>
-          <p class="text-xs text-slate-400">Daily prescription trends for your assigned territory code</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Daily prescription trends for your assigned territory code</p>
         </div>
-        <div class="text-[11px] font-semibold text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20 self-start">
+        <div class="text-[11px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20 self-start">
           Territory Trend Tracker
         </div>
       </div>
@@ -246,21 +271,21 @@
 
     <!-- KOLs & Dosage Breakdown Summary -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <span>🩺</span> Top Prescribing Doctors (Selected Scope)
         </h3>
-        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-800/60">
-          <div class="text-slate-500 py-2 text-center">Loading prescribers...</div>
+        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
+          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
         </div>
       </div>
 
-      <div class="bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl space-y-4">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <span>💉</span> Dosage & Device Breakdown (Selected Scope)
         </h3>
-        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-800/60">
-          <div class="text-slate-500 py-2 text-center">Loading dosage share...</div>
+        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
+          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
         </div>
       </div>
     </div>
@@ -268,12 +293,12 @@
     <!-- PATIENT CARDS CONTAINER -->
     <div class="space-y-3 pt-2">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
         </h3>
       </div>
       <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-12 text-center text-slate-500 text-sm">
+        <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
           Loading territory records...
         </div>
       </div>
@@ -282,30 +307,30 @@
   </div>
 
   <!-- QR CODE POPUP MODAL -->
-  <div id="qrModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 text-center relative">
+  <div id="qrModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 text-center relative">
       
-      <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-base w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition-colors">
+      <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors">
         ✕
       </button>
 
       <div class="space-y-1">
-        <h3 class="text-lg font-black text-white" id="qrModalTitle">Instant QR Code</h3>
-        <p class="text-xs text-slate-400" id="qrModalSubtitle">Scan to open link directly</p>
+        <h3 class="text-lg font-black text-slate-900 dark:text-white" id="qrModalTitle">Instant QR Code</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400" id="qrModalSubtitle">Scan to open link directly</p>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto border-4 border-slate-800">
+      <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto border-4 border-slate-200 dark:border-slate-800">
         <div id="qrcodeContainer"></div>
       </div>
 
-      <div class="text-[11px] font-mono text-teal-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800 break-all" id="qrLinkDisplay">
+      <div class="text-[11px] font-mono text-teal-600 dark:text-teal-400 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 break-all" id="qrLinkDisplay">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <button onclick="downloadQRCode()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all">
           💾 Save Image
         </button>
-        <button onclick="copyModalLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-all">
+        <button onclick="copyModalLink()" class="py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl transition-all">
           📋 Copy Link
         </button>
       </div>
@@ -349,12 +374,12 @@
         loginForm.classList.remove('hidden');
         signupForm.classList.add('hidden');
         loginBtn.className = "py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        signupBtn.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
+        signupBtn.className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       } else {
         loginForm.classList.add('hidden');
         signupForm.classList.remove('hidden');
         signupBtn.className = "py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        loginBtn.className = "py-2 rounded-lg text-slate-400 hover:text-white transition-all";
+        loginBtn.className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       }
     }
 
@@ -362,7 +387,7 @@
       if (currentRep && currentRep.territory_code) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('repNameDisplay').innerHTML = `${currentRep.full_name}'s <span class="text-teal-400">Territory</span>`;
+        document.getElementById('repNameDisplay').innerHTML = `${currentRep.full_name}'s <span class="text-teal-600 dark:text-teal-400">Territory</span>`;
         document.getElementById('activeRepBadge').innerText = currentRep.territory_code;
         document.getElementById('repTeamDisplay').innerText = currentRep.team_name;
         document.getElementById('repSapDisplay').innerText = currentRep.sap_id;
@@ -558,7 +583,7 @@
 
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
 
       if (type === 'TODAY') {
@@ -610,7 +635,7 @@
         
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all";
+          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
 
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
@@ -724,6 +749,10 @@
       const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
+
       chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -743,10 +772,10 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#0f172a',
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
               titleColor: '#2dd4bf',
-              bodyColor: '#ffffff',
-              borderColor: '#334155',
+              bodyColor: isDark ? '#ffffff' : '#0f172a',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
               borderWidth: 1,
               padding: 10,
               displayColors: false
@@ -755,12 +784,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: '#94a3b8', font: { size: 10 } }
+              ticks: { color: textColor, font: { size: 10 } }
             },
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(51, 65, 85, 0.3)' },
-              ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 10 }, precision: 0 }
             }
           }
         }
@@ -774,7 +803,6 @@
         const doc = (o.doctor_name || 'Unassigned').trim();
         const clinic = (o.clinic_name || '').trim();
         
-        // Distinct grouping by Doctor Name + Clinic
         const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
         prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
       });
@@ -785,10 +813,10 @@
       
       document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
-          <span class="font-bold text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
 
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
@@ -797,34 +825,34 @@
       });
       document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-300 text-xs">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+          <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
-      `).join('') : '<div class="text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
 
     function renderCards() {
       const grid = document.getElementById('repCardsGrid');
       if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
       }
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = cachedFeedbacks[order.id];
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Feedback Submitted', 'Completed'].includes(order.status);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
 
         return `
-          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all">
+          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none transition-all">
             
             <!-- Card Header: ID, Date & Auto-Synced Status Badge -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-3">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
               <div>
-                <div class="font-mono font-bold text-white text-xs">${order.order_id || 'N/A'}</div>
+                <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id || 'N/A'}</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-400 border border-teal-500/20')}">
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20')}">
                 ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
               </span>
             </div>
@@ -832,50 +860,50 @@
             <!-- Patient Information -->
             <div class="space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[11px] font-bold">
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
                   📞 Call
                 </a>
               </div>
               <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-[11px] leading-relaxed">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
                 📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
             <!-- Doctor, Clinic & Prescription Details -->
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-white space-y-1.5 text-xs">
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[11px]">Doctor</span>
-                <span class="font-bold text-teal-300">Dr. ${order.doctor_name || 'N/A'}</span>
+                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Doctor</span>
+                <span class="font-bold text-teal-600 dark:text-teal-300">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
-                <span class="text-slate-400 text-[11px]">Clinic / Hospital</span>
-                <span class="font-semibold text-slate-300">${order.clinic_name || 'N/A'}</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
+                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-1">
-                <span class="text-slate-400 text-[11px]">Dose & Device</span>
-                <span class="font-bold text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
+                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Dose & Device</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
               ${order.prescription_url ? `
-                <div class="border-t border-slate-800 pt-1 text-right">
-                  <a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-400 hover:underline">📄 View Rx Prescription</a>
+                <div class="border-t border-slate-200 dark:border-slate-800 pt-1 text-right">
+                  <a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
                 </div>
               ` : ''}
             </div>
 
             <!-- Patient Feedback -->
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-800 pt-2">
-              <span class="text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-500 italic">Pending Submission</span>'}</span>
+            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending Submission</span>'}</span>
             </div>
 
             <!-- Direct WhatsApp Actions for Reps -->
             <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
+              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
                 💬 Inform Status
               </button>
-              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
+              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
                 ⭐ Ask Feedback
               </button>
             </div>
