@@ -78,7 +78,7 @@
         if (error) {
           console.error('Push registration save error:', error);
         } else {
-          console.log('✅ Device registered in Supabase for 24/7 background push alerts.');
+          console.log(`✅ Device registered for ${role ? role.toUpperCase() : 'USER'} (${sapId || 'ALL'}) 24/7 background push alerts.`);
         }
       });
     } catch (err) {
@@ -175,21 +175,26 @@
     } catch (e) {}
   };
 
-  // Main Realtime Setup & Auto-Registration
+  // Main Realtime Setup & Multi-Tier Auto-Registration
   window.initTirzaTrimRealtime = function() {
     ensureSupabaseClient((sb) => {
       const path = window.location.pathname.toLowerCase();
       const isZSM = path.includes('admin');
       const isRep = path.includes('team');
+      const isHO = path.includes('headoffice') || path.includes('hos');
+
       const currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
       const currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
+      const currentHO = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
 
-      // Auto-register device token if user is logged in
+      // Auto-register device token dynamically for Reps, ZSMs, and Head Office
       if (Notification.permission === 'granted') {
         if (isRep && currentRep) {
           window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
         } else if (isZSM && currentManager) {
           window.subscribeDeviceToPush(currentManager.sap_id, 'zsm', currentManager.zone);
+        } else if (isHO) {
+          window.subscribeDeviceToPush((currentHO && currentHO.sap_id) || 'HO_EXEC', 'hos', 'NATIONAL');
         } else {
           window.subscribeDeviceToPush(null, 'general', null);
         }
@@ -214,6 +219,13 @@
               '✨ New Zone Order',
               `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.prescribed_dose || '5mg'}`,
               '/admin.html',
+              'orders'
+            );
+          } else if (isHO) {
+            triggerPushNotification(
+              '✨ New National Order',
+              `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`,
+              '/headoffice.html',
               'orders'
             );
           } else {
