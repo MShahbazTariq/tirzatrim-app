@@ -4,22 +4,30 @@ async function checkGlobalBroadcast(targetRole) {
   const sb = window.supabaseClient || client;
 
   try {
+    const nowIso = new Date().toISOString();
+
+    // Query active broadcasts within valid date/time window
     const { data: broadcasts, error } = await sb
       .from('broadcasts')
       .select('*')
       .eq('is_active', true)
+      .lte('start_time', nowIso)
       .order('created_at', { ascending: false });
 
     if (error || !broadcasts || broadcasts.length === 0) return;
 
-    // Match role (patient, doctor, distributor, team) or 'all'
-    const activeBroadcast = broadcasts.find(b => 
+    // Filter out expired announcements
+    const validBroadcasts = broadcasts.filter(b => {
+      if (!b.expires_at) return true; // No expiration limit set
+      return new Date(b.expires_at) > new Date();
+    });
+
+    const activeBroadcast = validBroadcasts.find(b => 
       b.target_audience.includes(targetRole) || b.target_audience.includes('all')
     );
 
     if (!activeBroadcast) return;
 
-    // Check if the user already dismissed this specific announcement ID
     const seenKey = `tt_seen_broadcast_${activeBroadcast.id}`;
     if (sessionStorage.getItem(seenKey)) return;
 
