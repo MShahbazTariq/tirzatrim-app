@@ -1,30 +1,49 @@
 // Universal Popup Announcement Handler for TirzaTrim
+const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+
 async function checkGlobalBroadcast(targetRole) {
-  if (!window.supabaseClient && typeof client === 'undefined') return;
-  const sb = window.supabaseClient || client;
+  let sb = window.supabaseClient || (typeof client !== 'undefined' ? client : null);
+  
+  // Fallback: create client directly if not available in scope
+  if (!sb && window.supabase) {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  if (!sb) {
+    console.error("Supabase client not found for broadcast.");
+    return;
+  }
 
   try {
-    const nowIso = new Date().toISOString();
-
-    // Query active broadcasts within valid date/time window
     const { data: broadcasts, error } = await sb
       .from('broadcasts')
       .select('*')
       .eq('is_active', true)
-      .lte('start_time', nowIso)
       .order('created_at', { ascending: false });
 
-    if (error || !broadcasts || broadcasts.length === 0) return;
+    if (error) {
+      console.error("Error fetching broadcasts:", error);
+      return;
+    }
+    if (!broadcasts || broadcasts.length === 0) return;
 
-    // Filter out expired announcements
-    const validBroadcasts = broadcasts.filter(b => {
-      if (!b.expires_at) return true; // No expiration limit set
-      return new Date(b.expires_at) > new Date();
+    const now = new Date();
+
+    // Filter valid broadcasts matching role, start_time, and expires_at
+    const activeBroadcast = broadcasts.find(b => {
+      const audience = Array.isArray(b.target_audience) ? b.target_audience : [];
+      const matchesRole = audience.includes(targetRole) || audience.includes('all');
+      if (!matchesRole) return false;
+
+      // Start time check
+      if (b.start_time && new Date(b.start_time) > now) return false;
+
+      // Expiry check
+      if (b.expires_at && new Date(b.expires_at) <= now) return false;
+
+      return true;
     });
-
-    const activeBroadcast = validBroadcasts.find(b => 
-      b.target_audience.includes(targetRole) || b.target_audience.includes('all')
-    );
 
     if (!activeBroadcast) return;
 
