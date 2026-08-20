@@ -1,102 +1,90 @@
 // Universal Popup Announcement Handler for TirzaTrim
-const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+(function() {
+  const TT_SB_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+  const TT_SB_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
 
-async function checkGlobalBroadcast(targetRole) {
-  let sb = window.supabaseClient || (typeof client !== 'undefined' ? client : null);
-  
-  // Fallback: create client directly if not available in scope
-  if (!sb && window.supabase) {
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-
-  if (!sb) {
-    console.error("Supabase client not found for broadcast.");
-    return;
-  }
-
-  try {
-    const { data: broadcasts, error } = await sb
-      .from('broadcasts')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching broadcasts:", error);
-      return;
+  window.checkGlobalBroadcast = async function(targetRole) {
+    let sb = window.supabaseClient || (typeof client !== 'undefined' ? client : null);
+    if (!sb && window.supabase) {
+      sb = window.supabase.createClient(TT_SB_URL, TT_SB_KEY);
     }
-    if (!broadcasts || broadcasts.length === 0) return;
+    if (!sb) return;
 
-    const now = new Date();
+    try {
+      const { data: broadcasts, error } = await sb
+        .from('broadcasts')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    // Filter valid broadcasts matching role, start_time, and expires_at
-    const activeBroadcast = broadcasts.find(b => {
-      const audience = Array.isArray(b.target_audience) ? b.target_audience : [];
-      const matchesRole = audience.includes(targetRole) || audience.includes('all');
-      if (!matchesRole) return false;
+      if (error || !broadcasts || broadcasts.length === 0) return;
 
-      // Start time check
-      if (b.start_time && new Date(b.start_time) > now) return false;
+      const now = new Date();
 
-      // Expiry check
-      if (b.expires_at && new Date(b.expires_at) <= now) return false;
+      const activeBroadcast = broadcasts.find(b => {
+        const audience = Array.isArray(b.target_audience) ? b.target_audience : [];
+        const matchesRole = audience.includes(targetRole) || audience.includes('all');
+        if (!matchesRole) return false;
 
-      return true;
-    });
+        if (b.start_time && new Date(b.start_time) > now) return false;
+        if (b.expires_at && new Date(b.expires_at) <= now) return false;
 
-    if (!activeBroadcast) return;
+        return true;
+      });
 
-    const seenKey = `tt_seen_broadcast_${activeBroadcast.id}`;
-    if (sessionStorage.getItem(seenKey)) return;
+      if (!activeBroadcast) return;
 
-    renderBroadcastModal(activeBroadcast, seenKey);
-  } catch (err) {
-    console.error("Broadcast check error:", err);
-  }
-}
+      const seenKey = `tt_seen_broadcast_${activeBroadcast.id}`;
+      if (sessionStorage.getItem(seenKey)) return;
 
-function renderBroadcastModal(bc, seenKey) {
-  let badgeColor = "bg-blue-500/10 text-blue-500 border-blue-500/20";
-  let icon = "📢";
+      renderBroadcastModal(activeBroadcast, seenKey);
+    } catch (err) {
+      console.error("Broadcast check error:", err);
+    }
+  };
 
-  if (bc.category === 'Attention') {
-    badgeColor = "bg-rose-500/10 text-rose-500 border-rose-500/20";
-    icon = "⚠️";
-  } else if (bc.category === 'Important Information') {
-    badgeColor = "bg-amber-500/10 text-amber-500 border-amber-500/20";
-    icon = "ℹ️";
-  }
+  function renderBroadcastModal(bc, seenKey) {
+    let badgeColor = "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
+    let icon = "📢";
 
-  const modalHtml = `
-    <div id="broadcastModal" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 relative animate-fade-in">
-        <div class="flex items-center justify-between">
-          <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeColor} flex items-center gap-1.5">
-            <span>${icon}</span> ${bc.category}
-          </span>
-          <button onclick="dismissBroadcast('${seenKey}')" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
-        </div>
-        
-        <div class="space-y-2">
-          <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">${bc.title}</h3>
-          <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">${bc.message}</div>
-        </div>
+    if (bc.category === 'Attention') {
+      badgeColor = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+      icon = "⚠️";
+    } else if (bc.category === 'Important Information') {
+      badgeColor = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+      icon = "ℹ️";
+    }
 
-        <div class="pt-2">
-          <button onclick="dismissBroadcast('${seenKey}')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
-            Understood & Proceed
-          </button>
+    const modalHtml = `
+      <div id="broadcastModal" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeColor} flex items-center gap-1.5">
+              <span>${icon}</span> ${bc.category}
+            </span>
+            <button onclick="dismissBroadcast('${seenKey}')" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">${bc.title}</h3>
+            <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">${bc.message}</div>
+          </div>
+
+          <div class="pt-2">
+            <button onclick="dismissBroadcast('${seenKey}')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+              Understood & Proceed
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
 
-function dismissBroadcast(seenKey) {
-  sessionStorage.setItem(seenKey, 'true');
-  const modal = document.getElementById('broadcastModal');
-  if (modal) modal.remove();
-}
+  window.dismissBroadcast = function(seenKey) {
+    sessionStorage.setItem(seenKey, 'true');
+    const modal = document.getElementById('broadcastModal');
+    if (modal) modal.remove();
+  };
+})();
