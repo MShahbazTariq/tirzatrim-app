@@ -31,10 +31,9 @@
       return;
     }
 
-    // Check individual sub-channel preferences
     if (channelType) {
       const channelPref = localStorage.getItem(`tt_notif_${channelType}`);
-      if (channelPref === 'false') return; // User muted this specific category
+      if (channelPref === 'false') return;
     }
 
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
@@ -55,22 +54,27 @@
     }
   };
 
-  // Detect current role and initiate listeners
+  // Detect hierarchy tier and initiate listeners
   window.initTirzaTrimRealtime = function() {
     const sb = getSupabaseClient();
     if (!sb) return;
 
     const path = window.location.pathname.toLowerCase();
-    let role = 'guest';
 
-    if (path.includes('admin') || path.includes('head') || path.includes('hos')) role = 'management';
-    else if (path.includes('distributor')) role = 'distributor';
-    else if (path.includes('doctor')) role = 'doctor';
-    else if (path.includes('team')) role = 'team';
-    else if (path.includes('order') || path.includes('feedback')) role = 'patient';
+    // 1. Determine Tier Identity from Local Sessions
+    const isHeadOffice = path.includes('headoffice');
+    const isHOS = path.includes('hos');
+    const isZSM = path.includes('admin');
+    const isRep = path.includes('team');
+    const isDistributor = path.includes('distributor');
+    const isPatient = path.includes('order') || path.includes('feedback');
+
+    const currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
+    const currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
+    const currentHOS = JSON.parse(sessionStorage.getItem('tt_current_hos') || 'null');
 
     sb.channel('tt_global_realtime')
-      // 1. Order Status Updates (Dispatched, Delivered, In Process)
+      // A. Order Status Updates
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
         const o = payload.new;
         const old = payload.old;
@@ -78,29 +82,108 @@
           const isDispatchAction = ['Dispatched', 'Out for Delivery', 'Delivered'].includes(o.status);
           const channel = isDispatchAction ? 'dispatch' : 'orders';
 
-          if (role === 'distributor') {
+          if (isDistributor) {
             triggerPushNotification('🛵 Dispatch Updated', `Order #${o.order_id || ''} ➔ ${o.status}`, '/distributor.html', 'dispatch');
-          } else if (role === 'patient') {
+          } else if (isPatient) {
             triggerPushNotification('📦 Order Status Update', `Your TirzaTrim order is now: ${o.status}`, '/order.html', channel);
-          } else if (role === 'team' || role === 'management') {
-            triggerPushNotification('📈 Territory Update', `${o.patient_name || 'Patient'} (${o.rep_code || ''}) ➔ ${o.status}`, window.location.pathname, channel);
+          } else if (isRep && currentRep && currentRep.territory_code === o.rep_code) {
+            triggerPushNotification('📈 Territory Update', `${o.patient_name} (${o.rep_code}) ➔ ${o.status}`, '/team.html', channel);
           }
         }
       })
-      // 2. New Orders Enrolled
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+      // B. New Orders (Hierarchical Scoping)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
         const o = payload.new;
-        if (role === 'management' || role === 'distributor' || role === 'team') {
-          triggerPushNotification('✨ New Order Enrolled', `${o.patient_name || 'New Patient'} (${o.city || 'Pakistan'}) - ${o.prescribed_dose || ''}`, window.location.pathname, 'orders');
+
+        // 1. Field Rep Tier: Exact territory match only
+        if (isRep && currentRep) {
+          if (currentRep.territory_code === o.rep_code) {
+            triggerPushNotification(
+              '✨ New Patient Order Enrolled',
+              `${o.patient_name || 'Patient'} (${o.prescribed_dose || '5mg'}) enrolled in territory ${o.rep_code}`,
+              '/team.html',
+              'orders'
+            );
+          }
+          return;
+        }
+
+        // 2. ZSM Tier: Match reps registered under this Manager SAP ID
+        if (isZSM && currentManager) {
+          try {
+            const { data: repCheck } = await sb
+              .from('reps')
+              .select('id')
+              .eq('manager_sap_id', currentManager.manager_sap_id)
+              .eq('territory_code', o.rep_code)
+              .limit(1);
+
+            if (repCheck && repCheck.length > 0) {
+              triggerPushNotification(
+                '✨ New Zone Order',
+                `${o.patient_name || 'Patient'} (${o.rep_code}) - ${o.prescribed_dose || '5mg'} in ${currentManager.zone_region}`,
+                '/admin.html',
+                'orders'
+              );
+            }
+          } catch (e) {
+            console.error('ZSM scope check failed', e);
+          }
+          return;
+        }
+
+        // 3. HOS Tier: Match managers/reps within HOS Assigned Region
+        if (isHOS && currentHOS) {
+          try {
+            const { data: regionCheck } = await sb
+              .from('reps')
+              .select('manager_sap_id, managers!inner(region)')
+              .eq('territory_code', o.rep_code)
+              .limit(1);
+
+            const orderRegion = regionCheck && regionCheck[0]?.managers?.region;
+            if (orderRegion && orderRegion.toLowerCase() === (currentHOS.region || '').toLowerCase()) {
+              triggerPushNotification(
+                `✨ New ${currentHOS.region} Order`,
+                `${o.patient_name || 'Patient'} (${o.rep_code}) - ${o.prescribed_dose || '5mg'}`,
+                '/hos.html',
+                'orders'
+              );
+            }
+          } catch (e) {
+            console.error('HOS scope check failed', e);
+          }
+          return;
+        }
+
+        // 4. Head Office Tier: Nationwide visibility
+        if (isHeadOffice) {
+          triggerPushNotification(
+            '✨ National Order Enrolled',
+            `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`,
+            '/headoffice.html',
+            'orders'
+          );
+          return;
+        }
+
+        // 5. Distributor Tier: New orders for fulfillment
+        if (isDistributor) {
+          triggerPushNotification(
+            '🛵 New Delivery Order',
+            `Order #${o.order_id || ''} - ${o.city || 'Fulfillment'}`,
+            '/distributor.html',
+            'dispatch'
+          );
         }
       })
-      // 3. New Feedbacks Submitted
+      // C. Feedback Submissions
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'feedback' }, payload => {
-        if (role === 'management' || role === 'team') {
+        if (isHeadOffice || isHOS || isZSM || isRep) {
           triggerPushNotification('⭐ New Doctor Feedback', `Rating: ${payload.new.overall_rating || 5} Stars received!`, window.location.pathname, 'feedback');
         }
       })
-      // 4. New Broadcast Announcements Published
+      // D. Broadcast Announcements
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
         const bc = payload.new;
         if (!bc.is_active) return;
