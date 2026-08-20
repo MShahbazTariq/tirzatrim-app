@@ -17,6 +17,9 @@
     }
   </script>
 
+  <!-- Notification & Broadcast Scripts -->
+  <script src="/notification.js"></script>
+
   <!-- Pre-render Theme Initialization to Prevent Flashing -->
   <script>
     (function () {
@@ -34,13 +37,25 @@
 
   <div class="max-w-5xl w-full space-y-8 relative">
     
-    <!-- Top Bar: Theme Toggle -->
-    <div class="flex justify-end">
+    <!-- Top Bar: Settings Gear & Theme Toggle -->
+    <div class="flex justify-end items-center gap-2">
+      <!-- Settings Gear Button -->
+      <button 
+        onclick="openSettingsModal()" 
+        type="button" 
+        class="px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-md backdrop-blur-md text-xs font-bold transition-all flex items-center gap-1.5" 
+        title="Notification Settings"
+      >
+        <span class="text-sm">⚙️</span>
+        <span class="hidden sm:inline">Settings</span>
+      </button>
+
+      <!-- Theme Toggle Button -->
       <button 
         id="themeToggleBtn" 
         onclick="toggleTheme()" 
-        type="button"
-        class="px-3.5 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-md backdrop-blur-md text-xs font-bold transition-all flex items-center gap-2"
+        type="button" 
+        class="px-3.5 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-md backdrop-blur-md text-xs font-bold transition-all flex items-center gap-2" 
         title="Toggle Theme"
       >
         <span id="themeIcon">🌙</span>
@@ -216,7 +231,105 @@
     </div>
   </div>
 
+  <!-- NOTIFICATION & SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚙️</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Notification Center</h3>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Master Switch -->
+      <div class="flex items-center justify-between p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+        <div>
+          <div class="text-xs font-bold text-emerald-900 dark:text-emerald-300">Push Notifications</div>
+          <div class="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">Allow alerts on this device</div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="masterNotifToggle" onchange="handleMasterToggle(this.checked)" class="sr-only peer">
+          <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+        </label>
+      </div>
+
+      <!-- Individual Channels List -->
+      <div id="subNotifControls" class="space-y-2.5 transition-opacity">
+        
+        <!-- Orders & Prescriptions -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">📦</span>
+            <div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">Order Updates</div>
+              <div class="text-[10px] text-slate-400">Enrollment & prescription alerts</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="notif_orders" onchange="saveChannelPref('orders', this.checked)" class="sr-only peer" checked>
+            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+
+        <!-- Deliveries -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">🛵</span>
+            <div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">Dispatch & Delivery</div>
+              <div class="text-[10px] text-slate-400">Out-for-delivery & cold-chain status</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="notif_dispatch" onchange="saveChannelPref('dispatch', this.checked)" class="sr-only peer" checked>
+            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+
+        <!-- Announcements -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">📢</span>
+            <div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">Broadcast Notices</div>
+              <div class="text-[10px] text-slate-400">Critical announcements & protocols</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="notif_broadcasts" onchange="saveChannelPref('broadcasts', this.checked)" class="sr-only peer" checked>
+            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+
+        <!-- Feedback -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">⭐</span>
+            <div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">Doctor Feedback</div>
+              <div class="text-[10px] text-slate-400">Patient care & review notifications</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="notif_feedback" onchange="saveChannelPref('feedback', this.checked)" class="sr-only peer" checked>
+            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Done Button -->
+      <button onclick="closeSettingsModal()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md">
+        Save Preferences
+      </button>
+    </div>
+  </div>
+
   <script>
+    /* Role Modal Handlers */
     function openRoleModal() {
       document.getElementById('roleModal').classList.remove('hidden');
     }
@@ -229,7 +342,75 @@
       if (e.target === this) closeRoleModal();
     });
 
-    // Theme Toggle Handler
+    /* Settings & Notification Modal Handlers */
+    function openSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      if (!modal) return;
+      
+      const isMasterOn = localStorage.getItem('tt_notif_enabled') === 'true' && ('Notification' in window && Notification.permission === 'granted');
+      document.getElementById('masterNotifToggle').checked = isMasterOn;
+      
+      ['orders', 'dispatch', 'broadcasts', 'feedback'].forEach(channel => {
+        const el = document.getElementById(`notif_${channel}`);
+        if (el) {
+          el.checked = localStorage.getItem(`tt_notif_${channel}`) !== 'false';
+        }
+      });
+
+      updateSubControlsState(isMasterOn);
+      modal.classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    document.getElementById('settingsModal').addEventListener('click', function(e) {
+      if (e.target === this) closeSettingsModal();
+    });
+
+    async function handleMasterToggle(enabled) {
+      if (enabled) {
+        if (!('Notification' in window)) {
+          alert('This device / browser does not support native push notifications.');
+          document.getElementById('masterNotifToggle').checked = false;
+          return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          localStorage.setItem('tt_notif_enabled', 'true');
+          updateSubControlsState(true);
+          if (window.triggerPushNotification) {
+            window.triggerPushNotification('🔔 Notifications Active', 'Your alert preferences are now active.');
+          }
+        } else {
+          localStorage.setItem('tt_notif_enabled', 'false');
+          document.getElementById('masterNotifToggle').checked = false;
+          alert('Permission denied. Please allow notifications in your browser/device site settings.');
+          updateSubControlsState(false);
+        }
+      } else {
+        localStorage.setItem('tt_notif_enabled', 'false');
+        updateSubControlsState(false);
+      }
+    }
+
+    function saveChannelPref(channel, isEnabled) {
+      localStorage.setItem(`tt_notif_${channel}`, isEnabled ? 'true' : 'false');
+    }
+
+    function updateSubControlsState(isMasterOn) {
+      const container = document.getElementById('subNotifControls');
+      if (!container) return;
+      if (isMasterOn) {
+        container.classList.remove('opacity-40', 'pointer-events-none');
+      } else {
+        container.classList.add('opacity-40', 'pointer-events-none');
+      }
+    }
+
+    /* Theme Toggle Handler */
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('tt_theme', isDark ? 'dark' : 'light');
@@ -243,7 +424,7 @@
       if (label) label.innerText = isDark ? 'Dark Mode' : 'Light Mode';
     }
 
-    // Sync button state on initial load
+    // Sync state on initial load
     document.addEventListener('DOMContentLoaded', () => {
       const isDark = document.documentElement.classList.contains('dark');
       updateThemeUI(isDark);
