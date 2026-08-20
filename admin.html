@@ -198,19 +198,24 @@
       </div>
     </div>
 
-    <!-- BROADCAST ANNOUNCEMENT PUBLISHER PANEL -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-      <div class="flex items-center justify-between">
+    <!-- BROADCAST ANNOUNCEMENT PUBLISHER & MANAGER PANEL -->
+    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-sm dark:shadow-none">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>📢</span> Create Multi-Portal Broadcast Announcement
+          <span>📢</span> Multi-Portal Broadcast & Expiration Control
         </h3>
+        <span id="editBroadcastIndicator" class="hidden text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+          Editing Mode Active
+        </span>
       </div>
 
-      <form onsubmit="handleBroadcastPublish(event)" class="space-y-4">
+      <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
+        <input type="hidden" id="editBroadcastId" value="">
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Title *</label>
-            <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update / Batch Availability" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
+            <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Category Type *</label>
@@ -219,6 +224,18 @@
               <option value="Important Information">Important Information (Notice)</option>
               <option value="Attention">Attention (Critical Warning / Action)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Schedule & Expiration Pickers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
+            <input type="datetime-local" id="bcStartTime" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional: Leave empty for no limit)</label>
+            <input type="datetime-local" id="bcExpiresAt" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
           </div>
         </div>
 
@@ -234,13 +251,38 @@
 
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Detailed Message Content *</label>
-          <textarea id="bcMessage" rows="3" required placeholder="Type the information details to display on first visit..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 resize-none placeholder-slate-400 dark:placeholder-slate-600"></textarea>
+          <textarea id="bcMessage" rows="3" required placeholder="Type announcement details here..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 resize-none placeholder-slate-400 dark:placeholder-slate-600"></textarea>
         </div>
 
-        <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
-          <span>🚀</span> Publish to Target Portals
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
+            <span>🚀</span> Publish Announcement
+          </button>
+          <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl transition-all">
+            Cancel Edit
+          </button>
+        </div>
       </form>
+
+      <!-- ACTIVE BROADCASTS LIST & CONTROLS -->
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Manage Published Announcements</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 text-[10px]">
+              <tr>
+                <th class="p-3">Category / Title</th>
+                <th class="p-3">Target Portals</th>
+                <th class="p-3">Active / Expires</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+              <tr><td colspan="4" class="p-4 text-center text-slate-400 dark:text-slate-500">Loading announcements...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- TIMELINE & DATE SCOPE CONTROLS -->
@@ -394,6 +436,7 @@
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let publishedBroadcasts = [];
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
@@ -438,6 +481,7 @@
         document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name;
         initDates();
         fetchManagerOrders();
+        fetchBroadcasts();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -510,12 +554,64 @@
       checkMgrSession();
     }
 
-    /* BROADCAST ANNOUNCEMENT PUBLISHER HANDLER */
+    /* BROADCAST ANNOUNCEMENT FUNCTIONS */
+    async function fetchBroadcasts() {
+      const { data, error } = await client
+        .from('broadcasts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        publishedBroadcasts = data;
+        renderBroadcastsTable();
+      }
+    }
+
+    function renderBroadcastsTable() {
+      const tbody = document.getElementById('broadcastsTableBody');
+      if (publishedBroadcasts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 dark:text-slate-500">No announcements published yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = publishedBroadcasts.map(bc => {
+        const isExpired = bc.expires_at && new Date(bc.expires_at) <= new Date();
+        const statusBadge = isExpired
+          ? '<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold">Expired</span>'
+          : (bc.is_active ? '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">Active</span>' : '<span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-[10px] font-bold">Disabled</span>');
+
+        return `
+          <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="p-3">
+              <div class="font-bold text-slate-900 dark:text-white">${bc.title}</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">${bc.category}</div>
+            </td>
+            <td class="p-3">
+              <div class="flex flex-wrap gap-1">
+                ${(bc.target_audience || []).map(r => `<span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-semibold">${r}</span>`).join('')}
+              </div>
+            </td>
+            <td class="p-3">
+              <div>${statusBadge}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Expires: ${bc.expires_at ? new Date(bc.expires_at).toLocaleString() : 'No Limit'}</div>
+            </td>
+            <td class="p-3 text-right space-x-1.5">
+              <button onclick="editBroadcast('${bc.id}')" class="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold rounded-lg transition-all">✏️ Edit</button>
+              <button onclick="deleteBroadcast('${bc.id}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-lg transition-all">🗑️ Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     async function handleBroadcastPublish(e) {
       e.preventDefault();
+      const id = document.getElementById('editBroadcastId').value;
       const title = document.getElementById('bcTitle').value.trim();
       const category = document.getElementById('bcCategory').value;
       const message = document.getElementById('bcMessage').value.trim();
+      const start_time = document.getElementById('bcStartTime').value || new Date().toISOString();
+      const expires_at = document.getElementById('bcExpiresAt').value || null;
       
       const checkboxes = document.querySelectorAll('input[name="targetRole"]:checked');
       const target_audience = Array.from(checkboxes).map(cb => cb.value);
@@ -525,22 +621,71 @@
         return;
       }
 
-      const { error } = await client.from('broadcasts').insert([{
+      const payload = {
         title,
         category,
         message,
         target_audience,
+        start_time,
+        expires_at,
         is_active: true
-      }]);
+      };
 
-      if (error) {
-        alert("Error publishing broadcast: " + error.message);
+      let res;
+      if (id) {
+        res = await client.from('broadcasts').update(payload).eq('id', id);
       } else {
-        alert("Announcement successfully published! Portals will now show this popup.");
-        document.getElementById('bcTitle').value = '';
-        document.getElementById('bcMessage').value = '';
-        checkboxes.forEach(cb => cb.checked = false);
+        res = await client.from('broadcasts').insert([payload]);
       }
+
+      if (res.error) {
+        alert("Error saving broadcast: " + res.error.message);
+      } else {
+        alert(id ? "Announcement updated successfully!" : "Announcement published successfully!");
+        cancelBroadcastEdit();
+        fetchBroadcasts();
+      }
+    }
+
+    function editBroadcast(id) {
+      const bc = publishedBroadcasts.find(b => String(b.id) === String(id));
+      if (!bc) return;
+
+      document.getElementById('editBroadcastId').value = bc.id;
+      document.getElementById('bcTitle').value = bc.title;
+      document.getElementById('bcCategory').value = bc.category;
+      document.getElementById('bcMessage').value = bc.message;
+      document.getElementById('bcStartTime').value = bc.start_time ? new Date(bc.start_time).toISOString().slice(0, 16) : '';
+      document.getElementById('bcExpiresAt').value = bc.expires_at ? new Date(bc.expires_at).toISOString().slice(0, 16) : '';
+
+      document.querySelectorAll('input[name="targetRole"]').forEach(cb => {
+        cb.checked = (bc.target_audience || []).includes(cb.value);
+      });
+
+      document.getElementById('bcSubmitBtn').innerHTML = "<span>💾</span> Update Announcement";
+      document.getElementById('bcCancelEditBtn').classList.remove('hidden');
+      document.getElementById('editBroadcastIndicator').classList.remove('hidden');
+      document.getElementById('broadcastForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelBroadcastEdit() {
+      document.getElementById('editBroadcastId').value = '';
+      document.getElementById('bcTitle').value = '';
+      document.getElementById('bcMessage').value = '';
+      document.getElementById('bcStartTime').value = '';
+      document.getElementById('bcExpiresAt').value = '';
+      document.querySelectorAll('input[name="targetRole"]').forEach(cb => cb.checked = false);
+
+      document.getElementById('bcSubmitBtn').innerHTML = "<span>🚀</span> Publish Announcement";
+      document.getElementById('bcCancelEditBtn').classList.add('hidden');
+      document.getElementById('editBroadcastIndicator').classList.add('hidden');
+    }
+
+    async function deleteBroadcast(id) {
+      if (!confirm("Are you sure you want to permanently delete this announcement?")) return;
+      const { error } = await client.from('broadcasts').delete().eq('id', id);
+      if (error) alert("Error deleting: " + error.message);
+      else fetchBroadcasts();
     }
 
     function initDates() {
