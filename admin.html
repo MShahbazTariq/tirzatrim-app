@@ -9,6 +9,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
+  <script src="/broadcast.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -24,8 +25,8 @@
         </a>
         <button 
           onclick="toggleTheme()" 
-          type="button"
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1"
+          type="button" 
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
           title="Toggle Theme"
         >
           <span class="theme-icon">🌙</span>
@@ -176,8 +177,8 @@
       <div class="flex flex-wrap items-center gap-2">
         <button 
           onclick="toggleTheme()" 
-          type="button"
-          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+          type="button" 
+          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5" 
           title="Toggle Dark / Light Mode"
         >
           <span class="theme-icon">🌙</span>
@@ -456,6 +457,14 @@
       return `${year}-${month}-${day}`;
     }
 
+    function toLocalDatetimeInput(utcString) {
+      if (!utcString) return '';
+      const d = new Date(utcString);
+      if (isNaN(d.getTime())) return '';
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    }
+
     function showMgrAuthTab(type) {
       document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
       if (type === 'login') {
@@ -610,8 +619,12 @@
       const title = document.getElementById('bcTitle').value.trim();
       const category = document.getElementById('bcCategory').value;
       const message = document.getElementById('bcMessage').value.trim();
-      const start_time = document.getElementById('bcStartTime').value || new Date().toISOString();
-      const expires_at = document.getElementById('bcExpiresAt').value || null;
+      
+      const startTimeInput = document.getElementById('bcStartTime').value;
+      const expiresAtInput = document.getElementById('bcExpiresAt').value;
+
+      const start_time = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
+      const expires_at = expiresAtInput ? new Date(expiresAtInput).toISOString() : null;
       
       const checkboxes = document.querySelectorAll('input[name="targetRole"]:checked');
       const target_audience = Array.from(checkboxes).map(cb => cb.value);
@@ -655,8 +668,9 @@
       document.getElementById('bcTitle').value = bc.title;
       document.getElementById('bcCategory').value = bc.category;
       document.getElementById('bcMessage').value = bc.message;
-      document.getElementById('bcStartTime').value = bc.start_time ? new Date(bc.start_time).toISOString().slice(0, 16) : '';
-      document.getElementById('bcExpiresAt').value = bc.expires_at ? new Date(bc.expires_at).toISOString().slice(0, 16) : '';
+      
+      document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
+      document.getElementById('bcExpiresAt').value = toLocalDatetimeInput(bc.expires_at);
 
       document.querySelectorAll('input[name="targetRole"]').forEach(cb => {
         cb.checked = (bc.target_audience || []).includes(cb.value);
@@ -682,10 +696,15 @@
     }
 
     async function deleteBroadcast(id) {
-      if (!confirm("Are you sure you want to permanently delete this announcement?")) return;
+      const confirmDelete = confirm("Are you sure you want to permanently delete this announcement?");
+      if (!confirmDelete) return;
+
       const { error } = await client.from('broadcasts').delete().eq('id', id);
-      if (error) alert("Error deleting: " + error.message);
-      else fetchBroadcasts();
+      if (error) {
+        alert("Error deleting: " + error.message);
+      } else {
+        fetchBroadcasts();
+      }
     }
 
     function initDates() {
@@ -1040,7 +1059,6 @@
         const doc = (o.doctor_name || 'Unassigned').trim();
         const clinic = (o.clinic_name || '').trim();
         
-        // Distinct grouping by Doctor Name + Clinic
         const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
         prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
       });
@@ -1089,8 +1107,6 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
-        const isDispatched = order.status === 'Dispatched';
         const refillInfo = getRefillStatus(order.created_at, order.prescribed_dose);
 
         return `
