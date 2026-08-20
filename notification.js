@@ -1,7 +1,8 @@
-// Universal TirzaTrim Live Push & In-App Notification System (High Reliability)
+// Universal TirzaTrim Live Push & In-App Notification System (Realtime + 24/7 Web Push)
 (function() {
   const TT_SB_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
   const TT_SB_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+  const PUBLIC_VAPID_KEY = "BFhZtq8G_Z9L5uTqBv3M7X0oO1pQsK2n6r4W9v8yX7zP2kLmNoPqRsTuVwXyZ1aBcDeFgHiJkLmNoPqRsTuVwX8";
 
   let rtClient = null;
 
@@ -31,6 +32,59 @@
     };
     document.head.appendChild(s);
   }
+
+  // Base64 helper for VAPID key
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // 24/7 Hardware Push Token Registration
+  window.subscribeDeviceToPush = async function(sapId = null, role = null, territoryCode = null) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push messaging not supported on this device/browser.');
+      return;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+        });
+      }
+
+      const subJson = sub.toJSON();
+
+      ensureSupabaseClient(async (sb) => {
+        const { error } = await sb.from('push_subscriptions').upsert({
+          sap_id: sapId ? String(sapId) : 'guest',
+          role: role || 'admin',
+          territory_code: territoryCode || '',
+          endpoint: subJson.endpoint,
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth
+        }, { onConflict: 'endpoint' });
+
+        if (error) {
+          console.error('Push registration save error:', error);
+        } else {
+          console.log('✅ Device registered in Supabase for 24/7 background push alerts.');
+        }
+      });
+    } catch (err) {
+      console.warn('Push registration skipped or denied:', err);
+    }
+  };
 
   // In-App Toast Banner
   function showInAppToast(title, body) {
@@ -70,12 +124,13 @@
   window.triggerPushNotification = async function(title, body, url = '/', channelType = null) {
     showInAppToast(title, body);
 
-    // Direct Mobile Hardware Vibration trigger
     if ('vibrate' in navigator) {
       try { navigator.vibrate([200, 100, 200]); } catch (e) {}
     }
 
-    const isMasterEnabled = localStorage.getItem('tt_notif_enabled') === 'true';
+    const masterSetting = localStorage.getItem('tt_notif_enabled');
+    const isMasterEnabled = masterSetting === null || masterSetting === 'true';
+
     if (!isMasterEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
       return;
     }
@@ -95,7 +150,6 @@
       data: { url: url }
     };
 
-    // 1. Try active Service Worker Registration (Mobile Preferred)
     if ('serviceWorker' in navigator) {
       try {
         const reg = await navigator.serviceWorker.getRegistration();
@@ -106,7 +160,6 @@
       } catch (e) {}
     }
 
-    // 2. Fallback to ready Service Worker
     if ('serviceWorker' in navigator) {
       try {
         const readyReg = await navigator.serviceWorker.ready;
@@ -117,21 +170,31 @@
       } catch (e) {}
     }
 
-    // 3. Desktop Fallback
     try {
       new Notification(title, options);
     } catch (e) {}
   };
 
-  // Main Realtime Setup
+  // Main Realtime Setup & Auto-Registration
   window.initTirzaTrimRealtime = function() {
     ensureSupabaseClient((sb) => {
       const path = window.location.pathname.toLowerCase();
       const isZSM = path.includes('admin');
       const isRep = path.includes('team');
       const currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
+      const currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
 
-      // Fixed persistent channel name for stability
+      // Auto-register device token if user is logged in
+      if (Notification.permission === 'granted') {
+        if (isRep && currentRep) {
+          window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
+        } else if (isZSM && currentManager) {
+          window.subscribeDeviceToPush(currentManager.sap_id, 'zsm', currentManager.zone);
+        } else {
+          window.subscribeDeviceToPush(null, 'general', null);
+        }
+      }
+
       sb.channel('tirzatrim_realtime_orders')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
           const o = payload.new;
