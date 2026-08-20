@@ -5,6 +5,17 @@
 
   let rtClient = null;
 
+  function loadSupabaseScript(callback) {
+    if (window.supabase) {
+      callback();
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    s.onload = callback;
+    document.head.appendChild(s);
+  }
+
   function getSupabaseClient() {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       if (!rtClient) rtClient = window.supabase.createClient(TT_SB_URL, TT_SB_KEY);
@@ -13,11 +24,17 @@
     return null;
   }
 
-  // Trigger Native / PWA Notification
-  window.triggerPushNotification = function(title, body, url = '/') {
-    const isEnabled = localStorage.getItem('tt_notif_enabled') === 'true';
-    if (!isEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
+  // Trigger Native / PWA Notification with channel filter
+  window.triggerPushNotification = function(title, body, url = '/', channelType = null) {
+    const isMasterEnabled = localStorage.getItem('tt_notif_enabled') === 'true';
+    if (!isMasterEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
       return;
+    }
+
+    // Check individual sub-channel preferences
+    if (channelType) {
+      const channelPref = localStorage.getItem(`tt_notif_${channelType}`);
+      if (channelPref === 'false') return; // User muted this specific category
     }
 
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
@@ -38,42 +55,6 @@
     }
   };
 
-  // Toggle notification permissions
-  window.toggleAppNotifications = async function() {
-    if (!('Notification' in window)) {
-      alert('Your browser / device does not support native push notifications.');
-      return false;
-    }
-
-    const currentStatus = localStorage.getItem('tt_notif_enabled') === 'true';
-
-    if (!currentStatus) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        localStorage.setItem('tt_notif_enabled', 'true');
-        triggerPushNotification('🔔 Notifications Active', 'You will receive real-time order updates and platform alerts.');
-        updateNotificationUI(true);
-        return true;
-      } else {
-        localStorage.setItem('tt_notif_enabled', 'false');
-        alert('Notification access was blocked. Please enable permissions in your device/browser site settings.');
-        updateNotificationUI(false);
-        return false;
-      }
-    } else {
-      localStorage.setItem('tt_notif_enabled', 'false');
-      updateNotificationUI(false);
-      return false;
-    }
-  };
-
-  function updateNotificationUI(active) {
-    const toggles = document.querySelectorAll('.tt-notif-toggle');
-    toggles.forEach(t => {
-      if (t.type === 'checkbox') t.checked = active;
-    });
-  }
-
   // Detect current role and initiate listeners
   window.initTirzaTrimRealtime = function() {
     const sb = getSupabaseClient();
@@ -89,39 +70,48 @@
     else if (path.includes('order') || path.includes('feedback')) role = 'patient';
 
     sb.channel('tt_global_realtime')
-      // 1. Order updates
+      // 1. Order Status Updates (Dispatched, Delivered, In Process)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
         const o = payload.new;
         const old = payload.old;
         if (o.status !== old.status) {
+          const isDispatchAction = ['Dispatched', 'Out for Delivery', 'Delivered'].includes(o.status);
+          const channel = isDispatchAction ? 'dispatch' : 'orders';
+
           if (role === 'distributor') {
-            triggerPushNotification('🛵 Dispatch Updated', `Order #${o.order_id || ''} status: ${o.status}`, '/distributor.html');
+            triggerPushNotification('🛵 Dispatch Updated', `Order #${o.order_id || ''} ➔ ${o.status}`, '/distributor.html', 'dispatch');
           } else if (role === 'patient') {
-            triggerPushNotification('📦 Order Status Update', `Your TirzaTrim order is now: ${o.status}`, '/order.html');
+            triggerPushNotification('📦 Order Status Update', `Your TirzaTrim order is now: ${o.status}`, '/order.html', channel);
           } else if (role === 'team' || role === 'management') {
-            triggerPushNotification('📈 Territory Update', `${o.patient_name || 'Patient'} (${o.rep_code || ''}) ➔ ${o.status}`, window.location.pathname);
+            triggerPushNotification('📈 Territory Update', `${o.patient_name || 'Patient'} (${o.rep_code || ''}) ➔ ${o.status}`, window.location.pathname, channel);
           }
         }
       })
-      // 2. New Orders Placed
+      // 2. New Orders Enrolled
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
         const o = payload.new;
         if (role === 'management' || role === 'distributor' || role === 'team') {
-          triggerPushNotification('✨ New Order Enrolled', `${o.patient_name || 'New Patient'} (${o.city || 'Pakistan'}) - ${o.prescribed_dose || ''}`, window.location.pathname);
+          triggerPushNotification('✨ New Order Enrolled', `${o.patient_name || 'New Patient'} (${o.city || 'Pakistan'}) - ${o.prescribed_dose || ''}`, window.location.pathname, 'orders');
         }
       })
-      // 3. New Feedbacks
+      // 3. New Feedbacks Submitted
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'feedback' }, payload => {
         if (role === 'management' || role === 'team') {
-          triggerPushNotification('⭐ New Patient Feedback', `Rating: ${payload.new.overall_rating || 5} Stars received!`, window.location.pathname);
+          triggerPushNotification('⭐ New Doctor Feedback', `Rating: ${payload.new.overall_rating || 5} Stars received!`, window.location.pathname, 'feedback');
         }
+      })
+      // 4. New Broadcast Announcements Published
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
+        const bc = payload.new;
+        if (!bc.is_active) return;
+        triggerPushNotification(`📢 ${bc.category || 'Announcement'}`, bc.title, window.location.pathname, 'broadcasts');
       })
       .subscribe();
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    const isEnabled = localStorage.getItem('tt_notif_enabled') === 'true' && Notification.permission === 'granted';
-    updateNotificationUI(isEnabled);
-    initTirzaTrimRealtime();
+    loadSupabaseScript(() => {
+      initTirzaTrimRealtime();
+    });
   });
 })();
