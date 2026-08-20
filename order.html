@@ -7,26 +7,38 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 min-h-screen font-sans text-slate-100 p-4 md:p-8 flex items-center justify-center">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 flex items-center justify-center transition-colors duration-200">
 
-  <div class="max-w-2xl w-full bg-slate-900/80 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl space-y-6">
+  <div class="max-w-2xl w-full bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-10 shadow-xl dark:shadow-2xl backdrop-blur-xl space-y-6">
     
-    <!-- Top Header (No Home Button) -->
-    <div class="flex items-center justify-center border-b border-slate-800 pb-4">
-      <span class="text-xs font-bold text-teal-400 bg-teal-500/10 px-4 py-1.5 rounded-full border border-teal-500/20">
+    <!-- Top Header: Badge & Theme Toggle -->
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+      <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-4 py-1.5 rounded-full border border-teal-500/20">
         TirzaTrim Patient Support Care
       </span>
+      <button 
+        onclick="toggleTheme()" 
+        type="button"
+        class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1"
+        title="Toggle Theme"
+      >
+        <span class="theme-icon">🌙</span>
+      </button>
     </div>
 
     <!-- Title Header -->
     <div class="text-center space-y-1.5">
-      <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">
-        TirzaTrim <span class="text-teal-400">Patient Support</span>
+      <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        TirzaTrim <span class="text-teal-600 dark:text-teal-400">Patient Support</span>
       </h1>
-      <p class="text-xs text-slate-400 max-w-md mx-auto">
+      <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
         Submit your details and prescription below to start your order.
       </p>
     </div>
@@ -36,30 +48,30 @@
       
       <!-- 1. PERSONAL DETAILS -->
       <div class="space-y-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+        <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
           <span>👤</span> 1. PERSONAL DETAILS
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div class="md:col-span-2">
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name *</label>
-            <input type="text" id="patientName" required placeholder="Full Name" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
+            <input type="text" id="patientName" required placeholder="Full Name" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Age *</label>
-            <input type="number" id="patientAge" required placeholder="e.g. 35" min="1" max="120" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Age *</label>
+            <input type="number" id="patientAge" required placeholder="e.g. 35" min="1" max="120" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           </div>
         </div>
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Mobile Number (WhatsApp) *</label>
-          <input type="tel" id="patientMobile" required placeholder="03XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Mobile Number (WhatsApp) *</label>
+          <input type="tel" id="patientMobile" required placeholder="03XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">City / Area *</label>
-            <input type="text" id="patientCity" list="citySuggestions" oninput="updateClinicSuggestions()" required placeholder="Select or type City (e.g. Lahore, Karachi)" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">City / Area *</label>
+            <input type="text" id="patientCity" list="citySuggestions" oninput="updateClinicSuggestions()" required placeholder="Select or type City (e.g. Lahore, Karachi)" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
             <datalist id="citySuggestions">
               <option value="Lahore"></option>
               <option value="Karachi"></option>
@@ -77,33 +89,33 @@
             </datalist>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Delivery Address *</label>
-            <input type="text" id="patientAddress" required placeholder="Street address / House #" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Delivery Address *</label>
+            <input type="text" id="patientAddress" required placeholder="Street address / House #" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           </div>
         </div>
       </div>
 
       <!-- 2. TREATMENT DETAILS -->
       <div class="space-y-3 pt-2">
-        <div class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+        <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
           <span>🩺</span> 2. TREATMENT DETAILS
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Doctor Name *</label>
-            <input type="text" id="doctorName" required placeholder="e.g. Dr. Nauman J Butt" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Doctor Name *</label>
+            <input type="text" id="doctorName" required placeholder="e.g. Dr. Nauman J Butt" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Clinic / Hospital Name *</label>
-            <input type="text" id="clinicName" list="clinicSuggestions" required placeholder="Type or select clinic" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white outline-none focus:border-teal-500 placeholder-slate-600 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Clinic / Hospital Name *</label>
+            <input type="text" id="clinicName" list="clinicSuggestions" required placeholder="Type or select clinic" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
             <datalist id="clinicSuggestions"></datalist>
           </div>
         </div>
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Indication *</label>
-          <select id="patientIndication" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white outline-none focus:border-teal-500 transition-all">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Indication *</label>
+          <select id="patientIndication" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500 transition-all">
             <option value="Weight Management">Weight Management</option>
             <option value="Type 2 Diabetes">Type 2 Diabetes</option>
             <option value="Cardio-Metabolic Care">Cardio-Metabolic Care</option>
@@ -113,8 +125,8 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Prescribed Dose *</label>
-            <select id="prescribedDose" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-teal-500 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Prescribed Dose *</label>
+            <select id="prescribedDose" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500 transition-all">
               <option value="2.5mg">TirzaTrim 2.5mg</option>
               <option value="5mg" selected>TirzaTrim 5mg</option>
               <option value="7.5mg">TirzaTrim 7.5mg</option>
@@ -124,8 +136,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Device Type *</label>
-            <select id="deviceType" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-teal-500 transition-all">
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Device Type *</label>
+            <select id="deviceType" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500 transition-all">
               <option value="5mg Multi-Dose Pen">5mg Multi-Dose Pen</option>
               <option value="10mg Multi-Dose Pen">10mg Multi-Dose Pen</option>
               <option value="15mg Multi-Dose Pen">15mg Multi-Dose Pen</option>
@@ -136,8 +148,8 @@
         <input type="hidden" id="territoryRepCode" value="">
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Upload Prescription Photo (Optional)</label>
-          <input type="file" id="prescriptionFile" accept="image/*,.pdf" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-400 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-teal-400 hover:file:bg-slate-700 cursor-pointer transition-all">
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Upload Prescription Photo (Optional)</label>
+          <input type="file" id="prescriptionFile" accept="image/*,.pdf" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-400 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-800 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-slate-300 dark:hover:file:bg-slate-700 cursor-pointer transition-all">
         </div>
       </div>
 
@@ -154,13 +166,13 @@
 
     <!-- SUCCESS CONFIRMATION VIEW -->
     <div id="successView" class="text-center space-y-5 py-6 hidden">
-      <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-3xl flex items-center justify-center mx-auto text-emerald-400">
+      <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-3xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
         ✓
       </div>
       <div class="space-y-1.5">
-        <h2 class="text-xl font-black text-white">Order Received!</h2>
-        <p class="text-xs text-slate-400 max-w-sm mx-auto">
-          Your order ID is <strong id="generatedOrderId" class="text-teal-400 font-mono text-sm">TT-XXXXX</strong>. Our patient support team will contact you on WhatsApp shortly.
+        <h2 class="text-xl font-black text-slate-900 dark:text-white">Order Received!</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+          Your order ID is <strong id="generatedOrderId" class="text-teal-600 dark:text-teal-400 font-mono text-sm">TT-XXXXX</strong>. Our patient support team will contact you on WhatsApp shortly.
         </p>
       </div>
 
@@ -169,7 +181,7 @@
         <button onclick="resetForAnotherOrder()" class="w-full py-3 px-4 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-1.5">
           <span>➕</span> Submit Another Order
         </button>
-        <button onclick="closeCurrentWindow()" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+        <button onclick="closeCurrentWindow()" class="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-1.5">
           <span>✕</span> Close Window
         </button>
       </div>
@@ -255,7 +267,7 @@
       const statusMsg = document.getElementById('submissionStatus');
       const submitBtn = document.getElementById('submitBtn');
 
-      statusMsg.className = "text-xs text-center font-medium text-amber-400";
+      statusMsg.className = "text-xs text-center font-medium text-amber-500 dark:text-amber-400";
       statusMsg.innerText = "Submitting order details...";
       statusMsg.classList.remove('hidden');
       submitBtn.disabled = true;
@@ -342,11 +354,11 @@
       window.close();
       setTimeout(() => {
         document.body.innerHTML = `
-          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-950 font-sans text-center">
-            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-3">
-              <div class="text-3xl text-emerald-400">✓</div>
-              <h3 class="text-base font-bold text-white">Order Submitted Successfully</h3>
-              <p class="text-xs text-slate-400">You may now safely close this browser tab.</p>
+          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 font-sans text-center transition-colors duration-200">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-3 shadow-xl">
+              <div class="text-3xl text-emerald-600 dark:text-emerald-400">✓</div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Order Submitted Successfully</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">You may now safely close this browser tab.</p>
             </div>
           </div>
         `;
