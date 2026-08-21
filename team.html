@@ -17,8 +17,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Fast, Client-side QR Code Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* Smooth Scrollbarless Containers */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
   <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -106,139 +112,165 @@
     </div>
   </div>
 
-  <!-- MAIN REP DASHBOARD -->
-  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
+  <!-- EXECUTIVE SLIDE-OVER DRAWER (Rep Profile & Admin Tools) -->
+  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div class="space-y-6">
+      <!-- Menu Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">Rep Settings</span>
+        </div>
+        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <!-- Executive Profile Card in Menu -->
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-teal-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
+            TS
+          </div>
+          <div>
+            <div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">Talha Saadat</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Territory Field Representative</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold border border-teal-500/20">Code: <span id="menuTCodeDisplay">QL2.1</span></span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7585</span></span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
+
+      <!-- Administrative & Quick Utility Actions -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Field Utilities</div>
+
+        <button id="menuPushBtn" onclick="registerRepMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
+        </button>
+
+        <button onclick="fetchRepOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh Territory Orders</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
+        🏠 <span>Back to Main Portal</span>
+      </a>
+      <button onclick="handleRepLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
+        🚪 <span>Secure Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm dark:shadow-none">
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1 transition-all">
-            🏠 Home
-          </a>
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="repNameDisplay">Territory <span class="text-teal-600 dark:text-teal-400">Dashboard</span></h1>
-          <span id="activeRepBadge" class="px-2.5 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">T.Code</span>
-        </div>
-        <div class="flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
-          <span>Team: <strong id="repTeamDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
-          <span>•</span>
-          <span>SAP ID: <strong id="repSapDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
-          <span>•</span>
-          <span>Manager SAP: <strong id="repManagerSapDisplay" class="text-slate-800 dark:text-slate-200">-</strong></span>
-        </div>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <button 
-          onclick="toggleTheme()" 
-          type="button"
-          class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-          title="Toggle Dark / Light Mode"
-        >
-          <span class="theme-icon">🌙</span>
-          <span class="theme-label">Dark</span>
-        </button>
-        <button id="btnEnablePushRep" onclick="registerRepMobilePush()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-  📱 <span>Enable Phone Push</span>
-</button>
-        <button onclick="copyMyPatientLink()" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📋 Copy Patient Link
-        </button>
-        <button onclick="showPatientQRModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📱 Show Patient QR
-        </button>
-        <button onclick="fetchRepOrders()" class="px-3.5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl shadow-sm transition-all">
-          🔄 Refresh
-        </button>
-        <button onclick="handleRepLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
-          🚪 Logout
-        </button>
-      </div>
-    </div>
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & REP TITLE (Exact Match to index.html) -->
+    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
+      
+      <!-- Right Floating Hamburger Button -->
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
+        ☰
+      </button>
 
-    <!-- Doctor Link Generator Tool -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div>
-        <h2 class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
-          <span>🩺</span> Generate Doctor Monitoring Portal Link & QR
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Create, share, or generate an instant QR Code for your prescribing physician.</p>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600">
-        <button onclick="copyDoctorLink()" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl shadow-sm transition-all">
-          📋 Copy Doctor Link
-        </button>
-        <button onclick="showDoctorQRModal()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
-          📱 Doctor Portal QR
-        </button>
-        <button onclick="shareDoctorLinkWhatsApp()" class="py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
-          💬 Send via WhatsApp
-        </button>
-      </div>
-    </div>
-
-    <!-- TIMELINE & DATE SCOPE CONTROLS -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-2">
-          <span>📅</span> Timeline & Date Scope
-        </div>
+      <!-- Center Logo & Branding Block Exactly Matching index.html -->
+      <div class="flex flex-col items-center justify-center">
         
-        <!-- Preset Toggles -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-      </div>
+        <!-- Logo + Vertical Dose Stack -->
+        <div class="flex items-center justify-center gap-4">
+          <div class="text-left">
+            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
+              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
+              (TIRZEPATIDE)
+            </p>
+          </div>
 
-      <!-- Custom Calendar Pickers -->
-      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
+          <!-- Vertical Stack for Multi-Dose Pen & 3 Pills -->
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
+            <div class="flex flex-col gap-1 w-14">
+              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
+              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
+              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
+
+        <!-- Dynamic Replacement for "Operations Hub" -->
+        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <span id="repNameDisplay" class="text-slate-900 dark:text-white">Talha Saadat</span>
+          <span class="text-[#0d9488]">Territory • <span id="repTCodeDisplay">QL2.1</span> (<span id="repTeamDisplay">QASWA</span>)</span>
         </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20">
-          Showing: Month to Date
-        </span>
+
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP (Swipeable on Mobile) -->
+    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Territory Orders</div>
+        <div id="repStatTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Process</div>
+        <div id="repStatProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="repStatDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedbacks</div>
+        <div id="repStatFeedback" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
       </div>
     </div>
 
-    <!-- Summary Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">My Territory Patients</div>
-        <div id="repStatTotal" class="text-3xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Processing</div>
-        <div id="repStatProcess" class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered & Confirmed</div>
-        <div id="repStatDelivered" class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedback Submissions</div>
-        <div id="repStatFeedback" class="text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
-      </div>
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-teal-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">Orders</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends</span>
+      </button>
+      <button onclick="switchTab('doctorLink')" id="tabBtn-doctorLink" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">🩺</span>
+        <span class="text-xs font-bold">Doctor Tools</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+      <button onclick="showPatientQRModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📱</span>
+        <span class="text-xs font-bold">Patient QR</span>
+      </button>
     </div>
 
-    <!-- SEARCH & STATUS CONTROLS -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-      <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-2">
-        <span>🔍</span> Territory Search & Filter Engine
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Status</label>
-          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500">
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Clinic, Mobile..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500">
             <option value="ALL">All Statuses</option>
             <option value="New Patient">New Patient</option>
             <option value="Prescription Received">Prescription Received</option>
@@ -248,62 +280,128 @@
             <option value="Feedback Submitted">Feedback Submitted</option>
           </select>
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, mobile, doctor, clinic, address..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600">
+      </div>
+
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading territory records...
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
-    <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
+    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>📊</span> My Daily Enrollment Trend (Last 14 Days)
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Daily prescription trends for your assigned territory code</p>
+          <span class="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full">Territory Trend</span>
         </div>
-        <div class="text-[11px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20 self-start">
-          Territory Trend Tracker
-        </div>
-      </div>
-      <div class="h-64 w-full pt-2">
-        <canvas id="dailyEnrollmentChart"></canvas>
-      </div>
-    </div>
-
-    <!-- KOLs & Dosage Breakdown Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>🩺</span> Top Prescribing Doctors (Selected Scope)
-        </h3>
-        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
         </div>
       </div>
 
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
-        </h3>
-        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> Top Prescribing Doctors
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- PATIENT CARDS CONTAINER -->
-    <div class="space-y-3 pt-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
-        </h3>
+    <!-- TAB 3: DOCTOR LINK & QR SUITE -->
+    <div id="view-doctorLink" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> Generate Doctor Monitoring Portal Link & QR
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Create, share, or generate an instant QR Code for your prescribing physician to view fulfillment live.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <input type="text" id="drNameInput" placeholder="Doctor Name (e.g. Dr. Nauman J Butt)" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button onclick="copyDoctorLink()" class="py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+              📋 <span>Copy Doctor Link</span>
+            </button>
+            <button onclick="showDoctorQRModal()" class="py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-2">
+              📱 <span>Doctor Portal QR</span>
+            </button>
+            <button onclick="shareDoctorLinkWhatsApp()" class="py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-2">
+              💬 <span>Send via WhatsApp</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Direct Patient Link Actions</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button onclick="copyMyPatientLink()" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2">
+              📋 <span>Copy My Territory Patient Order Link</span>
+            </button>
+            <button onclick="showPatientQRModal()" class="py-3 bg-indigo-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2">
+              📱 <span>Show Instant Territory Patient QR</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-          Loading territory records...
+    </div>
+
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3.5 py-1.5 rounded-xl border border-teal-500/20 inline-block">
+          Showing: Month to Date
         </div>
       </div>
     </div>
@@ -327,7 +425,7 @@
         <div id="qrcodeContainer"></div>
       </div>
 
-      <div class="text-[11px] font-mono text-teal-600 dark:text-teal-400 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 break-all" id="qrLinkDisplay">
+      <div class="text-xs font-mono text-teal-600 dark:text-teal-400 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 break-all" id="qrLinkDisplay">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -341,6 +439,26 @@
 
     </div>
   </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION (Mobile-Optimized) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-teal-600 dark:text-teal-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('doctorLink')" id="bottomNav-doctorLink" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">🩺</span>
+      <span class="text-xs font-medium">Doctor Tools</span>
+    </button>
+    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">⚙️</span>
+      <span class="text-xs font-medium">Settings</span>
+    </button>
+  </nav>
 
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
@@ -358,6 +476,46 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    function openSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.remove('hidden');
+      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.add('hidden');
+      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3.5 bg-teal-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-teal-600 dark:text-teal-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+    }
 
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
@@ -387,15 +545,29 @@
       }
     }
 
+    function getInitials(name) {
+      if (!name) return 'RP';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
     function checkSession() {
       if (currentRep && currentRep.territory_code) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('repNameDisplay').innerHTML = `${currentRep.full_name}'s <span class="text-teal-600 dark:text-teal-400">Territory</span>`;
-        document.getElementById('activeRepBadge').innerText = currentRep.territory_code;
-        document.getElementById('repTeamDisplay').innerText = currentRep.team_name;
-        document.getElementById('repSapDisplay').innerText = currentRep.sap_id;
-        document.getElementById('repManagerSapDisplay').innerText = currentRep.manager_sap_id || 'N/A';
+        
+        // Exact Dynamic Header Replacements
+        document.getElementById('repNameDisplay').innerText = currentRep.full_name;
+        document.getElementById('repTCodeDisplay').innerText = currentRep.territory_code;
+        document.getElementById('repTeamDisplay').innerText = currentRep.team_name || 'Team';
+
+        // Drawer Menu Updates
+        document.getElementById('menuUserName').innerText = currentRep.full_name;
+        document.getElementById('menuAvatarBadge').innerText = getInitials(currentRep.full_name);
+        document.getElementById('menuTCodeDisplay').innerText = currentRep.territory_code;
+        document.getElementById('menuSapDisplay').innerText = currentRep.sap_id;
+        
         initDates();
         fetchRepOrders();
       } else {
@@ -472,6 +644,42 @@
       sessionStorage.removeItem('tt_current_rep');
       currentRep = null;
       checkSession();
+    }
+
+    async function registerRepMobilePush() {
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+          return;
+        }
+
+        const sapId = currentRep ? currentRep.sap_id : 'REP_USER';
+        const tCode = currentRep ? currentRep.territory_code : '';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'rep', tCode);
+          alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${sapId}\nTerritory: ${tCode}\n\nYou will receive real-time alerts for your territory orders.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+          }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
     }
 
     function copyMyPatientLink() {
@@ -587,39 +795,44 @@
 
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
 
       if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
       } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const y = new Date();
         y.setDate(y.getDate() - 1);
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
       } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const last7 = new Date();
         last7.setDate(last7.getDate() - 6);
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
       } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
       } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
         document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
       document.getElementById('calendarFromDate').value = filterStartDate || '';
@@ -639,10 +852,11 @@
         
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
 
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
       }
     }
@@ -669,15 +883,19 @@
       rawOrders = orders || [];
 
       const orderIds = rawOrders.map(o => o.id);
-      const { data: feedbacks } = await client
-        .from('feedback')
-        .select('*')
-        .in('order_id', orderIds);
+      if (orderIds.length > 0) {
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
 
-      cachedFeedbacks = {};
-      (feedbacks || []).forEach(f => {
-        cachedFeedbacks[f.order_id] = f;
-      });
+        cachedFeedbacks = {};
+        (feedbacks || []).forEach(f => {
+          cachedFeedbacks[f.order_id] = f;
+        });
+      } else {
+        cachedFeedbacks = {};
+      }
 
       applyAllFilters();
     }
@@ -750,7 +968,9 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
       const isDark = document.documentElement.classList.contains('dark');
@@ -788,12 +1008,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: textColor, font: { size: 10 } }
+              ticks: { color: textColor, font: { size: 11 } }
             },
             y: {
               beginAtZero: true,
               grid: { color: gridColor },
-              ticks: { color: textColor, font: { size: 10 }, precision: 0 }
+              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
             }
           }
         }
@@ -817,7 +1037,7 @@
       
       document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
           <span class="font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
@@ -829,7 +1049,7 @@
       });
       document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">TirzaTrim ${dose}</span>
+          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
           <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
@@ -848,66 +1068,66 @@
         const isDispatched = order.status === 'Dispatched';
 
         return `
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none transition-all">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
             <!-- Card Header: ID, Date & Auto-Synced Status Badge -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id || 'N/A'}</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+                <div class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20')}">
+              <span class="text-xs font-bold px-3 py-1 rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20')}">
                 ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
               </span>
             </div>
 
             <!-- Patient Information -->
-            <div class="space-y-1.5 text-xs">
+            <div class="space-y-1.5 text-sm">
               <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs font-bold">
                   📞 Call
                 </a>
               </div>
-              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
                 📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
             <!-- Doctor, Clinic & Prescription Details -->
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Doctor</span>
-                <span class="font-bold text-teal-600 dark:text-teal-300">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-teal-600 dark:text-teal-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Clinic / Hospital</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Dose & Device</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Dose & Device</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
               ${order.prescription_url ? `
-                <div class="border-t border-slate-200 dark:border-slate-800 pt-1 text-right">
-                  <a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
+                <div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right">
+                  <a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
                 </div>
               ` : ''}
             </div>
 
             <!-- Patient Feedback -->
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending Submission</span>'}</span>
             </div>
 
             <!-- Direct WhatsApp Actions for Reps -->
             <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-[11px] font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
+              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
                 💬 Inform Status
               </button>
-              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
+              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
                 ⭐ Ask Feedback
               </button>
             </div>
@@ -960,35 +1180,6 @@
 
     checkSession();
     checkGlobalBroadcast('team');
-    async function registerRepMobilePush() {
-  const btn = document.getElementById('btnEnablePushRep');
-  if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
-
-  try {
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
-      if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
-      return;
-    }
-
-    const currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
-    const sapId = currentRep ? currentRep.sap_id : 'REP_USER';
-    const tCode = currentRep ? currentRep.territory_code : '';
-
-    if (window.subscribeDeviceToPush) {
-      await window.subscribeDeviceToPush(sapId, 'rep', tCode);
-      alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${sapId}\nTerritory: ${tCode}\n\nYou will receive real-time alerts for your territory orders.`);
-      if (btn) {
-        btn.className = "px-3 py-1.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
-        btn.innerHTML = `✅ <span>Phone Push Active</span>`;
-      }
-    }
-  } catch (err) {
-    alert("Error: " + err.message);
-    if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
-  }
-}
   </script>
 
 </body>
