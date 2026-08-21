@@ -128,9 +128,9 @@
           <span class="theme-icon">🌙</span>
           <span class="theme-label">Dark</span>
         </button>
-        <button id="btnEnablePushHos" onclick="registerHosMobilePush()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-  📱 <span>Enable Phone Push</span>
-</button>
+        <button id="btnEnablePushHos" onclick="registerHosMobilePush()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
+          📱 <span>Enable Phone Push</span>
+        </button>
         <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
           📥 Download Regional CSV
         </button>
@@ -403,6 +403,44 @@
       checkHosSession();
     }
 
+    async function registerHosMobilePush() {
+      const btn = document.getElementById('btnEnablePushHos');
+      if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Notification permission was blocked. Please tap the lock icon in the address bar to allow notifications.");
+          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+          return;
+        }
+
+        const sapId = currentHos ? currentHos.sap_id : '1234';
+        const region = currentHos ? currentHos.region : 'Central';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'hos', region);
+          alert(`✅ Phone Linked!\n\nRole: Head of Sales\nSAP ID: ${sapId}\nRegion: ${region}\n\nYou will receive regional order alerts 24/7.`);
+          if (btn) {
+            btn.className = "px-3.5 py-2.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
+            btn.innerHTML = `✅ <span>Phone Push Active</span>`;
+          }
+        } else {
+          alert("Notification script is initializing. Please refresh and try again.");
+          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+        if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+      }
+    }
+
     function initDates() {
       setDatePreset('MTD');
     }
@@ -577,7 +615,6 @@
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-      // Get allowed rep codes under the selected ZSM filter
       let allowedReps = [];
       if (managerSap !== 'ALL') {
         allowedReps = regionalReps.filter(r => r.manager_sap_id === managerSap).map(r => r.territory_code);
@@ -717,8 +754,6 @@
       activeFilteredOrders.forEach(o => {
         const doc = (o.doctor_name || 'Unassigned').trim();
         const clinic = (o.clinic_name || '').trim();
-        
-        // Distinct grouping by Doctor Name + Clinic
         const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
         prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
       });
@@ -828,35 +863,6 @@
     }
 
     checkHosSession();
-    async function registerHosMobilePush() {
-  const btn = document.getElementById('btnEnablePushHos');
-  if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
-
-  try {
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
-      if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
-      return;
-    }
-
-    const currentHos = JSON.parse(sessionStorage.getItem('tt_current_hos') || 'null');
-    const sapId = currentHos ? currentHos.sap_id : '1234';
-    const region = currentHos ? currentHos.region : 'Central';
-
-    if (window.subscribeDeviceToPush) {
-      await window.subscribeDeviceToPush(sapId, 'hos', region);
-      alert(`✅ Phone Linked!\n\nRole: Head of Sales\nSAP ID: ${sapId}\nRegion: ${region}\n\nYou will receive regional order alerts.`);
-      if (btn) {
-        btn.className = "px-3 py-1.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
-        btn.innerHTML = `✅ <span>Phone Push Active</span>`;
-      }
-    }
-  } catch (err) {
-    alert("Error: " + err.message);
-    if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
-  }
-}
   </script>
 </body>
 </html>
