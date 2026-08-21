@@ -19,7 +19,7 @@
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
   <style>
-    /* Quill Editor Styling for Light & Dark Mode */
+    /* Quill Editor Custom Theming */
     .ql-toolbar {
       border-top-left-radius: 0.75rem;
       border-top-right-radius: 0.75rem;
@@ -46,27 +46,23 @@
       border-color: #1e293b !important;
       color: #e2e8f0;
     }
-    .ql-editor {
-      min-height: 140px;
-    }
+    .ql-editor { min-height: 140px; }
+    
+    /* Hide scrollbars for smooth mobile pill strips */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-3 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
   <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
-      
       <div class="flex items-center justify-between">
         <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
           🏠 Home
         </a>
-        <button 
-          onclick="toggleTheme()" 
-          type="button" 
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
-          title="Toggle Theme"
-        >
+        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">
           <span class="theme-icon">🌙</span>
         </button>
       </div>
@@ -76,7 +72,7 @@
           🏢
         </div>
         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Zonal Operations Hub</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager Administration & Territory Portal</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager Administration Portal</p>
       </div>
 
       <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
@@ -91,10 +87,10 @@
       <!-- LOGIN -->
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
-          <input type="text" id="loginMgrSap" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono placeholder-slate-400 dark:placeholder-slate-600">
+          <input type="text" id="loginMgrSap" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
         </div>
         <div>
-          <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
+          <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
         </div>
         <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
           Unlock My Zone Dashboard
@@ -149,7 +145,7 @@
       <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
         <div>
           <h3 class="text-lg font-bold text-slate-900 dark:text-white">Field Force & Territory Transfers</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Manage reps or transfer past patient records between territory codes</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Manage reps or transfer patient records between territory codes</p>
         </div>
         <button onclick="closeRepsModal()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
       </div>
@@ -197,208 +193,118 @@
   </div>
 
   <!-- MAIN DASHBOARD CONTENT -->
-  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-4 hidden">
     
-    <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm dark:shadow-none">
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1 transition-all">
-            🏠 Home
-          </a>
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="mgrNameDisplay">Zonal <span class="text-emerald-600 dark:text-emerald-400">Dashboard</span></h1>
-          <span id="mgrSapBadge" class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">SAP ID</span>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Zone: <strong id="mgrZoneDisplay" class="text-slate-800 dark:text-slate-200">-</strong> | Team: <strong id="mgrTeamDisplay" class="text-slate-800 dark:text-slate-200">-</strong></p>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <button 
-          onclick="toggleTheme()" 
-          type="button" 
-          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5" 
-          title="Toggle Dark / Light Mode"
-        >
-          <span class="theme-icon">🌙</span>
-          <span class="theme-label">Dark</span>
-        </button>
-        
-        <!-- DIRECT PHONE PUSH LINKING BUTTON -->
-        <button id="btnEnablePushDirect" onclick="registerMobileDirect()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📱 <span>Enable Phone Push</span>
-        </button>
-
-        <button onclick="openRepsModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          👥 Manage Reps & Transfers
-        </button>
-        <button onclick="exportToCSV()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📊 Export CSV
-        </button>
-        <button onclick="fetchManagerOrders()" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5">
-          🔄 Refresh
-        </button>
-        <button onclick="handleMgrLogout()" class="px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
-          🚪 Logout
-        </button>
-      </div>
-    </div>
-
-    <!-- BROADCAST ANNOUNCEMENT PUBLISHER & MANAGER PANEL -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-sm dark:shadow-none">
+    <!-- 1. MODERN EXECUTIVE APP-BAR HEADER -->
+    <header class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-sm">
+      <!-- Top Row: App Logo Title & Minimalist Utility Action Icons -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>📢</span> Multi-Portal Broadcast & Expiration Control
-        </h3>
-        <span id="editBroadcastIndicator" class="hidden text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-          Editing Mode Active
-        </span>
-      </div>
-
-      <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
-        <input type="hidden" id="editBroadcastId" value="">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Title *</label>
-            <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Category Type *</label>
-            <select id="bcCategory" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              <option value="Announcement">Announcement (General Notice)</option>
-              <option value="Important Information">Important Information (Notice)</option>
-              <option value="Attention">Attention (Critical Warning / Action)</option>
-            </select>
-          </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🏢</span>
+          <h1 class="text-sm md:text-base font-black tracking-tight text-slate-900 dark:text-white">
+            TirzaTrim <span class="text-emerald-600 dark:text-emerald-400">Hub</span>
+          </h1>
         </div>
 
-        <!-- Schedule & Expiration Pickers -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
-            <input type="datetime-local" id="bcStartTime" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional: Leave empty for no limit)</label>
-            <input type="datetime-local" id="bcExpiresAt" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
-          <div class="flex flex-wrap gap-4 text-xs font-semibold text-slate-800 dark:text-slate-200 pt-1">
-            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600 focus:ring-0"> Patients (Order & Feedback)</label>
-            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600 focus:ring-0"> Doctors (Doctor Portal)</label>
-            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600 focus:ring-0"> Distributor Riders</label>
-            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600 focus:ring-0"> Field Force / Reps</label>
-          </div>
-        </div>
-
-        <!-- Quill Rich Text Editor Container -->
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Detailed Message Content *</label>
-          <div id="bcEditor"></div>
-        </div>
-
-        <div class="flex items-center gap-2 pt-2">
-          <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
-            <span>🚀</span> Publish Announcement
+        <div class="flex items-center gap-1.5">
+          <a href="/" title="Home" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all">
+            🏠
+          </a>
+          <button id="btnPushHeader" onclick="registerMobileDirect()" title="Enable Mobile Push" class="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold transition-all">
+            🔔
           </button>
-          <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl transition-all">
-            Cancel Edit
+          <button onclick="fetchManagerOrders()" title="Refresh Data" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all">
+            🔄
+          </button>
+          <button onclick="toggleTheme()" title="Toggle Dark/Light" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <button onclick="handleMgrLogout()" title="Logout" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold transition-all">
+            🚪
           </button>
         </div>
-      </form>
+      </div>
 
-      <!-- ACTIVE BROADCASTS LIST & CONTROLS -->
-      <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Manage Published Announcements</h4>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-            <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 text-[10px]">
-              <tr>
-                <th class="p-3">Category / Title</th>
-                <th class="p-3">Target Portals</th>
-                <th class="p-3">Active / Expires</th>
-                <th class="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
-              <tr><td colspan="4" class="p-4 text-center text-slate-400 dark:text-slate-500">Loading announcements...</td></tr>
-            </tbody>
-          </table>
+      <!-- Bottom Row: Profile Card & Status Micro-Chips -->
+      <div class="flex items-center gap-3 pt-3">
+        <div id="userAvatarBadge" class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md shadow-emerald-600/20 uppercase">
+          ST
         </div>
+        <div class="space-y-0.5">
+          <div id="mgrNameDisplay" class="text-xs md:text-sm font-bold text-slate-900 dark:text-white">
+            M. Shahbaz Tariq
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+            <span class="font-semibold text-slate-500 dark:text-slate-400">ZSM • <span id="mgrZoneDisplay">LHR2</span> (<span id="mgrTeamDisplay">QASWA</span>)</span>
+            <span id="mgrSapBadge" class="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP 7613</span>
+            <span id="pushStatusPill" class="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP (Swipeable on Mobile) -->
+    <div class="flex gap-2.5 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[130px] flex-1 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3 rounded-2xl shadow-sm">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Orders</div>
+        <div id="statTotal" class="text-xl font-black text-slate-900 dark:text-white mt-0.5">0</div>
+      </div>
+      <div class="min-w-[130px] flex-1 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3 rounded-2xl shadow-sm">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Process</div>
+        <div id="statProcess" class="text-xl font-black text-amber-600 dark:text-amber-400 mt-0.5">0</div>
+      </div>
+      <div class="min-w-[130px] flex-1 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3 rounded-2xl shadow-sm">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="statDelivered" class="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">0</div>
+      </div>
+      <div class="min-w-[130px] flex-1 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3 rounded-2xl shadow-sm">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedbacks</div>
+        <div id="statFeedback" class="text-xl font-black text-purple-600 dark:text-purple-400 mt-0.5">0</div>
       </div>
     </div>
 
-    <!-- TIMELINE & DATE SCOPE CONTROLS -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Timeline & Date Scope
-        </div>
-        
-        <!-- Preset Toggles -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-      </div>
-
-      <!-- Custom Calendar Pickers -->
-      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-        </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-          Showing: Month to Date
-        </span>
-      </div>
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">👥</span>
+        <span class="text-[11px] font-bold">Orders</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">📊</span>
+        <span class="text-[11px] font-bold">Trends</span>
+      </button>
+      <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">📢</span>
+        <span class="text-[11px] font-bold">Broadcast</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">📅</span>
+        <span class="text-[11px] font-bold">Timeline</span>
+      </button>
+      <button onclick="openRepsModal()" class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">👔</span>
+        <span class="text-[11px] font-bold">Reps & Tx</span>
+      </button>
+      <button onclick="exportToCSV()" class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-lg">📥</span>
+        <span class="text-[11px] font-bold">Export CSV</span>
+      </button>
     </div>
 
-    <!-- Summary Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Zone Orders</div>
-        <div id="statTotal" class="text-3xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Process</div>
-        <div id="statProcess" class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered / Confirmed</div>
-        <div id="statDelivered" class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedback Received</div>
-        <div id="statFeedback" class="text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- SEARCH & REP FILTER BAR -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-      <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-        <span>🔍</span> Zone Hierarchy Search Engine
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Choose Territory Rep</label>
-          <select id="subordinateFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <!-- Search & Filters Strip -->
+      <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Mobile, City..." class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <select id="subordinateFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
             <option value="ALL">All My Reps</option>
           </select>
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Status</label>
-          <select id="mgrStatusFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <select id="mgrStatusFilter" onchange="applyAllFilters()" class="w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-emerald-500">
             <option value="ALL">All Statuses</option>
             <option value="New Patient">New Patient</option>
             <option value="Prescription Received">Prescription Received</option>
@@ -408,67 +314,198 @@
             <option value="Feedback Submitted">Feedback Submitted</option>
           </select>
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic, Address..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
-        </div>
       </div>
-    </div>
 
-    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
-    <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> Zone Patient Enrollment Trend (Last 14 Days)
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Daily prescription trends across your zone</p>
+          <span id="activeDateScopeTag" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">MTD Scope</span>
         </div>
-        <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 self-start">
-          Zone Trend Tracker
-        </div>
-      </div>
-      <div class="h-64 w-full pt-2">
-        <canvas id="dailyEnrollmentChart"></canvas>
-      </div>
-    </div>
-
-    <!-- TOP PRESCRIBERS (DOC + CLINIC) & DOSAGE BREAKDOWN -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>🩺</span> Top Prescribing Doctors in Zone (Selected Scope)
-        </h3>
-        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
-        </div>
-      </div>
-
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
-        </h3>
-        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+        <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading zone records...
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- PATIENT CARDS CONTAINER -->
-    <div class="space-y-3 pt-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-        </h3>
+    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>📊</span> Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">Zone Trend</span>
+        </div>
+        <div class="h-64 w-full pt-1">
+          <canvas id="dailyEnrollmentChart"></canvas>
+        </div>
       </div>
-      <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-          Loading zone records...
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>🩺</span> Top Prescribers in Zone
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MULTI-PORTAL BROADCASTS VIEW -->
+    <div id="view-broadcasts" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>📢</span> Multi-Portal Broadcast Publisher
+          </h3>
+          <span id="editBroadcastIndicator" class="hidden text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+            Editing Mode
+          </span>
+        </div>
+
+        <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-3">
+          <input type="hidden" id="editBroadcastId" value="">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Title *</label>
+              <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Category *</label>
+              <select id="bcCategory" class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+                <option value="Announcement">Announcement (General Notice)</option>
+                <option value="Important Information">Important Information</option>
+                <option value="Attention">Attention (Critical Action)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
+              <input type="datetime-local" id="bcStartTime" class="w-full px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional)</label>
+              <input type="datetime-local" id="bcExpiresAt" class="w-full px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
+            <div class="flex flex-wrap gap-3 text-xs font-semibold text-slate-800 dark:text-slate-200 pt-0.5">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600"> Patients</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600"> Doctors</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600"> Riders</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600"> Reps</label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Message *</label>
+            <div id="bcEditor"></div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" id="bcSubmitBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all">
+              🚀 Publish Announcement
+            </button>
+            <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl transition-all">
+              Cancel
+            </button>
+          </div>
+        </form>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Published Broadcast Log</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px]">
+                <tr>
+                  <th class="p-2.5">Title</th>
+                  <th class="p-2.5">Target Portals</th>
+                  <th class="p-2.5">Status / Expires</th>
+                  <th class="p-2.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading announcements...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 pt-2 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: Month to Date
         </div>
       </div>
     </div>
 
   </div>
+
+  <!-- 5. FIXED BOTTOM THUMB NAVIGATION (Mobile-Optimized) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+      <span class="text-base">👥</span>
+      <span class="text-[10px] font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-base">📊</span>
+      <span class="text-[10px] font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('broadcasts')" id="bottomNav-broadcasts" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-base">📢</span>
+      <span class="text-[10px] font-medium">Broadcast</span>
+    </button>
+    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-base">📅</span>
+      <span class="text-[10px] font-medium">Dates</span>
+    </button>
+  </nav>
 
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
@@ -488,10 +525,43 @@
     let filterStartDate = null;
     let filterEndDate = null;
 
-    // Mobile Direct Registration Hook
+    // TAB NAVIGATION CONTROLLER
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      // Update Launcher Buttons
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      // Update Mobile Bottom Nav
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-[10px] font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-[10px] font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+    }
+
+    // MOBILE PUSH DIRECT REGISTRATION
     async function registerMobileDirect() {
-      const btn = document.getElementById('btnEnablePushDirect');
-      if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
+      const btn = document.getElementById('btnPushHeader');
+      const pill = document.getElementById('pushStatusPill');
 
       try {
         if (!('Notification' in window)) {
@@ -501,8 +571,7 @@
 
         const perm = await Notification.requestPermission();
         if (perm !== 'granted') {
-          alert("⚠️ Permission Denied. Please enable notifications in your browser settings (tap the lock icon in the address bar).");
-          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+          alert("⚠️ Permission Denied. Please enable notifications in your browser site settings (lock icon next to URL).");
           return;
         }
 
@@ -512,24 +581,21 @@
         if (window.subscribeDeviceToPush) {
           await window.subscribeDeviceToPush(sapId, 'zsm', zone);
           alert(`✅ Phone Successfully Linked!\n\nRole: ZSM\nSAP ID: ${sapId}\nZone: ${zone}\n\nYou will now receive 24/7 background order alerts on this device.`);
-          if (btn) {
-            btn.className = "px-3.5 py-2.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
-            btn.innerHTML = `✅ <span>Phone Push Active</span>`;
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
           }
         } else {
-          alert("Notification engine is still loading. Please refresh and try again.");
-          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Registration Error: " + err.message);
-        if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
       }
     }
 
     // Initialize Quill Rich Text Editor
     const quill = new Quill('#bcEditor', {
       theme: 'snow',
-      placeholder: 'Paste from Word or write announcement details here...',
+      placeholder: 'Write or paste announcement content here...',
       modules: {
         toolbar: [
           ['bold', 'italic', 'underline', 'strike'],
@@ -577,14 +643,22 @@
       }
     }
 
+    function getInitials(name) {
+      if (!name) return 'ZM';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
     function checkMgrSession() {
       if (currentManager && currentManager.manager_sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('mgrNameDisplay').innerHTML = `${currentManager.full_name}'s <span class="text-emerald-600 dark:text-emerald-400">Zone</span>`;
-        document.getElementById('mgrSapBadge').innerText = `SAP: ${currentManager.manager_sap_id}`;
-        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region;
-        document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name;
+        document.getElementById('mgrNameDisplay').innerText = currentManager.full_name;
+        document.getElementById('userAvatarBadge').innerText = getInitials(currentManager.full_name);
+        document.getElementById('mgrSapBadge').innerText = `SAP ${currentManager.manager_sap_id}`;
+        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'Zone';
+        document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'Team';
         initDates();
         fetchManagerOrders();
         fetchBroadcasts();
@@ -676,7 +750,7 @@
     function renderBroadcastsTable() {
       const tbody = document.getElementById('broadcastsTableBody');
       if (publishedBroadcasts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 dark:text-slate-500">No announcements published yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">No announcements published yet.</td></tr>';
         return;
       }
 
@@ -688,22 +762,22 @@
 
         return `
           <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
-            <td class="p-3">
+            <td class="p-2.5">
               <div class="font-bold text-slate-900 dark:text-white">${bc.title}</div>
               <div class="text-[10px] text-slate-500 dark:text-slate-400">${bc.category}</div>
             </td>
-            <td class="p-3">
+            <td class="p-2.5">
               <div class="flex flex-wrap gap-1">
                 ${(bc.target_audience || []).map(r => `<span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-semibold">${r}</span>`).join('')}
               </div>
             </td>
-            <td class="p-3">
+            <td class="p-2.5">
               <div>${statusBadge}</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Expires: ${bc.expires_at ? new Date(bc.expires_at).toLocaleString() : 'No Limit'}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Expires: ${bc.expires_at ? new Date(bc.expires_at).toLocaleDateString() : 'No Limit'}</div>
             </td>
-            <td class="p-3 text-right space-x-1.5">
-              <button onclick="editBroadcast('${bc.id}')" class="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold rounded-lg transition-all">✏️ Edit</button>
-              <button onclick="deleteBroadcast('${bc.id}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-lg transition-all">🗑️ Delete</button>
+            <td class="p-2.5 text-right space-x-1.5">
+              <button onclick="editBroadcast('${bc.id}')" class="px-2 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold rounded-lg">✏️ Edit</button>
+              <button onclick="deleteBroadcast('${bc.id}')" class="px-2 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-lg">🗑️ Delete</button>
             </td>
           </tr>
         `;
@@ -716,7 +790,6 @@
       const title = document.getElementById('bcTitle').value.trim();
       const category = document.getElementById('bcCategory').value;
       
-      // Extract formatted HTML from Quill
       const message = quill.root.innerHTML.trim();
       if (!message || message === '<p><br></p>') {
         alert("Please enter announcement message content.");
@@ -771,7 +844,6 @@
       document.getElementById('bcTitle').value = bc.title;
       document.getElementById('bcCategory').value = bc.category;
       
-      // Load rich HTML into Quill
       quill.root.innerHTML = bc.message || '';
       
       document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
@@ -784,7 +856,7 @@
       document.getElementById('bcSubmitBtn').innerHTML = "<span>💾</span> Update Announcement";
       document.getElementById('bcCancelEditBtn').classList.remove('hidden');
       document.getElementById('editBroadcastIndicator').classList.remove('hidden');
-      document.getElementById('broadcastForm').scrollIntoView({ behavior: 'smooth' });
+      switchTab('broadcasts');
     }
 
     function cancelBroadcastEdit() {
@@ -801,7 +873,7 @@
     }
 
     async function deleteBroadcast(id) {
-      const confirmDelete = confirm("Are you sure you want to permanently delete this announcement?");
+      const confirmDelete = confirm("Permanently delete this announcement?");
       if (!confirmDelete) return;
 
       const { error } = await client.from('broadcasts').delete().eq('id', id);
@@ -830,6 +902,7 @@
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
       } else if (type === 'YESTERDAY') {
         document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const y = new Date();
@@ -837,6 +910,7 @@
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
       } else if (type === 'LAST7') {
         document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const last7 = new Date();
@@ -844,17 +918,20 @@
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
       } else if (type === 'MTD') {
         document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
       } else if (type === 'ALL') {
         document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
         document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Zone)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
       document.getElementById('calendarFromDate').value = filterStartDate || '';
@@ -878,6 +955,7 @@
         });
 
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
       }
     }
@@ -904,7 +982,7 @@
         registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
 
       if (!registeredReps || registeredReps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 dark:text-slate-500">No representatives registered under your team.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
         return;
       }
 
@@ -924,7 +1002,7 @@
     }
 
     async function removeRep(repId, repName, territoryCode) {
-      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nTheir login will be deleted, but past patient orders will remain safely saved under your zone.`);
+      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nPast patient orders will remain safely saved under your zone.`);
       if (!confirmRemove) return;
 
       try {
@@ -1094,7 +1172,7 @@
         datesList.push(key);
       }
 
-      ordersToGraph.forEach(o => {
+      (ordersToGraph || []).forEach(o => {
         const orderDate = getLocalDateKey(o.created_at);
         if (daysCount[orderDate] !== undefined) {
           daysCount[orderDate]++;
@@ -1107,7 +1185,9 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
       const isDark = document.documentElement.classList.contains('dark');
@@ -1163,7 +1243,6 @@
       activeFilteredOrders.forEach(o => {
         const doc = (o.doctor_name || 'Unassigned').trim();
         const clinic = (o.clinic_name || '').trim();
-        
         const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
         prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
       });
@@ -1175,7 +1254,7 @@
       document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
 
@@ -1187,7 +1266,7 @@
       document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
@@ -1215,81 +1294,80 @@
         const refillInfo = getRefillStatus(order.created_at, order.prescribed_dose);
 
         return `
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none transition-all">
+          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
             <!-- Card Header: ID, Date, Rep & Status Selector -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
               <div>
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id || 'N/A'}</span>
                   <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
-                  ${refillInfo.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20 animate-pulse">🔄 Refill Due (Day ${refillInfo.daysElapsed})</span>` : ''}
+                  ${refillInfo.isDue ? `<span class="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold border border-amber-500/20 animate-pulse">🔄 Refill (D${refillInfo.daysElapsed})</span>` : ''}
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <div>
-                <select onchange="updateStatus('${order.id}', this.value)" class="text-[11px] font-bold border border-slate-300 dark:border-slate-700 rounded-lg py-1 px-2 bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 cursor-pointer">
+                <select onchange="updateStatus('${order.id}', this.value)" class="text-[10px] font-bold border border-slate-300 dark:border-slate-700 rounded-lg py-1 px-1.5 bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 cursor-pointer">
                   ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
               </div>
             </div>
 
             <!-- Patient Info -->
-            <div class="space-y-1.5 text-xs">
+            <div class="space-y-1 text-xs">
               <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold">
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                   📞 Call
                 </a>
               </div>
-              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              <div class="text-slate-400 font-mono text-[10px]">${order.mobile}</div>
+              <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px] leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
               </div>
             </div>
 
-            <!-- Doctor, Clinic & Prescription Details -->
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Doctor</span>
+            <!-- Doctor & Rx Details -->
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1 text-xs">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
                 <span class="font-bold text-emerald-600 dark:text-emerald-300">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Clinic / Hospital</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1 text-[11px]">
+                <span class="text-slate-500 dark:text-slate-400">Clinic</span>
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Dose & Device</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1 text-[11px]">
+                <span class="text-slate-500 dark:text-slate-400">Dose & Pen</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
               ${order.prescription_url 
-                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1 text-right"><a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1 text-right"><a href="${order.prescription_url}" target="_blank" class="text-[10px] text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
                 : ''}
             </div>
 
             <!-- Feedback -->
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+            <div class="text-[10px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending</span>'}</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
             </div>
 
-            <!-- Actions & Delete Button Access -->
-            <div class="space-y-2 pt-1">
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-xl border border-emerald-500/20 flex items-center justify-center gap-1 transition-all">
+            <!-- Actions Suite -->
+            <div class="space-y-1.5 pt-0.5">
+              <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-1.5 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-xl border border-emerald-500/20 flex items-center justify-center gap-1">
                   💬 Status
                 </button>
-                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[11px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
+                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-1.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1">
                   ⭐ Feedback
                 </button>
               </div>
 
-              <!-- Refill & Escalation 1-Click WhatsApp Trigger -->
-              <button onclick="send1ClickRefillWhatsApp('${order.mobile}', '${order.patient_name}', '${order.prescribed_dose || '5mg'}', '${order.rep_code || 'DIRECT'}')" class="w-full py-2 px-2 ${refillInfo.isDue ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'} text-[11px] font-bold rounded-xl transition-all flex items-center justify-center gap-1.5">
+              <button onclick="send1ClickRefillWhatsApp('${order.mobile}', '${order.patient_name}', '${order.prescribed_dose || '5mg'}', '${order.rep_code || 'DIRECT'}')" class="w-full py-1.5 px-2 ${refillInfo.isDue ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} text-[10px] font-bold rounded-xl flex items-center justify-center gap-1">
                 <span>🔄</span> Send Refill Reminder
               </button>
 
-              <button onclick="deleteOrder('${order.id}', '${order.patient_name}')" class="w-full py-2 px-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-xl border border-rose-500/20 transition-all flex items-center justify-center gap-1">
+              <button onclick="deleteOrder('${order.id}', '${order.patient_name}')" class="w-full py-1 px-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-xl border border-rose-500/20">
                 🗑️ Delete Record
               </button>
             </div>
@@ -1305,7 +1383,7 @@
     }
 
     async function deleteOrder(orderId, patientName) {
-      const confirmDelete = confirm(`Are you sure you want to delete the record for "${patientName}"? This cannot be undone.`);
+      const confirmDelete = confirm(`Are you sure you want to delete the record for "${patientName}"?`);
       if (!confirmDelete) return;
 
       try {
@@ -1314,7 +1392,7 @@
         if (error) throw error;
         fetchManagerOrders();
       } catch (err) {
-        alert("Error deleting record: " + err.message);
+        alert("Error deleting: " + err.message);
       }
     }
 
@@ -1352,7 +1430,7 @@
 
     function send1ClickRefillWhatsApp(mobile, name, lastDose, repCode) {
       const refillLink = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(repCode || 'DIRECT')}&name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}`;
-      const msg = `Assalam-o-Alaikum ${name},\n\nHope your TirzaTrim (${lastDose}) therapy is progressing smoothly. You are approaching the end of your 4-week pen cycle.\n\nTo ensure continuous therapy without disruption or to discuss your dose progression with your doctor, place your next refill order here with 1 click:\n${refillLink}\n\nTirzaTrim Patient Support Care`;
+      const msg = `Assalam-o-Alaikum ${name},\n\nHope your TirzaTrim (${lastDose}) therapy is progressing smoothly. You are approaching the end of your 4-week pen cycle.\n\nTo place your next refill order here with 1 click:\n${refillLink}\n\nTirzaTrim Patient Support Care`;
       openWhatsApp(mobile, msg);
     }
 
