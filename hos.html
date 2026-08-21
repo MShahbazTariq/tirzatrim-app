@@ -14,8 +14,14 @@
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Smooth Scrollbarless Containers */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
   <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -103,184 +109,275 @@
     </div>
   </div>
 
-  <!-- MAIN REGIONAL EXECUTIVE DASHBOARD -->
-  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
+  <!-- EXECUTIVE SLIDE-OVER DRAWER (HOS Profile & Administration Tools) -->
+  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div class="space-y-6">
+      <!-- Menu Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">HOS Console</span>
+        </div>
+        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <!-- Executive Profile Card in Menu -->
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
+            SR
+          </div>
+          <div>
+            <div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">Saqib Rafiq</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Head of Sales</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">Region: <span id="menuRegionDisplay">Central</span></span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">1234</span></span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
+
+      <!-- Administrative Tools List -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Regional Utilities</div>
+
+        <button id="menuPushBtn" onclick="registerHosMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable Regional Push Alerts</span>
+        </button>
+
+        <button onclick="fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh Regional Data</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
+        🏠 <span>Back to Main Portal</span>
+      </a>
+      <button onclick="handleHosLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
+        🚪 <span>Secure Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- Top Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm dark:shadow-none">
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1 transition-all">
-            🏠 Home
-          </a>
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="hosNameDisplay">Regional <span class="text-indigo-600 dark:text-indigo-400">Sales Hub</span></h1>
-          <span id="hosRegionBadge" class="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-full">Region Live</span>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Supervisory Level: <strong class="text-slate-800 dark:text-slate-200">Head of Sales</strong> | SAP ID: <strong id="hosSapDisplay" class="text-slate-800 dark:text-slate-200">-</strong></p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <button 
-          onclick="toggleTheme()" 
-          type="button"
-          class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-          title="Toggle Dark / Light Mode"
-        >
-          <span class="theme-icon">🌙</span>
-          <span class="theme-label">Dark</span>
-        </button>
-        <button id="btnEnablePushHos" onclick="registerHosMobilePush()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📱 <span>Enable Phone Push</span>
-        </button>
-        <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
-          📥 Download Regional CSV
-        </button>
-        <button onclick="fetchEverything()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-          🔄 Refresh
-        </button>
-        <button onclick="handleHosLogout()" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all">
-          🚪 Logout
-        </button>
-      </div>
-    </div>
-
-    <!-- DATE CONTROLS & CALENDAR STRIP -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-          <span>📅</span> Timeline & Date Scope
-        </div>
-        
-        <!-- Preset Toggles -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-      </div>
-
-      <!-- Custom Calendar Pickers -->
-      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-indigo-500">
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-indigo-500">
-        </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-          Showing: Month to Date
-        </span>
-      </div>
-    </div>
-
-    <!-- Regional KPI Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Selected Scope Patients</div>
-        <div id="statTotal" class="text-3xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
-        <div id="statProcess" class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered & Completed</div>
-        <div id="statDelivered" class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Service Rating</div>
-        <div id="statRating" class="text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
-      </div>
-    </div>
-
-    <!-- REGIONAL DRILL-DOWN SEARCH & FILTER BAR -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-      <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-        <span>🔍</span> Regional ZSM & Field Rep Hierarchy Search Engine
-      </div>
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HOS TITLE (Exact Match to index.html) -->
+    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
       
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <!-- 1. ZSM / Zone Filter -->
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">1. Zonal Manager (ZSM)</label>
-          <select id="filterManager" onchange="onManagerChange()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+      <!-- Right Floating Hamburger Button -->
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
+        ☰
+      </button>
+
+      <!-- Center Logo & Branding Block Exactly Matching index.html -->
+      <div class="flex flex-col items-center justify-center">
+        
+        <!-- Logo + Vertical Dose Stack -->
+        <div class="flex items-center justify-center gap-4">
+          <div class="text-left">
+            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
+              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
+              (TIRZEPATIDE)
+            </p>
+          </div>
+
+          <!-- Vertical Stack for Multi-Dose Pen & 3 Pills -->
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
+            <div class="flex flex-col gap-1 w-14">
+              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
+              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
+              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Replacement for "Operations Hub" -->
+        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <span id="hosNameDisplay" class="text-slate-900 dark:text-white">Saqib Rafiq</span>
+          <span class="text-[#4f46e5]">HOS • <span id="hosRegionDisplay">Central</span> (<span id="hosTeamDisplay">QASWA</span>)</span>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP (Swipeable on Mobile) -->
+    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Regional Patients</div>
+        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
+        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
+        <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
+      </div>
+    </div>
+
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-indigo-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">Orders</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends & KOLs</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📥</span>
+        <span class="text-xs font-bold">Regional CSV</span>
+      </button>
+    </div>
+
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: REGIONAL ORDERS & HIERARCHY SEARCH -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+          <span>🔍</span> Hierarchy Search Engine (ZSM • Field Rep • Keyword)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
             <option value="ALL">All ZSMs in My Region</option>
           </select>
-        </div>
-
-        <!-- 2. Territory Rep Filter -->
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">2. Field Rep (T-Code)</label>
-          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
             <option value="ALL">All Reps in Selection</option>
           </select>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
         </div>
+      </div>
 
-        <!-- 3. Global Keyword Search -->
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">3. Keyword Search</label>
-          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic, Address..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 placeholder-slate-400 dark:placeholder-slate-600">
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading regional records...
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- DYNAMIC DAILY ENROLLMENT BAR GRAPH -->
-    <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
+    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>📊</span> Daily Patient Enrollment Trend (Last 14 Days)
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400" id="chartSubheading">Showing daily prescription trends for current hierarchy selection</p>
+          <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">Regional Trend</span>
         </div>
-        <div class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 self-start">
-          Interactive Visualizer
-        </div>
-      </div>
-      <div class="h-64 w-full pt-2">
-        <canvas id="dailyEnrollmentChart"></canvas>
-      </div>
-    </div>
-
-    <!-- KOLs & Dosage Breakdown Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>🩺</span> Regional Top Prescribing Doctors (Selected Scope)
-        </h3>
-        <div id="topDoctorsList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
         </div>
       </div>
 
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>💉</span> Dosage & Device Breakdown (Selected Scope)
-        </h3>
-        <div id="doseDistributionList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60">
-          <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> Regional Top Prescribing Doctors
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- FILTERED PATIENTS CARDS GRID -->
-    <div class="space-y-3 pt-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-        </h3>
-      </div>
-      <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-          Loading records...
+    <!-- TAB 3: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-indigo-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3.5 py-1.5 rounded-xl border border-indigo-500/20 inline-block">
+          Showing: Month to Date
         </div>
       </div>
     </div>
 
   </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION (Mobile-Optimized) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-indigo-600 dark:text-indigo-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📅</span>
+      <span class="text-xs font-medium">Timeline</span>
+    </button>
+    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">⚙️</span>
+      <span class="text-xs font-medium">HOS Menu</span>
+    </button>
+  </nav>
 
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
@@ -299,6 +396,46 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    function openSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.remove('hidden');
+      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.add('hidden');
+      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3.5 bg-indigo-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-indigo-600 dark:text-indigo-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+    }
 
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
@@ -323,13 +460,29 @@
       }
     }
 
+    function getInitials(name) {
+      if (!name) return 'HS';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
     function checkHosSession() {
       if (currentHos && currentHos.sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('hosNameDisplay').innerHTML = `${currentHos.full_name} <span class="text-indigo-600 dark:text-indigo-400">(${currentHos.region})</span>`;
-        document.getElementById('hosRegionBadge').innerText = `${currentHos.region} Region`;
-        document.getElementById('hosSapDisplay').innerText = currentHos.sap_id;
+        
+        // Exact Dynamic Header Replacements
+        document.getElementById('hosNameDisplay').innerText = currentHos.full_name;
+        document.getElementById('hosRegionDisplay').innerText = currentHos.region || 'Region';
+        document.getElementById('hosTeamDisplay').innerText = currentHos.team_name || 'Team';
+
+        // Drawer Menu Updates
+        document.getElementById('menuUserName').innerText = currentHos.full_name;
+        document.getElementById('menuAvatarBadge').innerText = getInitials(currentHos.full_name);
+        document.getElementById('menuRegionDisplay').innerText = currentHos.region || 'Region';
+        document.getElementById('menuSapDisplay').innerText = currentHos.sap_id;
+
         initDates();
         fetchEverything();
       } else {
@@ -404,20 +557,18 @@
     }
 
     async function registerHosMobilePush() {
-      const btn = document.getElementById('btnEnablePushHos');
-      if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
 
       try {
         if (!('Notification' in window)) {
           alert("Push notifications are not supported on this browser.");
-          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
           return;
         }
 
         const perm = await Notification.requestPermission();
         if (perm !== 'granted') {
-          alert("⚠️ Notification permission was blocked. Please tap the lock icon in the address bar to allow notifications.");
-          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
           return;
         }
 
@@ -427,17 +578,17 @@
         if (window.subscribeDeviceToPush) {
           await window.subscribeDeviceToPush(sapId, 'hos', region);
           alert(`✅ Phone Linked!\n\nRole: Head of Sales\nSAP ID: ${sapId}\nRegion: ${region}\n\nYou will receive regional order alerts 24/7.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
           if (btn) {
-            btn.className = "px-3.5 py-2.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
-            btn.innerHTML = `✅ <span>Phone Push Active</span>`;
+            btn.innerHTML = `<span class="text-base">✅</span> <span>Regional Push Active</span>`;
           }
         } else {
           alert("Notification script is initializing. Please refresh and try again.");
-          if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
         }
       } catch (err) {
         alert("Error: " + err.message);
-        if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
       }
     }
 
@@ -451,39 +602,44 @@
 
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
 
       if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
       } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const y = new Date();
         y.setDate(y.getDate() - 1);
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
       } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const last7 = new Date();
         last7.setDate(last7.getDate() - 6);
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
       } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
       } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
         document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Region)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
       document.getElementById('calendarFromDate').value = filterStartDate || '';
@@ -503,10 +659,11 @@
         
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
 
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
       }
     }
@@ -541,7 +698,7 @@
 
       const repCodes = regionalReps.map(r => r.territory_code);
 
-      // 3. Fetch Orders for this region (by rep codes or direct manager SAP)
+      // 3. Fetch Orders for this region
       let query = client.from('orders').select('*').order('created_at', { ascending: false });
       
       if (repCodes.length > 0) {
@@ -698,7 +855,9 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const ctx = document.getElementById('dailyEnrollmentChart').getContext('2d');
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
       const isDark = document.documentElement.classList.contains('dark');
@@ -736,12 +895,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: textColor, font: { size: 10 } }
+              ticks: { color: textColor, font: { size: 11 } }
             },
             y: {
               beginAtZero: true,
               grid: { color: gridColor },
-              ticks: { color: textColor, font: { size: 10 }, precision: 0 }
+              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
             }
           }
         }
@@ -764,7 +923,7 @@
       
       document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
           <span class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
@@ -776,7 +935,7 @@
       });
       document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">TirzaTrim ${dose}</span>
+          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
           <span class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
@@ -795,50 +954,50 @@
         const isDispatched = order.status === 'Dispatched';
 
         return `
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none transition-all">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id || 'N/A'}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold border border-indigo-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-indigo-500/20">Rep: ${order.rep_code || 'Direct'}</span>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700')}">
+              <span class="inline-block px-3 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700')}">
                 ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
               </span>
             </div>
 
-            <div class="space-y-1.5 text-xs">
-              <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-              <div class="text-slate-400 font-mono text-[11px]">${order.mobile}</div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+            <div class="space-y-1.5 text-sm">
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
                 📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Doctor</span>
-                <span class="font-bold text-indigo-600 dark:text-indigo-300">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-indigo-600 dark:text-indigo-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Clinic / Hospital</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Dose & Device</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Dose & Device</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
               ${order.prescription_url 
-                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1 text-right"><a href="${order.prescription_url}" target="_blank" class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
                 : ''}
             </div>
 
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending</span>'}</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
             </div>
           </div>
         `;
@@ -852,7 +1011,7 @@
       activeFilteredOrders.forEach(o => {
         const fb = feedbackMap[o.id];
         const rating = fb ? fb.overall_rating : "Pending";
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${currentHos.region}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${rating}"\n`;
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${currentHos.region}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
