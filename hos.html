@@ -33,6 +33,9 @@
         >
           <span class="theme-icon">🌙</span>
         </button>
+        <button id="btnEnablePushHos" onclick="registerHosMobilePush()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
+  📱 <span>Enable Phone Push</span>
+</button>
       </div>
 
       <div class="space-y-2 pt-2">
@@ -825,6 +828,35 @@
     }
 
     checkHosSession();
+    async function registerHosMobilePush() {
+  const btn = document.getElementById('btnEnablePushHos');
+  if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
+
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+      if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+      return;
+    }
+
+    const currentHos = JSON.parse(sessionStorage.getItem('tt_current_hos') || 'null');
+    const sapId = currentHos ? currentHos.sap_id : '1234';
+    const region = currentHos ? currentHos.region : 'Central';
+
+    if (window.subscribeDeviceToPush) {
+      await window.subscribeDeviceToPush(sapId, 'hos', region);
+      alert(`✅ Phone Linked!\n\nRole: Head of Sales\nSAP ID: ${sapId}\nRegion: ${region}\n\nYou will receive regional order alerts.`);
+      if (btn) {
+        btn.className = "px-3 py-1.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
+        btn.innerHTML = `✅ <span>Phone Push Active</span>`;
+      }
+    }
+  } catch (err) {
+    alert("Error: " + err.message);
+    if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+  }
+}
   </script>
 </body>
 </html>
