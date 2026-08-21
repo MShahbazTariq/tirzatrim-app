@@ -80,6 +80,9 @@
           <span class="theme-icon">🌙</span>
           <span class="theme-label">Dark</span>
         </button>
+        <button id="btnEnablePushHo" onclick="registerHoMobilePush()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
+  📱 <span>Enable Phone Push</span>
+</button>
         <button onclick="exportFilteredCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5">
           📥 Download Filtered CSV
         </button>
@@ -725,6 +728,34 @@
     }
 
     checkHoSession();
+    async function registerHoMobilePush() {
+  const btn = document.getElementById('btnEnablePushHo');
+  if (btn) btn.innerHTML = `⏳ <span>Linking Phone...</span>`;
+
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+      if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+      return;
+    }
+
+    const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
+    const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
+
+    if (window.subscribeDeviceToPush) {
+      await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
+      alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
+      if (btn) {
+        btn.className = "px-3 py-1.5 bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5";
+        btn.innerHTML = `✅ <span>Phone Push Active</span>`;
+      }
+    }
+  } catch (err) {
+    alert("Error: " + err.message);
+    if (btn) btn.innerHTML = `📱 <span>Enable Phone Push</span>`;
+  }
+}
   </script>
 </body>
 </html>
