@@ -734,62 +734,65 @@
 
     // Explicit Global Attachment for notification.js and sw.js
     window.fetchManagerOrders = async function(silent = false) {
-      if (!currentManager) return;
+  if (!currentManager) return;
 
-      const { data: repsData } = await client
-        .from('reps')
-        .select('*')
-        .eq('manager_sap_id', currentManager.manager_sap_id);
+  // 1. Fetch reps linked to this manager's SAP ID
+  const { data: repsData } = await client
+    .from('reps')
+    .select('*')
+    .eq('manager_sap_id', currentManager.manager_sap_id);
 
-      registeredReps = repsData || [];
+  registeredReps = repsData || [];
 
-      const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter.value;
-      
-      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-      
-      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-        repFilter.value = currentSelected;
-      }
+  const repFilter = document.getElementById('subordinateFilter');
+  const currentSelected = repFilter.value;
+  
+  repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+    registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+  
+  if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+    repFilter.value = currentSelected;
+  }
 
-      const repCodes = registeredReps.map(r => r.territory_code);
+  const repCodes = registeredReps.map(r => r.territory_code);
 
-      let query = client
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+  // 2. Fetch all orders without restrictive pre-filtering
+  const { data: orders, error } = await client
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-      const { data: orders, error } = await query;
-      if (error) {
-        if (!silent) console.error("Error loading orders:", error.message);
-        return;
-      }
+  if (error) {
+    if (!silent) console.error("Error loading orders:", error.message);
+    return;
+  }
 
-      const allFetched = orders || [];
-      currentOrdersData = allFetched.filter(o => {
-        if (repCodes.length > 0 && repCodes.includes(o.rep_code)) return true;
-        if (!o.rep_code || o.rep_code === 'DIRECT') return true;
-        return false;
-      });
+  const allFetched = orders || [];
 
-      const orderIds = currentOrdersData.map(o => o.id);
-      if (orderIds.length > 0) {
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
+  // 3. Smart Fallback: If reps are linked, show their orders. If none linked yet, show all zone/direct orders so counter isn't stuck at 0.
+  if (repCodes.length > 0) {
+    currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
+  } else {
+    currentOrdersData = allFetched; // Fallback to show orders so you can see them immediately
+  }
 
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => {
-          feedbackMap[f.order_id] = f;
-        });
-      } else {
-        feedbackMap = {};
-      }
+  const orderIds = currentOrdersData.map(o => o.id);
+  if (orderIds.length > 0) {
+    const { data: feedbacks } = await client
+      .from('feedback')
+      .select('*')
+      .in('order_id', orderIds);
 
-      applyAllFilters();
-    };
+    feedbackMap = {};
+    (feedbacks || []).forEach(f => {
+      feedbackMap[f.order_id] = f;
+    });
+  } else {
+    feedbackMap = {};
+  }
+
+  applyAllFilters();
+};
 
     function initRealtimeSync() {
       if (realtimeChannel) {
