@@ -126,11 +126,15 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Auto pre-fill mobile if passed via URL (e.g. ?mobile=03001234567)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mobile')) {
+      document.getElementById('fbMobile').value = decodeURIComponent(urlParams.get('mobile')).trim();
+    }
+
     function cleanPhone(phone) {
       if (!phone) return '';
-      let cleaned = phone.replace(/\D/g, '');
-      if (cleaned.startsWith('92')) cleaned = '0' + cleaned.substring(2);
-      return cleaned;
+      return phone.replace(/\D/g, '');
     }
 
     async function submitPatientFeedback(e) {
@@ -144,24 +148,26 @@
       submitBtn.disabled = true;
 
       const rawMobile = document.getElementById('fbMobile').value.trim();
-      const normalizedMobile = cleanPhone(rawMobile);
+      const digitsOnly = cleanPhone(rawMobile);
+      const searchTail = digitsOnly.slice(-8); // Matches last 8 digits reliably across formats
+
       const overall_rating = parseInt(document.getElementById('fbOverallRating').value) || 5;
       const cold_chain_rating = document.getElementById('fbColdChain').value;
       const recommendation = document.getElementById('fbRecommend').value;
       const comments = document.getElementById('fbComments').value.trim();
 
       try {
-        // 1. Locate the patient's existing order
+        // 1. Locate the patient's order by flexible number ending
         const { data: matchedOrders, error: findErr } = await client
           .from('orders')
           .select('id, patient_name')
-          .ilike('mobile', `%${normalizedMobile.slice(-9)}%`)
+          .ilike('mobile', `%${searchTail}%`)
           .order('created_at', { ascending: false })
           .limit(1);
 
         if (findErr) throw findErr;
         if (!matchedOrders || matchedOrders.length === 0) {
-          throw new Error("No active order found with this mobile number. Please check your number.");
+          throw new Error("No active order found for this mobile number. Please verify and try again.");
         }
 
         const order = matchedOrders[0];
@@ -178,13 +184,12 @@
 
         if (insertErr) throw insertErr;
 
-        // 3. Mark the order status as 'Feedback Submitted'
+        // 3. Update order status to trigger real-time broadcast across all portals
         await client
           .from('orders')
           .update({ status: 'Feedback Submitted' })
           .eq('id', order.id);
 
-        // Show Success Screen
         document.getElementById('feedbackForm').classList.add('hidden');
         document.getElementById('successView').classList.remove('hidden');
 
