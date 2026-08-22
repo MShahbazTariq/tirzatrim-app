@@ -467,7 +467,7 @@
 
     let realtimeChannel = null;
 
-    // Full Tirzepatide Titration Escalation Schedule
+    // Full 6-Tier Tirzepatide Titration Escalation Schedule
     const TITRATION_MAP = {
       '2.5mg': '5mg',
       '5mg': '7.5mg',
@@ -582,50 +582,33 @@
 
     // Direct Real-Time Synchronizer without server-side filter drop
     function initRepRealtimeSync() {
-  if (realtimeChannel) {
-    client.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
-
-  if (!currentRep) return;
-
-  // Global listener: whenever ANY order or feedback changes, re-sync rep data
-  realtimeChannel = client
-    .channel('public:global_rep_sync')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
-      (payload) => {
-        console.log('⚡ [Realtime Event Captured]', payload);
-        fetchRepOrders();
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
       }
-    )
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'feedback' },
-      () => {
-        console.log('⚡ [Feedback Event Captured]');
-        fetchRepOrders();
-      }
-    )
-    .subscribe((status) => {
-      console.log('📡 Realtime Connection:', status);
-    });
-}
+
+      if (!currentRep) return;
+
+      realtimeChannel = client
+        .channel('public:global_rep_sync')
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'feedback'
-          },
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ [Realtime Event Captured]', payload.eventType);
+            fetchRepOrders(); // Instant live update for counters and cards
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
           () => {
-            console.log('⚡ [Rep Realtime] Patient feedback updated');
+            console.log('⚡ [Feedback Event Captured]');
             fetchRepOrders();
           }
         )
         .subscribe((status) => {
-          console.log(`📡 Realtime Status for Rep [${myTCode}]:`, status);
+          console.log('📡 Realtime Connection:', status);
         });
     }
 
@@ -691,14 +674,14 @@
       const err = document.getElementById('authErrorMsg');
       err.classList.add('hidden');
 
-      const tcode = document.getElementById('loginTCode').value.trim().toUpperCase();
-      const pass = document.getElementById('loginPassword').value;
+      const tcode = document.getElementById('loginTCode').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
 
       try {
         const { data, error } = await client
           .from('reps')
           .select('*')
-          .eq('territory_code', tcode)
+          .ilike('territory_code', tcode)
           .eq('password', pass)
           .limit(1);
 
