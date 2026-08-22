@@ -582,35 +582,36 @@
 
     // Direct Real-Time Synchronizer without server-side filter drop
     function initRepRealtimeSync() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
+  if (realtimeChannel) {
+    client.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+
+  if (!currentRep) return;
+
+  // Global listener: whenever ANY order or feedback changes, re-sync rep data
+  realtimeChannel = client
+    .channel('public:global_rep_sync')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'orders' },
+      (payload) => {
+        console.log('⚡ [Realtime Event Captured]', payload);
+        fetchRepOrders();
       }
-
-      if (!currentRep || !currentRep.territory_code) return;
-
-      const myTCode = (currentRep.territory_code || '').trim().toUpperCase();
-
-      realtimeChannel = client
-        .channel(`rep-live-channel-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders'
-          },
-          (payload) => {
-            const orderData = payload.new || payload.old || {};
-            const incomingRepCode = (orderData.rep_code || '').trim().toUpperCase();
-
-            // When new order created or status updated for this rep's code
-            if (!incomingRepCode || incomingRepCode === myTCode) {
-              console.log('⚡ [Rep Realtime] Event received:', payload.eventType);
-              fetchRepOrders(); // Instant live counter & grid update
-            }
-          }
-        )
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'feedback' },
+      () => {
+        console.log('⚡ [Feedback Event Captured]');
+        fetchRepOrders();
+      }
+    )
+    .subscribe((status) => {
+      console.log('📡 Realtime Connection:', status);
+    });
+}
         .on(
           'postgres_changes',
           {
