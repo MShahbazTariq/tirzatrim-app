@@ -6,9 +6,18 @@
 
   let rtClient = null;
 
-  // Auto-register Service Worker
+  // Auto-register Service Worker & Message Bridge
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(e => console.warn('SW notice:', e));
+    
+    // Listen for Service Worker background refresh messages
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'TT_DATABASE_MUTATED') {
+        if (typeof window.fetchRepOrders === 'function') window.fetchRepOrders();
+        if (typeof window.fetchManagerOrders === 'function') window.fetchManagerOrders();
+        if (typeof window.fetchEverything === 'function') window.fetchEverything();
+      }
+    });
   }
 
   function ensureSupabaseClient(callback) {
@@ -33,7 +42,6 @@
     document.head.appendChild(s);
   }
 
-  // Base64 helper for VAPID key
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -45,7 +53,6 @@
     return outputArray;
   }
 
-  // 24/7 Hardware Push Token Registration
   window.subscribeDeviceToPush = async function(sapId = null, role = null, territoryCode = null) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.warn('Push messaging not supported on this device/browser.');
@@ -69,7 +76,7 @@
         const { error } = await sb.from('push_subscriptions').upsert({
           sap_id: sapId ? String(sapId) : 'guest',
           role: role || 'admin',
-          territory_code: territoryCode || '',
+          territory_code: (territoryCode || '').toUpperCase(),
           endpoint: subJson.endpoint,
           p256dh: subJson.keys.p256dh,
           auth: subJson.keys.auth
@@ -86,7 +93,6 @@
     }
   };
 
-  // In-App Toast Banner
   function showInAppToast(title, body) {
     let container = document.getElementById('tt-toast-container');
     if (!container) {
@@ -120,7 +126,6 @@
     }, 6000);
   }
 
-  // Trigger Native Push Notification + Toast + Hardware Vibration
   window.triggerPushNotification = async function(title, body, url = '/', channelType = null) {
     showInAppToast(title, body);
 
@@ -152,16 +157,6 @@
 
     if ('serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg && reg.showNotification) {
-          await reg.showNotification(title, options);
-          return;
-        }
-      } catch (e) {}
-    }
-
-    if ('serviceWorker' in navigator) {
-      try {
         const readyReg = await navigator.serviceWorker.ready;
         if (readyReg && readyReg.showNotification) {
           await readyReg.showNotification(title, options);
@@ -175,7 +170,7 @@
     } catch (e) {}
   };
 
-  // Main Realtime Setup & Multi-Tier Auto-Registration
+  // Main Realtime Setup with Direct DOM Counter Trigger Callbacks
   window.initTirzaTrimRealtime = function() {
     ensureSupabaseClient((sb) => {
       const path = window.location.pathname.toLowerCase();
@@ -187,67 +182,51 @@
       const currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
       const currentHO = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
 
-      // Auto-register device token dynamically for Reps, ZSMs, and Head Office
       if (Notification.permission === 'granted') {
         if (isRep && currentRep) {
           window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
         } else if (isZSM && currentManager) {
-          window.subscribeDeviceToPush(currentManager.sap_id, 'zsm', currentManager.zone);
+          window.subscribeDeviceToPush(currentManager.manager_sap_id, 'zsm', currentManager.zone_region);
         } else if (isHO) {
           window.subscribeDeviceToPush((currentHO && currentHO.sap_id) || 'HO_EXEC', 'hos', 'NATIONAL');
-        } else {
-          window.subscribeDeviceToPush(null, 'general', null);
         }
       }
 
-      sb.channel('tirzatrim_realtime_orders')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
-          const o = payload.new;
-          console.log('⚡ Live order event received:', o);
+      // Single Global Broadcast Listener that triggers counter refreshes on open tabs
+      sb.channel('public:system_wide_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+          const o = payload.new || payload.old || {};
+          console.log('⚡ [Live Event Sync]', payload.eventType, o);
 
-          if (isRep && currentRep) {
-            if (!o.rep_code || o.rep_code === currentRep.territory_code) {
-              triggerPushNotification(
-                '✨ New Patient Order Enrolled',
-                `${o.patient_name || 'Patient'} (${o.prescribed_dose || '5mg'}) enrolled in territory ${o.rep_code || 'Direct'}`,
-                '/team.html',
-                'orders'
-              );
+          // Direct refresh of active page DOM data
+          if (typeof window.fetchRepOrders === 'function') window.fetchRepOrders();
+          if (typeof window.fetchManagerOrders === 'function') window.fetchManagerOrders();
+          if (typeof window.fetchEverything === 'function') window.fetchEverything();
+
+          if (payload.eventType === 'INSERT') {
+            const incomingRep = (o.rep_code || '').toUpperCase();
+            const repCode = currentRep ? (currentRep.territory_code || '').toUpperCase() : '';
+
+            if (isRep && currentRep && (!incomingRep || incomingRep === repCode)) {
+              triggerPushNotification('✨ New Patient Order Enrolled', `${o.patient_name || 'Patient'} (${o.prescribed_dose || '5mg'}) enrolled in territory ${o.rep_code || 'Direct'}`, '/team.html', 'orders');
+            } else if (isZSM) {
+              triggerPushNotification('✨ New Zone Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.prescribed_dose || '5mg'}`, '/admin.html', 'orders');
+            } else if (isHO) {
+              triggerPushNotification('✨ New National Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`, '/headoffice.html', 'orders');
             }
-          } else if (isZSM) {
-            triggerPushNotification(
-              '✨ New Zone Order',
-              `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.prescribed_dose || '5mg'}`,
-              '/admin.html',
-              'orders'
-            );
-          } else if (isHO) {
-            triggerPushNotification(
-              '✨ New National Order',
-              `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`,
-              '/headoffice.html',
-              'orders'
-            );
-          } else {
-            triggerPushNotification(
-              '✨ New Order Enrolled',
-              `${o.patient_name || 'Patient'} (${o.city || 'Pakistan'}) - ${o.prescribed_dose || '5mg'}`,
-              window.location.pathname,
-              'orders'
-            );
           }
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
-          const o = payload.new;
-          triggerPushNotification('📦 Order Updated', `${o.patient_name || 'Order #' + o.order_id} ➔ ${o.status}`, window.location.pathname, 'orders');
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
+          if (typeof window.fetchRepOrders === 'function') window.fetchRepOrders();
+          if (typeof window.fetchManagerOrders === 'function') window.fetchManagerOrders();
+          if (typeof window.fetchEverything === 'function') window.fetchEverything();
         })
         .subscribe((status) => {
-          console.log('🟢 Supabase Realtime Status:', status);
+          console.log('🟢 Supabase Realtime Engine Active:', status);
         });
     });
   };
 
-  // Immediate Start
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', window.initTirzaTrimRealtime);
   } else {
