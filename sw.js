@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tirzatrim-v4';
+const CACHE_NAME = 'tirzatrim-v5';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -17,17 +17,45 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Always fetch fresh version from network first, fallback to cache if offline
+// Network-First Strategy with Cache Fallback
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
 
-// Handle Notification Clicks (Focuses open portal tab or navigates)
+// Broadcast Realtime Events to All Open Tabs
+self.addEventListener('push', (event) => {
+  let data = {};
+  if (event.data) {
+    try { data = event.data.json(); } catch (e) { data = { body: event.data.text() }; }
+  }
+
+  const title = data.title || 'TirzaTrim Alert';
+  const options = {
+    body: data.body || 'New operational update received.',
+    icon: '/logo.png',
+    badge: '/logo.png',
+    data: { url: data.url || '/team.html' }
+  };
+
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(title, options),
+      // Inform all open tabs to refresh their counters instantly
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'TT_DATABASE_MUTATED' });
+        });
+      })
+    ])
+  );
+});
+
+// Notification Click Handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/admin.html';
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/team.html';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
