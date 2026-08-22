@@ -26,7 +26,7 @@
       </span>
       <button 
         onclick="toggleTheme()" 
-        type="button"
+        type="button" 
         class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1"
         title="Toggle Theme"
       >
@@ -257,9 +257,27 @@
       });
     }
 
+    // Auto-detect territory rep code and URL parameters for 1-click step-up refills
     const urlParams = new URLSearchParams(window.location.search);
     const assignedRep = urlParams.get('rep') ? urlParams.get('rep').trim().toUpperCase() : 'DIRECT';
     document.getElementById('territoryRepCode').value = assignedRep;
+
+    if (urlParams.get('name')) {
+      document.getElementById('patientName').value = decodeURIComponent(urlParams.get('name'));
+    }
+    if (urlParams.get('mobile')) {
+      document.getElementById('patientMobile').value = decodeURIComponent(urlParams.get('mobile'));
+    }
+    if (urlParams.get('dose')) {
+      const doseVal = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+      const doseSelect = document.getElementById('prescribedDose');
+      for (let i = 0; i < doseSelect.options.length; i++) {
+        if (doseSelect.options[i].value.toLowerCase() === doseVal) {
+          doseSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
 
     updateClinicSuggestions();
 
@@ -283,7 +301,10 @@
       const indication = document.getElementById('patientIndication').value;
       const prescribed_dose = document.getElementById('prescribedDose').value;
       const device = document.getElementById('deviceType').value;
-      const rep_code = document.getElementById('territoryRepCode').value || 'DIRECT';
+      
+      // Strict uppercase formatting
+      const rawRepCode = document.getElementById('territoryRepCode').value || 'DIRECT';
+      const rep_code = rawRepCode.trim().toUpperCase();
 
       const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
 
