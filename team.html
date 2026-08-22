@@ -467,6 +467,44 @@
 
     let realtimeChannel = null;
 
+    // Full Tirzepatide Titration Escalation Schedule
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
+
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
       document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
@@ -717,7 +755,7 @@
     }
 
     function copyMyPatientLink() {
-      const link = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      const link = `https://tirzatrim-app.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       navigator.clipboard.writeText(link);
       alert(`Copied your patient order link:\n${link}`);
     }
@@ -730,7 +768,7 @@
       }
       return {
         name: drName,
-        url: `https://tirzatrim.vercel.app/doctor.html?dr=${encodeURIComponent(drName)}`
+        url: `https://tirzatrim-app.vercel.app/doctor.html?dr=${encodeURIComponent(drName)}`
       };
     }
 
@@ -745,7 +783,7 @@
       const doc = getGeneratedDoctorLink();
       if (!doc) return;
 
-      const patientOrderLink = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      const patientOrderLink = `https://tirzatrim-app.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       const message = `Respected ${doc.name},\n\nThank you for prescribing TirzaTrim.\n\n📲 *Patient Prescription Submission Link:*\n${patientOrderLink}\n\n📊 *Your Dedicated Doctor Monitoring Portal:*\n${doc.url}\n\nYou can track all your referred patients' fulfillment and verified service feedback live using the portal link above.\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
 
       openWhatsAppUniversal("", message);
@@ -775,7 +813,7 @@
 
     function showPatientQRModal() {
       if (!currentRep) return;
-      const link = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
+      const link = `https://tirzatrim-app.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       renderQRCodeModal(
         `Patient Order QR Code`,
         `Territory Code: ${currentRep.territory_code}`,
@@ -1098,16 +1136,20 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = cachedFeedbacks[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <!-- Card Header: ID, Date & Auto-Synced Status Badge -->
+            <!-- Card Header: ID, Date & Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <div class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20 animate-pulse">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
+                </div>
                 <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <span class="text-xs font-bold px-3 py-1 rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20')}">
@@ -1129,7 +1171,7 @@
               </div>
             </div>
 
-            <!-- Doctor, Clinic & Prescription Details -->
+            <!-- Doctor, Clinic & Titration Details -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
@@ -1140,8 +1182,12 @@
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Dose & Device</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+                <span class="text-slate-500 dark:text-slate-400">Current Dose & Pen</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Next Step-Up Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
               ${order.prescription_url ? `
                 <div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right">
@@ -1156,13 +1202,20 @@
               <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending Submission</span>'}</span>
             </div>
 
-            <!-- Direct WhatsApp Actions for Reps -->
-            <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
-                💬 Inform Status
-              </button>
-              <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
-                ⭐ Ask Feedback
+            <!-- Operational WhatsApp Actions (Rep Controlled Only) -->
+            <div class="space-y-2 pt-1">
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
+                  💬 Inform Status
+                </button>
+                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
+                  ⭐ Ask Feedback
+                </button>
+              </div>
+
+              <!-- 1-Click Refill & Dose Escalation Trigger -->
+              <button onclick="sendRepEscalationWhatsApp('${order.mobile}', '${order.patient_name}', '${esc.currentDose}', '${esc.nextDose}', '${order.rep_code}')" class="w-full py-2.5 px-2 ${esc.isDue ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'} text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all">
+                <span>🔄</span> Send Step-Up Refill (${esc.currentDose} ➔ ${esc.nextDose})
               </button>
             </div>
 
@@ -1208,7 +1261,14 @@
     }
 
     function sendFeedbackWhatsApp(mobile, name) {
-      const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim. Please take a moment to rate your delivery and service experience here: https://tirzatrim.vercel.app/feedback.html`;
+      const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim. Please take a moment to rate your delivery and service experience here: https://tirzatrim-app.vercel.app/feedback.html`;
+      openWhatsAppUniversal(mobile, msg);
+    }
+
+    function sendRepEscalationWhatsApp(mobile, name, currentDose, nextDose, repCode) {
+      const refillLink = `https://tirzatrim-app.vercel.app/order.html?rep=${encodeURIComponent(repCode || 'DIRECT')}&name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}&dose=${encodeURIComponent(nextDose)}`;
+      const msg = `Assalam-o-Alaikum ${name},\n\nHope your TirzaTrim (${currentDose}) treatment is going smoothly! You are currently on Week 4 of your 4-week pen cycle.\n\nAs per standard titration guidance, your next recommended step-up dose is *${nextDose}* (subject to your doctor's recommendation).\n\n📲 *1-Click Step-Up Refill Link:*\n${refillLink}\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
+      
       openWhatsAppUniversal(mobile, msg);
     }
 
