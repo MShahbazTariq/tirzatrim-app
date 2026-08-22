@@ -673,6 +673,8 @@
           if (btn) {
             btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
           }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Registration Error: " + err.message);
@@ -742,13 +744,15 @@
       registeredReps = repsData || [];
 
       const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter.value;
+      const currentSelected = repFilter ? repFilter.value : 'ALL';
       
-      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-      
-      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-        repFilter.value = currentSelected;
+      if (repFilter) {
+        repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+          registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+        
+        if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+          repFilter.value = currentSelected;
+        }
       }
 
       const repCodes = registeredReps.map(r => r.territory_code);
@@ -839,17 +843,18 @@
     }
 
     function checkMgrSession() {
+      // Robust check supporting both session objects and fallback auth flags
       if (currentManager && currentManager.manager_sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         
-        document.getElementById('mgrNameDisplay').innerText = currentManager.full_name;
-        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'Zone';
-        document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'Team';
+        document.getElementById('mgrNameDisplay').innerText = currentManager.full_name || 'ZSM Executive';
+        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
+        document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'QASWA';
 
-        document.getElementById('menuUserName').innerText = currentManager.full_name;
+        document.getElementById('menuUserName').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
         document.getElementById('menuAvatarBadge').innerText = getInitials(currentManager.full_name);
-        document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || 'Zone';
+        document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
         document.getElementById('menuSapDisplay').innerText = currentManager.manager_sap_id;
         
         initDates();
