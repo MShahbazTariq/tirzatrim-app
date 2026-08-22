@@ -552,19 +552,16 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Persistent manager session: survives page refreshes and browser tab reloads.
-    // Also migrates any existing sessionStorage login created by the older version.
     let currentManager = null;
     try {
-      const savedManager = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-      currentManager = savedManager ? JSON.parse(savedManager) : null;
-      if (currentManager) {
-        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+      const stored = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
+      if (stored) {
+        currentManager = JSON.parse(stored);
       }
-    } catch (sessionError) {
-      console.warn('Unable to restore manager session:', sessionError);
+    } catch (e) {
       currentManager = null;
     }
+
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
@@ -673,8 +670,8 @@
           return;
         }
 
-        const sapId = currentManager ? currentManager.manager_sap_id : '7613';
-        const zone = currentManager ? currentManager.zone_region : 'LHR2';
+        const sapId = currentManager ? (currentManager.manager_sap_id || currentManager.sap_id) : '7613';
+        const zone = currentManager ? (currentManager.zone_region || currentManager.zone) : 'LHR2';
 
         if (window.subscribeDeviceToPush) {
           await window.subscribeDeviceToPush(sapId, 'zsm', zone);
@@ -685,8 +682,6 @@
           if (btn) {
             btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
           }
-        } else {
-          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Registration Error: " + err.message);
@@ -748,10 +743,12 @@
     window.fetchManagerOrders = async function(silent = false) {
       if (!currentManager) return;
 
+      const sapKey = currentManager.manager_sap_id || currentManager.sap_id;
+
       const { data: repsData } = await client
         .from('reps')
         .select('*')
-        .eq('manager_sap_id', currentManager.manager_sap_id);
+        .eq('manager_sap_id', sapKey);
 
       registeredReps = repsData || [];
 
@@ -855,19 +852,21 @@
     }
 
     function checkMgrSession() {
-      // Robust check supporting both session objects and fallback auth flags
-      if (currentManager && currentManager.manager_sap_id) {
+      const validSap = currentManager && (currentManager.manager_sap_id || currentManager.sap_id);
+
+      if (validSap) {
+        currentManager.manager_sap_id = validSap;
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         
-        document.getElementById('mgrNameDisplay').innerText = currentManager.full_name || 'ZSM Executive';
-        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
+        document.getElementById('mgrNameDisplay').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
+        document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || currentManager.zone || 'LHR2';
         document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'QASWA';
 
         document.getElementById('menuUserName').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
         document.getElementById('menuAvatarBadge').innerText = getInitials(currentManager.full_name);
-        document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
-        document.getElementById('menuSapDisplay').innerText = currentManager.manager_sap_id;
+        document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || currentManager.zone || 'LHR2';
+        document.getElementById('menuSapDisplay').innerText = validSap;
         
         initDates();
         window.fetchManagerOrders();
@@ -923,7 +922,7 @@
         const { data, error } = await client
           .from('managers')
           .select('*')
-          .ilike('manager_sap_id', sapId)
+          .or(`manager_sap_id.ilike.${sapId},sap_id.ilike.${sapId}`)
           .eq('password', pass)
           .limit(1);
 
@@ -931,6 +930,8 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
+        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
+        
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
@@ -949,7 +950,6 @@
         adminPollingInterval = null;
       }
       localStorage.removeItem('tt_current_manager');
-      // Clear the legacy key too, so an old session cannot restore unexpectedly.
       sessionStorage.removeItem('tt_current_manager');
       currentManager = null;
       checkMgrSession();
@@ -1105,8 +1105,6 @@
     }
 
     function initDates() {
-      // Start with All Time so existing/dummy orders are not hidden by an
-      // automatic Month-to-Date filter after login or page refresh.
       setDatePreset('ALL');
     }
 
@@ -1518,7 +1516,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `TirzaTrim_${currentManager.manager_sap_id}_${currentDateScope}_Orders.csv`;
+      a.download = `TirzaTrim_${currentManager ? currentManager.manager_sap_id : 'ZSM'}_${currentDateScope}_Orders.csv`;
       a.click();
     }
 
