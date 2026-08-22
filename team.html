@@ -150,7 +150,7 @@
           <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
         </button>
 
-        <button onclick="fetchRepOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+        <button onclick="window.fetchRepOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="text-base">🔄</span> <span>Refresh Territory Orders</span>
         </button>
 
@@ -466,6 +466,7 @@
     let filterEndDate = null;
 
     let realtimeChannel = null;
+    let repPollingInterval = null;
 
     // Full 6-Tier Tirzepatide Titration Escalation Schedule
     const TITRATION_MAP = {
@@ -580,7 +581,43 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    // Direct Real-Time Synchronizer without server-side filter drop
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchRepOrders = async function(silent = false) {
+      if (!currentRep || !currentRep.territory_code) return;
+
+      const tCode = (currentRep.territory_code || '').trim().toUpperCase();
+
+      const { data: orders, error } = await client
+        .from('orders')
+        .select('*')
+        .ilike('rep_code', tCode)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        if (!silent) console.error("Error loading territory records:", error.message);
+        return;
+      }
+
+      rawOrders = orders || [];
+
+      const orderIds = rawOrders.map(o => o.id);
+      if (orderIds.length > 0) {
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
+
+        cachedFeedbacks = {};
+        (feedbacks || []).forEach(f => {
+          cachedFeedbacks[f.order_id] = f;
+        });
+      } else {
+        cachedFeedbacks = {};
+      }
+
+      applyAllFilters();
+    };
+
     function initRepRealtimeSync() {
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
@@ -589,6 +626,7 @@
 
       if (!currentRep) return;
 
+      // 1. Unfiltered WebSocket Connection
       realtimeChannel = client
         .channel('public:global_rep_sync')
         .on(
@@ -596,7 +634,7 @@
           { event: '*', schema: 'public', table: 'orders' },
           (payload) => {
             console.log('⚡ [Realtime Event Captured]', payload.eventType);
-            fetchRepOrders(); // Instant live update for counters and cards
+            window.fetchRepOrders(true);
           }
         )
         .on(
@@ -604,12 +642,21 @@
           { event: '*', schema: 'public', table: 'feedback' },
           () => {
             console.log('⚡ [Feedback Event Captured]');
-            fetchRepOrders();
+            window.fetchRepOrders(true);
           }
         )
         .subscribe((status) => {
           console.log('📡 Realtime Connection:', status);
+          if (status === 'SUBSCRIBED') {
+            window.fetchRepOrders(true);
+          }
         });
+
+      // 2. 5-Second Heartbeat Bridge to Guarantee Sync
+      if (repPollingInterval) clearInterval(repPollingInterval);
+      repPollingInterval = setInterval(() => {
+        window.fetchRepOrders(true);
+      }, 5000);
     }
 
     function checkSession() {
@@ -627,7 +674,7 @@
         document.getElementById('menuSapDisplay').innerText = currentRep.sap_id;
         
         initDates();
-        fetchRepOrders();
+        window.fetchRepOrders();
         initRepRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -703,6 +750,10 @@
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
         realtimeChannel = null;
+      }
+      if (repPollingInterval) {
+        clearInterval(repPollingInterval);
+        repPollingInterval = null;
       }
       sessionStorage.removeItem('tt_current_rep');
       currentRep = null;
@@ -927,40 +978,6 @@
     function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
-    }
-
-    async function fetchRepOrders() {
-      if (!currentRep) return;
-
-      const { data: orders, error } = await client
-        .from('orders')
-        .select('*')
-        .eq('rep_code', currentRep.territory_code)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error loading territory records:", error.message);
-        return;
-      }
-
-      rawOrders = orders || [];
-
-      const orderIds = rawOrders.map(o => o.id);
-      if (orderIds.length > 0) {
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
-
-        cachedFeedbacks = {};
-        (feedbacks || []).forEach(f => {
-          cachedFeedbacks[f.order_id] = f;
-        });
-      } else {
-        cachedFeedbacks = {};
-      }
-
-      applyAllFilters();
     }
 
     function applyAllFilters() {
