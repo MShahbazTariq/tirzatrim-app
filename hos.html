@@ -33,8 +33,8 @@
         </a>
         <button 
           onclick="toggleTheme()" 
-          type="button"
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1"
+          type="button" 
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
           title="Toggle Theme"
         >
           <span class="theme-icon">🌙</span>
@@ -109,11 +109,10 @@
     </div>
   </div>
 
-  <!-- EXECUTIVE SLIDE-OVER DRAWER (HOS Profile & Administration Tools) -->
+  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
   <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
   <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
     <div class="space-y-6">
-      <!-- Menu Header -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
         <div class="flex items-center gap-2">
           <span class="text-xl">⚙️</span>
@@ -122,7 +121,6 @@
         <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
       </div>
 
-      <!-- Executive Profile Card in Menu -->
       <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
         <div class="flex items-center gap-3">
           <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
@@ -142,7 +140,6 @@
         </div>
       </div>
 
-      <!-- Administrative Tools List -->
       <div class="space-y-2">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Regional Utilities</div>
 
@@ -160,7 +157,6 @@
       </div>
     </div>
 
-    <!-- Bottom Actions -->
     <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
       <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
         🏠 <span>Back to Main Portal</span>
@@ -174,18 +170,13 @@
   <!-- MAIN DASHBOARD CONTENT -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & HOS TITLE (Exact Match to index.html) -->
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HOS TITLE -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
-      
-      <!-- Right Floating Hamburger Button -->
       <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
         ☰
       </button>
 
-      <!-- Center Logo & Branding Block Exactly Matching index.html -->
       <div class="flex flex-col items-center justify-center">
-        
-        <!-- Logo + Vertical Dose Stack -->
         <div class="flex items-center justify-center gap-4">
           <div class="text-left">
             <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
@@ -196,7 +187,6 @@
             </p>
           </div>
 
-          <!-- Vertical Stack for Multi-Dose Pen & 3 Pills -->
           <div class="flex flex-col items-center gap-1">
             <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
             <div class="flex flex-col gap-1 w-14">
@@ -207,16 +197,14 @@
           </div>
         </div>
 
-        <!-- Dynamic Replacement for "Operations Hub" -->
         <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
           <span id="hosNameDisplay" class="text-slate-900 dark:text-white">Saqib Rafiq</span>
           <span class="text-[#4f46e5]">HOS • <span id="hosRegionDisplay">Central</span> (<span id="hosTeamDisplay">QASWA</span>)</span>
         </div>
-
       </div>
     </header>
 
-    <!-- 2. QUICK HORIZONTAL KPI STRIP (Swipeable on Mobile) -->
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Regional Patients</div>
@@ -359,7 +347,7 @@
 
   </div>
 
-  <!-- 5. FIXED BOTTOM NAVIGATION (Mobile-Optimized) -->
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
     <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-indigo-600 dark:text-indigo-400">
       <span class="text-lg">👥</span>
@@ -396,6 +384,8 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    let realtimeChannel = null;
 
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
@@ -467,17 +457,52 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
+    function initHOSRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+      }
+
+      realtimeChannel = client
+        .channel('hos-regional-sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ [HOS Realtime] Order mutation detected:', payload.eventType);
+            fetchEverything();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            console.log('⚡ [HOS Realtime] Patient feedback updated');
+            fetchEverything();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => {
+            fetchEverything();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Realtime Active for HOS Suite');
+          }
+        });
+    }
+
     function checkHosSession() {
       if (currentHos && currentHos.sap_id) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         
-        // Exact Dynamic Header Replacements
         document.getElementById('hosNameDisplay').innerText = currentHos.full_name;
         document.getElementById('hosRegionDisplay').innerText = currentHos.region || 'Region';
         document.getElementById('hosTeamDisplay').innerText = currentHos.team_name || 'Team';
 
-        // Drawer Menu Updates
         document.getElementById('menuUserName').innerText = currentHos.full_name;
         document.getElementById('menuAvatarBadge').innerText = getInitials(currentHos.full_name);
         document.getElementById('menuRegionDisplay').innerText = currentHos.region || 'Region';
@@ -485,6 +510,7 @@
 
         initDates();
         fetchEverything();
+        initHOSRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -551,6 +577,10 @@
     }
 
     function handleHosLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
       sessionStorage.removeItem('tt_current_hos');
       currentHos = null;
       checkHosSession();
@@ -676,7 +706,6 @@
     async function fetchEverything() {
       if (!currentHos) return;
 
-      // 1. Fetch ZSMs belonging to this HOS Region
       const { data: managers } = await client
         .from('managers')
         .select('*')
@@ -685,7 +714,6 @@
       regionalManagers = managers || [];
       const managerSaps = regionalManagers.map(m => m.manager_sap_id);
 
-      // 2. Fetch Reps under this region's ZSMs
       if (managerSaps.length > 0) {
         const { data: reps } = await client
           .from('reps')
@@ -698,7 +726,6 @@
 
       const repCodes = regionalReps.map(r => r.territory_code);
 
-      // 3. Fetch Orders for this region
       let query = client.from('orders').select('*').order('created_at', { ascending: false });
       
       if (repCodes.length > 0) {
@@ -713,13 +740,12 @@
 
       const { data: orders, error: orderErr } = await query;
       if (orderErr) {
-        alert("Error loading regional records: " + orderErr.message);
+        console.error("Error loading regional records:", orderErr.message);
         return;
       }
 
       allOrders = orders || [];
 
-      // 4. Fetch Feedbacks
       if (allOrders.length > 0) {
         const orderIds = allOrders.map(o => o.id);
         const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
