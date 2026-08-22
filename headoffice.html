@@ -228,7 +228,7 @@
         </div>
       </div>
 
-      <!-- Patient Cards Grid -->
+      <!-- Patient Cards Grid (Read-Only National Overview) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -351,6 +351,44 @@
     let filterEndDate = null;
 
     let realtimeChannel = null;
+
+    // Full 6-tier Tirzepatide Titration Escalation Schedule
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
 
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
@@ -880,25 +918,29 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
+            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
                   <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
                 </div>
                 <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="inline-block px-3 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700')}">
+              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700')}">
                 ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
               </span>
             </div>
 
+            <!-- Patient Information (Read-Only) -->
             <div class="space-y-1.5 text-sm">
               <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
@@ -907,6 +949,7 @@
               </div>
             </div>
 
+            <!-- Doctor & Titration Overview -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
@@ -917,14 +960,19 @@
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Dose & Device</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
               ${order.prescription_url 
                 ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
                 : ''}
             </div>
 
+            <!-- Feedback -->
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
