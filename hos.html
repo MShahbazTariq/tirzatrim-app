@@ -147,7 +147,7 @@
           <span class="text-base">🔔</span> <span>Enable Regional Push Alerts</span>
         </button>
 
-        <button onclick="fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="text-base">🔄</span> <span>Refresh Regional Data</span>
         </button>
 
@@ -386,6 +386,7 @@
     let filterEndDate = null;
 
     let realtimeChannel = null;
+    let hosPollingInterval = null;
 
     // Full 6-tier Tirzepatide Titration Escalation Schedule
     const TITRATION_MAP = {
@@ -495,48 +496,114 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchEverything = async function(silent = false) {
+      if (!currentHos) return;
+
+      const { data: managers } = await client
+        .from('managers')
+        .select('*')
+        .eq('region', currentHos.region);
+
+      regionalManagers = managers || [];
+      const managerSaps = regionalManagers.map(m => m.manager_sap_id);
+
+      if (managerSaps.length > 0) {
+        const { data: reps } = await client
+          .from('reps')
+          .select('*')
+          .in('manager_sap_id', managerSaps);
+        regionalReps = reps || [];
+      } else {
+        regionalReps = [];
+      }
+
+      const repCodes = regionalReps.map(r => r.territory_code);
+
+      let query = client.from('orders').select('*').order('created_at', { ascending: false });
+      
+      if (repCodes.length > 0) {
+        query = query.in('rep_code', repCodes);
+      } else if (managerSaps.length > 0) {
+        query = query.in('manager_sap_id', managerSaps);
+      } else {
+        allOrders = [];
+        applyAllFilters();
+        return;
+      }
+
+      const { data: orders, error: orderErr } = await query;
+      if (orderErr) {
+        if (!silent) console.error("Error loading regional records:", orderErr.message);
+        return;
+      }
+
+      allOrders = orders || [];
+
+      if (allOrders.length > 0) {
+        const orderIds = allOrders.map(o => o.id);
+        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
+      } else {
+        feedbackMap = {};
+      }
+
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    };
+
     function initHOSRealtimeSync() {
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
       }
 
+      // 1. Unfiltered WebSocket Connection for HOS Dashboard
       realtimeChannel = client
-        .channel('hos-regional-sync')
+        .channel('public:global_hos_sync')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
           (payload) => {
             console.log('⚡ [HOS Realtime] Order mutation detected:', payload.eventType);
-            fetchEverything();
+            window.fetchEverything(true);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'feedback' },
           () => {
-            console.log('⚡ [HOS Realtime] Patient feedback updated');
-            fetchEverything();
+            window.fetchEverything(true);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'reps' },
           () => {
-            fetchEverything();
+            window.fetchEverything(true);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'managers' },
           () => {
-            fetchEverything();
+            window.fetchEverything(true);
           }
         )
         .subscribe((status) => {
+          console.log('📡 HOS Realtime Status:', status);
           if (status === 'SUBSCRIBED') {
-            console.log('✅ Realtime Active for HOS Suite');
+            window.fetchEverything(true);
           }
         });
+
+      // 2. 5-Second Heartbeat Bridge
+      if (hosPollingInterval) clearInterval(hosPollingInterval);
+      hosPollingInterval = setInterval(() => {
+        window.fetchEverything(true);
+      }, 5000);
     }
 
     function checkHosSession() {
@@ -554,7 +621,7 @@
         document.getElementById('menuSapDisplay').innerText = currentHos.sap_id;
 
         initDates();
-        fetchEverything();
+        window.fetchEverything();
         initHOSRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -599,13 +666,13 @@
       err.classList.add('hidden');
 
       const sapId = document.getElementById('loginSap').value.trim();
-      const pass = document.getElementById('loginPassword').value;
+      const pass = document.getElementById('loginPassword').value.trim();
 
       try {
         const { data, error } = await client
           .from('hos')
           .select('*')
-          .eq('sap_id', sapId)
+          .ilike('sap_id', sapId)
           .eq('password', pass)
           .limit(1);
 
@@ -625,6 +692,10 @@
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
         realtimeChannel = null;
+      }
+      if (hosPollingInterval) {
+        clearInterval(hosPollingInterval);
+        hosPollingInterval = null;
       }
       sessionStorage.removeItem('tt_current_hos');
       currentHos = null;
@@ -746,63 +817,6 @@
     function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
-    }
-
-    async function fetchEverything() {
-      if (!currentHos) return;
-
-      const { data: managers } = await client
-        .from('managers')
-        .select('*')
-        .eq('region', currentHos.region);
-
-      regionalManagers = managers || [];
-      const managerSaps = regionalManagers.map(m => m.manager_sap_id);
-
-      if (managerSaps.length > 0) {
-        const { data: reps } = await client
-          .from('reps')
-          .select('*')
-          .in('manager_sap_id', managerSaps);
-        regionalReps = reps || [];
-      } else {
-        regionalReps = [];
-      }
-
-      const repCodes = regionalReps.map(r => r.territory_code);
-
-      let query = client.from('orders').select('*').order('created_at', { ascending: false });
-      
-      if (repCodes.length > 0) {
-        query = query.in('rep_code', repCodes);
-      } else if (managerSaps.length > 0) {
-        query = query.in('manager_sap_id', managerSaps);
-      } else {
-        allOrders = [];
-        applyAllFilters();
-        return;
-      }
-
-      const { data: orders, error: orderErr } = await query;
-      if (orderErr) {
-        console.error("Error loading regional records:", orderErr.message);
-        return;
-      }
-
-      allOrders = orders || [];
-
-      if (allOrders.length > 0) {
-        const orderIds = allOrders.map(o => o.id);
-        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
-      } else {
-        feedbackMap = {};
-      }
-
-      populateManagerDropdown();
-      populateRepDropdown();
-      applyAllFilters();
     }
 
     function populateManagerDropdown() {
