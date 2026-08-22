@@ -208,11 +208,13 @@
             const repCode = currentRep ? (currentRep.territory_code || '').toUpperCase() : '';
 
             if (isRep && currentRep && (!incomingRep || incomingRep === repCode)) {
-              triggerPushNotification('✨ New Patient Order Enrolled', `${o.patient_name || 'Patient'} (${o.prescribed_dose || '5mg'}) enrolled in territory ${o.rep_code || 'Direct'}`, '/team.html', 'orders');
+              window.triggerPushNotification('✨ New Patient Order Enrolled', `${o.patient_name || 'Patient'} (${o.prescribed_dose || '5mg'}) enrolled in territory ${o.rep_code || 'Direct'}`, '/team.html', 'orders');
             } else if (isZSM) {
-              triggerPushNotification('✨ New Zone Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.prescribed_dose || '5mg'}`, '/admin.html', 'orders');
+              window.triggerPushNotification('✨ New Zone Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.prescribed_dose || '5mg'}`, '/admin.html', 'orders');
             } else if (isHO) {
-              triggerPushNotification('✨ New National Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`, '/headoffice.html', 'orders');
+              window.triggerPushNotification('✨ New National Order', `${o.patient_name || 'Patient'} (${o.rep_code || 'Direct'}) - ${o.city || 'Pakistan'}`, '/headoffice.html', 'orders');
+            } else if (!isRep && !isHO) {
+              window.triggerPushNotification('✨ New Order Enrolled', `${o.patient_name || 'Patient'} (${o.city || 'Pakistan'}) - ${o.prescribed_dose || '5mg'}`, window.location.pathname, 'orders');
             }
           }
         })
