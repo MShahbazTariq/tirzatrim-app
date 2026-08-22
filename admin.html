@@ -87,7 +87,7 @@
       <!-- LOGIN -->
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
-          <input type="text" id="loginMgrSap" placeholder="Manager SAP ID (e.g. 71726)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
+          <input type="text" id="loginMgrSap" value="7613" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
         </div>
         <div>
           <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
@@ -96,7 +96,7 @@
           Unlock My Zone Dashboard
         </button>
         <button type="button" onclick="bypassZsmLogin()" class="w-full py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold rounded-xl transition-all">
-          ⚡ Quick Bypass (ZSM 71726)
+          ⚡ Quick Bypass (ZSM 7613)
         </button>
       </form>
 
@@ -104,7 +104,7 @@
       <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden text-left">
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
-          <input type="text" id="regMgrName" placeholder="e.g. M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <input type="text" id="regMgrName" value="M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -117,17 +117,17 @@
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Team *</label>
-            <input type="text" id="regMgrTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrTeam" value="QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Zone / Territory *</label>
-            <input type="text" id="regMgrZone" placeholder="e.g. LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrZone" value="LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regMgrSapId" placeholder="e.g. 71726" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrSapId" value="7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
           </div>
         </div>
         <div>
@@ -166,7 +166,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
           <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Zone: <span id="menuZoneDisplay">LHR2</span></span>
-          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">71726</span></span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7613</span></span>
           <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
           </span>
@@ -673,7 +673,7 @@
           return;
         }
 
-        const sapId = currentManager ? (currentManager.manager_sap_id || currentManager.sap_id || currentManager.id) : '71726';
+        const sapId = currentManager ? (currentManager.manager_sap_id || currentManager.sap_id || currentManager.id) : '7613';
         const zone = currentManager ? (currentManager.zone_region || currentManager.zone) : 'LHR2';
 
         if (window.subscribeDeviceToPush) {
@@ -886,16 +886,16 @@
         const { data, error } = await client
           .from('managers')
           .select('*')
-          .or('manager_sap_id.ilike.71726,sap_id.ilike.71726')
+          .or('manager_sap_id.ilike.7613,sap_id.ilike.7613')
           .limit(1);
 
         if (data && data.length > 0) {
           currentManager = data[0];
-          currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || '71726';
+          currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || '7613';
         } else {
           currentManager = {
             full_name: "M. Shahbaz Tariq",
-            manager_sap_id: "71726",
+            manager_sap_id: "7613",
             zone_region: "LHR2",
             team_name: "QASWA",
             region: "Central"
@@ -906,7 +906,7 @@
       } catch (e) {
         currentManager = {
           full_name: "M. Shahbaz Tariq",
-          manager_sap_id: "71726",
+          manager_sap_id: "7613",
           zone_region: "LHR2",
           team_name: "QASWA",
           region: "Central"
@@ -1559,7 +1559,7 @@
       a.click();
     }
 
-    // Auto-initialize session check and fallback bypass
+    // Initialize session with a built-in safety fallback for SAP 7613
     if (!currentManager) {
       bypassZsmLogin();
     } else {
