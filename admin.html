@@ -673,8 +673,6 @@
           if (btn) {
             btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
           }
-        } else {
-          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Registration Error: " + err.message);
@@ -734,65 +732,61 @@
 
     // Explicit Global Attachment for notification.js and sw.js
     window.fetchManagerOrders = async function(silent = false) {
-  if (!currentManager) return;
+      if (!currentManager) return;
 
-  // 1. Fetch reps linked to this manager's SAP ID
-  const { data: repsData } = await client
-    .from('reps')
-    .select('*')
-    .eq('manager_sap_id', currentManager.manager_sap_id);
+      const { data: repsData } = await client
+        .from('reps')
+        .select('*')
+        .eq('manager_sap_id', currentManager.manager_sap_id);
 
-  registeredReps = repsData || [];
+      registeredReps = repsData || [];
 
-  const repFilter = document.getElementById('subordinateFilter');
-  const currentSelected = repFilter.value;
-  
-  repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-    registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-  
-  if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-    repFilter.value = currentSelected;
-  }
+      const repFilter = document.getElementById('subordinateFilter');
+      const currentSelected = repFilter.value;
+      
+      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      
+      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+        repFilter.value = currentSelected;
+      }
 
-  const repCodes = registeredReps.map(r => r.territory_code);
+      const repCodes = registeredReps.map(r => r.territory_code);
 
-  // 2. Fetch all orders without restrictive pre-filtering
-  const { data: orders, error } = await client
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false });
+      const { data: orders, error } = await client
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  if (error) {
-    if (!silent) console.error("Error loading orders:", error.message);
-    return;
-  }
+      if (error) {
+        if (!silent) console.error("Error loading orders:", error.message);
+        return;
+      }
 
-  const allFetched = orders || [];
+      const allFetched = orders || [];
+      if (repCodes.length > 0) {
+        currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
+      } else {
+        currentOrdersData = allFetched;
+      }
 
-  // 3. Smart Fallback: If reps are linked, show their orders. If none linked yet, show all zone/direct orders so counter isn't stuck at 0.
-  if (repCodes.length > 0) {
-    currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
-  } else {
-    currentOrdersData = allFetched; // Fallback to show orders so you can see them immediately
-  }
+      const orderIds = currentOrdersData.map(o => o.id);
+      if (orderIds.length > 0) {
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
 
-  const orderIds = currentOrdersData.map(o => o.id);
-  if (orderIds.length > 0) {
-    const { data: feedbacks } = await client
-      .from('feedback')
-      .select('*')
-      .in('order_id', orderIds);
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => {
+          feedbackMap[f.order_id] = f;
+        });
+      } else {
+        feedbackMap = {};
+      }
 
-    feedbackMap = {};
-    (feedbacks || []).forEach(f => {
-      feedbackMap[f.order_id] = f;
-    });
-  } else {
-    feedbackMap = {};
-  }
-
-  applyAllFilters();
-};
+      applyAllFilters();
+    };
 
     function initRealtimeSync() {
       if (realtimeChannel) {
@@ -800,7 +794,6 @@
         realtimeChannel = null;
       }
 
-      // 1. Unfiltered WebSocket Connection for ZSM Dashboard
       realtimeChannel = client
         .channel('public:global_admin_sync')
         .on(
@@ -839,7 +832,6 @@
           }
         });
 
-      // 2. 5-Second Heartbeat Bridge
       if (adminPollingInterval) clearInterval(adminPollingInterval);
       adminPollingInterval = setInterval(() => {
         window.fetchManagerOrders(true);
