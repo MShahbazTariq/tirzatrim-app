@@ -580,26 +580,35 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
+    // Direct Real-Time Synchronizer without server-side filter drop
     function initRepRealtimeSync() {
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
       }
 
       if (!currentRep || !currentRep.territory_code) return;
 
+      const myTCode = (currentRep.territory_code || '').trim().toUpperCase();
+
       realtimeChannel = client
-        .channel(`rep-${currentRep.territory_code}-realtime`)
+        .channel(`rep-live-channel-${Date.now()}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'orders',
-            filter: `rep_code=eq.${currentRep.territory_code}`
+            table: 'orders'
           },
           (payload) => {
-            console.log('⚡ [Rep Realtime] Territory order event detected:', payload.eventType);
-            fetchRepOrders();
+            const orderData = payload.new || payload.old || {};
+            const incomingRepCode = (orderData.rep_code || '').trim().toUpperCase();
+
+            // When new order created or status updated for this rep's code
+            if (!incomingRepCode || incomingRepCode === myTCode) {
+              console.log('⚡ [Rep Realtime] Event received:', payload.eventType);
+              fetchRepOrders(); // Instant live counter & grid update
+            }
           }
         )
         .on(
@@ -615,9 +624,7 @@
           }
         )
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log(`✅ Realtime Active for Rep [${currentRep.territory_code}]`);
-          }
+          console.log(`📡 Realtime Status for Rep [${myTCode}]:`, status);
         });
     }
 
@@ -1009,6 +1016,7 @@
       const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       const inProcess = total - delivered;
 
+      // Update counters in DOM
       document.getElementById('repStatTotal').innerText = total;
       document.getElementById('repStatProcess').innerText = inProcess;
       document.getElementById('repStatDelivered').innerText = delivered;
