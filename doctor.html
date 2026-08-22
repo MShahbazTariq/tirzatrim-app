@@ -189,6 +189,9 @@
     let filterStartDate = null;
     let filterEndDate = null;
 
+    let realtimeChannel = null;
+    let doctorPollingInterval = null;
+
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
       const year = d.getFullYear();
@@ -304,7 +307,8 @@
       }
 
       initDates();
-      fetchDoctorOrders();
+      window.fetchDoctorOrders();
+      initDoctorRealtimeSync();
     }
 
     function handleDoctorSearchSubmit(e) {
@@ -413,7 +417,8 @@
       return '⭐'.repeat(rating);
     }
 
-    async function fetchDoctorOrders() {
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchDoctorOrders = async function(silent = false) {
       if (!currentDoctorName) {
         rawOrders = [];
         cachedFeedbacks = {};
@@ -427,7 +432,7 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        alert("Error loading records: " + error.message);
+        if (!silent) console.error("Error loading records:", error.message);
         return;
       }
 
@@ -449,6 +454,44 @@
       }
 
       applyAllFilters();
+    };
+
+    function initDoctorRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      // 1. Unfiltered WebSocket Connection for Prescribing Doctor
+      realtimeChannel = client
+        .channel('public:global_doctor_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ [Doctor Realtime] Order event detected:', payload.eventType);
+            window.fetchDoctorOrders(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            window.fetchDoctorOrders(true);
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Doctor Realtime Status:', status);
+          if (status === 'SUBSCRIBED') {
+            window.fetchDoctorOrders(true);
+          }
+        });
+
+      // 2. 5-Second Heartbeat Bridge
+      if (doctorPollingInterval) clearInterval(doctorPollingInterval);
+      doctorPollingInterval = setInterval(() => {
+        window.fetchDoctorOrders(true);
+      }, 5000);
     }
 
     function applyAllFilters() {
@@ -531,7 +574,9 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const ctx = document.getElementById('dailyChart').getContext('2d');
+      const chartCanvas = document.getElementById('dailyChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
       const isDark = document.documentElement.classList.contains('dark');
