@@ -355,6 +355,7 @@
         </div>
       </div>
 
+      <!-- Patient Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -565,6 +566,44 @@
 
     let realtimeChannel = null;
 
+    // Full 6-tier Tirzepatide Titration Escalation Schedule
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
+
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
       document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
@@ -654,12 +693,6 @@
       }
     });
 
-    const statuses = [
-      'New Patient', 'Prescription Received', 'Prescription Verified',
-      'Order Processing', 'Dispatched', 'Delivered', 'Patient Confirmed',
-      'Usage Guidance Completed', 'Feedback Submitted', 'Completed'
-    ];
-
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
       const year = d.getFullYear();
@@ -710,6 +743,20 @@
           { event: '*', schema: 'public', table: 'orders' },
           (payload) => {
             console.log('⚡ [ZSM Realtime] Change detected:', payload.eventType);
+            fetchManagerOrders();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            fetchManagerOrders();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => {
             fetchManagerOrders();
           }
         )
@@ -1354,17 +1401,6 @@
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
 
-    function getRefillStatus(createdAtDate, prescribedDose) {
-      const orderDate = new Date(createdAtDate);
-      const now = new Date();
-      const diffDays = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
-      return {
-        isDue: diffDays >= 21,
-        daysElapsed: diffDays,
-        currentDose: prescribedDose || '5mg'
-      };
-    }
-
     function renderCards() {
       const grid = document.getElementById('mgrCardsGrid');
       if (activeFilteredOrders.length === 0) {
@@ -1374,146 +1410,71 @@
 
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
-        const refillInfo = getRefillStatus(order.created_at, order.prescribed_dose);
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <!-- Card Header: ID, Date, Rep & Status Selector -->
+            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
                   <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
-                  ${refillInfo.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20 animate-pulse">🔄 Refill Due (D${refillInfo.daysElapsed})</span>` : ''}
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
                 </div>
                 <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <div>
-                <select onchange="updateStatus('${order.id}', this.value)" class="text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-xl py-1.5 px-2 bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 cursor-pointer">
-                  ${statuses.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
+                <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700')}">
+                  ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
+                </span>
               </div>
             </div>
 
-            <!-- Patient Info -->
+            <!-- Patient Info (Read-Only) -->
             <div class="space-y-1.5 text-sm">
-              <div class="flex items-center justify-between">
-                <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
-                  📞 Call
-                </a>
-              </div>
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
               <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
                 📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
-            <!-- Doctor & Rx Details -->
+            <!-- Doctor & Titration Overview -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
                 <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Clinic</span>
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
               <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Dose & Pen</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
               ${order.prescription_url 
                 ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
                 : ''}
             </div>
 
-            <!-- Feedback -->
+            <!-- Feedback & Assigned Territory -->
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
             </div>
 
-            <!-- Actions Suite -->
-            <div class="space-y-2 pt-1">
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 flex items-center justify-center gap-1">
-                  💬 Status
-                </button>
-                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1">
-                  ⭐ Feedback
-                </button>
-              </div>
-
-              <button onclick="send1ClickRefillWhatsApp('${order.mobile}', '${order.patient_name}', '${order.prescribed_dose || '5mg'}', '${order.rep_code || 'DIRECT'}')" class="w-full py-2.5 px-2 ${refillInfo.isDue ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all">
-                <span>🔄</span> Send Refill Reminder
-              </button>
-
-              <button onclick="deleteOrder('${order.id}', '${order.patient_name}')" class="w-full py-2 px-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl border border-rose-500/20">
-                🗑️ Delete Record
-              </button>
-            </div>
-
           </div>
         `;
       }).join('');
-    }
-
-    async function updateStatus(orderId, newStatus) {
-      await client.from('orders').update({ status: newStatus }).eq('id', orderId);
-      // Realtime listener automatically handles the sync
-    }
-
-    async function deleteOrder(orderId, patientName) {
-      const confirmDelete = confirm(`Are you sure you want to delete the record for "${patientName}"?`);
-      if (!confirmDelete) return;
-
-      try {
-        await client.from('feedback').delete().eq('order_id', orderId);
-        const { error } = await client.from('orders').delete().eq('id', orderId);
-        if (error) throw error;
-      } catch (err) {
-        alert("Error deleting: " + err.message);
-      }
-    }
-
-    function formatPakistanMobile(mobile) {
-      if (!mobile) return '';
-      let cleaned = ('' + mobile).replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        cleaned = '92' + cleaned.substring(1);
-      } else if (!cleaned.startsWith('92')) {
-        cleaned = '92' + cleaned;
-      }
-      return cleaned;
-    }
-
-    function openWhatsApp(mobile, text) {
-      const formattedNumber = formatPakistanMobile(mobile);
-      const encodedText = encodeURIComponent(text);
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (isMobile) {
-        window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
-      } else {
-        window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
-      }
-    }
-
-    function sendUpdateWhatsApp(mobile, name, orderId, status) {
-      const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*.`;
-      openWhatsApp(mobile, msg);
-    }
-
-    function sendFeedbackWhatsApp(mobile, name) {
-      const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim Patient Support. Please take a moment to rate your delivery and service experience here: https://tirzatrim.vercel.app/feedback.html`;
-      openWhatsApp(mobile, msg);
-    }
-
-    function send1ClickRefillWhatsApp(mobile, name, lastDose, repCode) {
-      const refillLink = `https://tirzatrim.vercel.app/order.html?rep=${encodeURIComponent(repCode || 'DIRECT')}&name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}`;
-      const msg = `Assalam-o-Alaikum ${name},\n\nHope your TirzaTrim (${lastDose}) therapy is progressing smoothly. You are approaching the end of your 4-week pen cycle.\n\nTo place your next refill order here with 1 click:\n${refillLink}\n\nTirzaTrim Patient Support Care`;
-      openWhatsApp(mobile, msg);
     }
 
     function exportToCSV() {
