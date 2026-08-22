@@ -33,8 +33,8 @@
         </a>
         <button 
           onclick="toggleTheme()" 
-          type="button"
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1"
+          type="button" 
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
           title="Toggle Theme"
         >
           <span class="theme-icon">🌙</span>
@@ -126,7 +126,7 @@
   <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE (Exact Match to index.html) -->
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
       
       <!-- Right Floating Hamburger Button -->
@@ -136,8 +136,6 @@
 
       <!-- Center Logo & Branding Block Exactly Matching index.html -->
       <div class="flex flex-col items-center justify-center">
-        
-        <!-- Logo + Vertical Dose Stack -->
         <div class="flex items-center justify-center gap-4">
           <div class="text-left">
             <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
@@ -148,7 +146,6 @@
             </p>
           </div>
 
-          <!-- Vertical Stack for Multi-Dose Pen & 3 Pills -->
           <div class="flex flex-col items-center gap-1">
             <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
             <div class="flex flex-col gap-1 w-14">
@@ -159,16 +156,14 @@
           </div>
         </div>
 
-        <!-- Dynamic Replacement for "Operations Hub" -->
         <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
           <span class="text-slate-900 dark:text-white">National Command Center</span>
           <span class="text-[#059669]">HQ • Executive Suite</span>
         </div>
-
       </div>
     </header>
 
-    <!-- 2. QUICK HORIZONTAL KPI STRIP (Swipeable on Mobile) -->
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
@@ -317,7 +312,7 @@
 
   </div>
 
-  <!-- 5. FIXED BOTTOM NAVIGATION (Mobile-Optimized) -->
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
     <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
       <span class="text-lg">👥</span>
@@ -354,6 +349,8 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    let realtimeChannel = null;
 
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
@@ -479,12 +476,57 @@
       }
     }
 
+    function initHQRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+      }
+
+      realtimeChannel = client
+        .channel('hq-national-sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ [HQ Realtime] National order updated:', payload.eventType);
+            fetchEverything();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            console.log('⚡ [HQ Realtime] Feedback record updated');
+            fetchEverything();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'managers' },
+          () => {
+            fetchEverything();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => {
+            fetchEverything();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Realtime Active for National Command Center');
+          }
+        });
+    }
+
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         initDates();
         fetchEverything();
+        initHQRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -503,6 +545,10 @@
     }
 
     function handleHeadOfficeLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
       sessionStorage.removeItem('tt_ho_auth');
       checkHoSession();
     }
@@ -551,7 +597,7 @@
     async function fetchEverything() {
       const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
       if (orderErr) {
-        alert("Error loading orders: " + orderErr.message);
+        console.error("Error loading orders:", orderErr.message);
         return;
       }
       allOrders = orders || [];
