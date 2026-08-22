@@ -177,7 +177,7 @@
           <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
         </button>
 
-        <button onclick="fetchManagerOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+        <button onclick="window.fetchManagerOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="text-base">🔄</span> <span>Refresh Database</span>
         </button>
 
@@ -565,6 +565,7 @@
     let filterEndDate = null;
 
     let realtimeChannel = null;
+    let adminPollingInterval = null;
 
     // Full 6-tier Tirzepatide Titration Escalation Schedule
     const TITRATION_MAP = {
@@ -731,33 +732,97 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchManagerOrders = async function(silent = false) {
+      if (!currentManager) return;
+
+      const { data: repsData } = await client
+        .from('reps')
+        .select('*')
+        .eq('manager_sap_id', currentManager.manager_sap_id);
+
+      registeredReps = repsData || [];
+
+      const repFilter = document.getElementById('subordinateFilter');
+      const currentSelected = repFilter.value;
+      
+      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      
+      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+        repFilter.value = currentSelected;
+      }
+
+      const repCodes = registeredReps.map(r => r.territory_code);
+
+      let query = client
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (repCodes.length > 0) {
+        query = query.in('rep_code', repCodes);
+      } else {
+        currentOrdersData = [];
+        applyAllFilters();
+        return;
+      }
+
+      const { data: orders, error } = await query;
+      if (error) {
+        if (!silent) console.error("Error loading orders:", error.message);
+        return;
+      }
+
+      currentOrdersData = orders || [];
+
+      const orderIds = currentOrdersData.map(o => o.id);
+      if (orderIds.length > 0) {
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
+
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => {
+          feedbackMap[f.order_id] = f;
+        });
+      } else {
+        feedbackMap = {};
+      }
+
+      applyAllFilters();
+    };
+
     function initRealtimeSync() {
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
       }
 
+      // 1. Unfiltered WebSocket Connection for ZSM Dashboard
       realtimeChannel = client
-        .channel('admin-zonal-realtime')
+        .channel('public:global_admin_sync')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
           (payload) => {
-            console.log('⚡ [ZSM Realtime] Change detected:', payload.eventType);
-            fetchManagerOrders();
+            console.log('⚡ [ZSM Realtime] Order change detected:', payload.eventType);
+            window.fetchManagerOrders(true);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'feedback' },
           () => {
-            fetchManagerOrders();
+            window.fetchManagerOrders(true);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'reps' },
           () => {
-            fetchManagerOrders();
+            window.fetchManagerOrders(true);
           }
         )
         .on(
@@ -768,10 +833,17 @@
           }
         )
         .subscribe((status) => {
+          console.log('📡 ZSM Realtime Status:', status);
           if (status === 'SUBSCRIBED') {
-            console.log('✅ Realtime Active for ZSM Hub');
+            window.fetchManagerOrders(true);
           }
         });
+
+      // 2. 5-Second Heartbeat Bridge
+      if (adminPollingInterval) clearInterval(adminPollingInterval);
+      adminPollingInterval = setInterval(() => {
+        window.fetchManagerOrders(true);
+      }, 5000);
     }
 
     function checkMgrSession() {
@@ -789,7 +861,7 @@
         document.getElementById('menuSapDisplay').innerText = currentManager.manager_sap_id;
         
         initDates();
-        fetchManagerOrders();
+        window.fetchManagerOrders();
         fetchBroadcasts();
         initRealtimeSync();
       } else {
@@ -836,13 +908,13 @@
       err.classList.add('hidden');
 
       const sapId = document.getElementById('loginMgrSap').value.trim();
-      const pass = document.getElementById('loginMgrPassword').value;
+      const pass = document.getElementById('loginMgrPassword').value.trim();
 
       try {
         const { data, error } = await client
           .from('managers')
           .select('*')
-          .eq('manager_sap_id', sapId)
+          .ilike('manager_sap_id', sapId)
           .eq('password', pass)
           .limit(1);
 
@@ -862,6 +934,10 @@
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
         realtimeChannel = null;
+      }
+      if (adminPollingInterval) {
+        clearInterval(adminPollingInterval);
+        adminPollingInterval = null;
       }
       sessionStorage.removeItem('tt_current_manager');
       currentManager = null;
@@ -1141,7 +1217,7 @@
       try {
         const { error } = await client.from('reps').delete().eq('id', repId);
         if (error) throw error;
-        await fetchManagerOrders();
+        await window.fetchManagerOrders();
         renderRepsModalTable();
       } catch (err) {
         alert("Error removing rep: " + err.message);
@@ -1176,71 +1252,10 @@
         alert(`Successfully transferred ${data ? data.length : 0} patient records to '${toCode}'.`);
         document.getElementById('transferFromCode').value = '';
         closeRepsModal();
-        fetchManagerOrders();
+        window.fetchManagerOrders();
       } catch (err) {
         alert("Transfer failed: " + err.message);
       }
-    }
-
-    async function fetchManagerOrders() {
-      if (!currentManager) return;
-
-      const { data: repsData } = await client
-        .from('reps')
-        .select('*')
-        .eq('manager_sap_id', currentManager.manager_sap_id);
-
-      registeredReps = repsData || [];
-
-      const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter.value;
-      
-      repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-      
-      if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-        repFilter.value = currentSelected;
-      }
-
-      const repCodes = registeredReps.map(r => r.territory_code);
-
-      let query = client
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (repCodes.length > 0) {
-        query = query.in('rep_code', repCodes);
-      } else {
-        currentOrdersData = [];
-        applyAllFilters();
-        return;
-      }
-
-      const { data: orders, error } = await query;
-      if (error) {
-        console.error("Error loading orders:", error.message);
-        return;
-      }
-
-      currentOrdersData = orders || [];
-
-      const orderIds = currentOrdersData.map(o => o.id);
-      if (orderIds.length > 0) {
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
-
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => {
-          feedbackMap[f.order_id] = f;
-        });
-      } else {
-        feedbackMap = {};
-      }
-
-      applyAllFilters();
     }
 
     function applyAllFilters() {
