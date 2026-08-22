@@ -552,7 +552,19 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || 'null');
+    // Persistent manager session: survives page refreshes and browser tab reloads.
+    // Also migrates any existing sessionStorage login created by the older version.
+    let currentManager = null;
+    try {
+      const savedManager = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
+      currentManager = savedManager ? JSON.parse(savedManager) : null;
+      if (currentManager) {
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+      }
+    } catch (sessionError) {
+      console.warn('Unable to restore manager session:', sessionError);
+      currentManager = null;
+    }
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
@@ -560,7 +572,7 @@
     let chartInstance = null;
     let publishedBroadcasts = [];
 
-    let currentDateScope = "MTD";
+    let currentDateScope = "ALL";
     let filterStartDate = null;
     let filterEndDate = null;
 
@@ -891,7 +903,7 @@
         }
 
         currentManager = data[0];
-        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -919,7 +931,7 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
-        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -936,6 +948,8 @@
         clearInterval(adminPollingInterval);
         adminPollingInterval = null;
       }
+      localStorage.removeItem('tt_current_manager');
+      // Clear the legacy key too, so an old session cannot restore unexpectedly.
       sessionStorage.removeItem('tt_current_manager');
       currentManager = null;
       checkMgrSession();
@@ -1091,7 +1105,9 @@
     }
 
     function initDates() {
-      setDatePreset('MTD');
+      // Start with All Time so existing/dummy orders are not hidden by an
+      // automatic Month-to-Date filter after login or page refresh.
+      setDatePreset('ALL');
     }
 
     function setDatePreset(type) {
