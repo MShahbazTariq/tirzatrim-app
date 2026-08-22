@@ -5,18 +5,33 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_p
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Complete clinical titration curve for Tirzepatide
 const NEXT_DOSE_MAP = {
   '2.5mg': '5mg',
-  '5mg': '10mg',
-  '10mg': '15mg',
+  '5mg': '7.5mg',
+  '7.5mg': '10mg',
+  '10mg': '12.5mg',
+  '12.5mg': '15mg',
   '15mg': '15mg (Maintenance)'
 };
+
+function normalizeDoseKey(rawDose) {
+  if (!rawDose) return '5mg';
+  const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+  if (clean.includes('2.5')) return '2.5mg';
+  if (clean.includes('7.5')) return '7.5mg';
+  if (clean.includes('12.5')) return '12.5mg';
+  if (clean.includes('15')) return '15mg';
+  if (clean.includes('10')) return '10mg';
+  if (clean.includes('5')) return '5mg';
+  return '5mg';
+}
 
 export default async function handler(req, res) {
   try {
     const today = new Date();
     
-    // 1. Fetch active delivered patient records
+    // 1. Fetch fulfilled patient orders
     const { data: orders, error: ordersErr } = await supabase
       .from('orders')
       .select('*')
@@ -30,7 +45,7 @@ export default async function handler(req, res) {
       const orderDate = new Date(order.created_at);
       const daysElapsed = Math.floor((today - orderDate) / (1000 * 60 * 60 * 24));
 
-      // Day 21-28 check (Week 4 of the multi-dose pen cycle)
+      // Day 21-28 check (Week 4 of the 4-week pen cycle)
       if (daysElapsed >= 21 && daysElapsed <= 28) {
         const { data: existingLog } = await supabase
           .from('reminders_log')
@@ -40,14 +55,14 @@ export default async function handler(req, res) {
           .limit(1);
 
         if (!existingLog || existingLog.length === 0) {
-          const currentDose = order.prescribed_dose || '5mg';
-          const nextRecommendedDose = NEXT_DOSE_MAP[currentDose] || '10mg';
+          const doseKey = normalizeDoseKey(order.prescribed_dose);
+          const nextRecommendedDose = NEXT_DOSE_MAP[doseKey] || '7.5mg';
 
           remindersQueue.push({
             order_id: order.id,
             patient_name: order.patient_name,
             patient_mobile: order.mobile,
-            current_dose: currentDose,
+            current_dose: order.prescribed_dose || '5mg',
             next_dose: nextRecommendedDose,
             rep_code: order.rep_code,
             days_elapsed: daysElapsed
