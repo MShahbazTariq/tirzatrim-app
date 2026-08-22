@@ -41,7 +41,7 @@
           <span class="theme-icon">🌙</span>
           <span class="theme-label">Dark</span>
         </button>
-        <button onclick="fetchDistributorOrders()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+        <button onclick="window.fetchDistributorOrders()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
           <span>🔄</span> Refresh Queue
         </button>
       </div>
@@ -127,15 +127,18 @@
 
     let allOrders = [];
     let currentTab = 'PENDING';
+    let realtimeChannel = null;
+    let distributorPollingInterval = null;
 
-    async function fetchDistributorOrders() {
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchDistributorOrders = async function(silent = false) {
       const { data, error } = await client
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        alert("Error loading orders: " + error.message);
+        if (!silent) console.error("Error loading orders:", error.message);
         return;
       }
 
@@ -143,6 +146,37 @@
       populateCityDropdown();
       updateMetrics();
       renderDistributorOrders();
+    };
+
+    function initDistributorRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      // 1. Unfiltered WebSocket Listener
+      realtimeChannel = client
+        .channel('public:global_distributor_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ [Distributor Realtime] Queue change detected:', payload.eventType);
+            window.fetchDistributorOrders(true);
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Distributor Realtime Status:', status);
+          if (status === 'SUBSCRIBED') {
+            window.fetchDistributorOrders(true);
+          }
+        });
+
+      // 2. 5-Second Polling Fallback Bridge
+      if (distributorPollingInterval) clearInterval(distributorPollingInterval);
+      distributorPollingInterval = setInterval(() => {
+        window.fetchDistributorOrders(true);
+      }, 5000);
     }
 
     function populateCityDropdown() {
@@ -304,13 +338,14 @@
           .eq('id', orderId);
 
         if (error) throw error;
-        fetchDistributorOrders();
+        window.fetchDistributorOrders(true);
       } catch (err) {
         alert("Failed to update status: " + err.message);
       }
     }
 
-    fetchDistributorOrders();
+    window.fetchDistributorOrders();
+    initDistributorRealtimeSync();
     checkGlobalBroadcast('distributor');
   </script>
 </body>
