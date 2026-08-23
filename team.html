@@ -673,6 +673,7 @@
         
         initDates();
         window.fetchRepOrders();
+        fetchRepMdsProviders();
         initRepRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -828,6 +829,15 @@
     }
 
     /* FULFILLMENT ROUTING LOGIC (M&P vs MDS) */
+    async function fetchRepMdsProviders() {
+      try {
+        const { data, error } = await client.from('mds_providers').select('*').eq('is_active', true);
+        window.cachedMdsProviders = data || [];
+      } catch (e) {
+        window.cachedMdsProviders = [];
+      }
+    }
+
     async function populateMdsDropdown(orderId, city) {
       const container = document.getElementById(`mdsContainer-${orderId}`);
       if (!container) return;
