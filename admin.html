@@ -333,7 +333,7 @@
 
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
     
-    <!-- TAB 1: PATIENTS & ORDERS VIEW (With MDS Manager at Top) -->
+    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
     <div id="view-orders" class="tab-view-container space-y-4">
       
       <!-- MDS Partner Management Panel -->
@@ -366,6 +366,7 @@
             <option value="Order Processing">Order Processing</option>
             <option value="Dispatched">Dispatched</option>
             <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
             <option value="Feedback Submitted">Feedback Submitted</option>
           </select>
         </div>
@@ -1266,7 +1267,7 @@
           <td class="p-3">${rep.sap_id}</td>
           <td class="p-3 uppercase">${rep.team_name}</td>
           <td class="p-3 text-right">
-            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold rounded-lg">
+            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-semibold rounded-lg">
               🗑️ Remove
             </button>
           </td>
@@ -1504,6 +1505,7 @@
         const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
+        const isCancelled = order.status === 'Cancelled';
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
@@ -1518,8 +1520,8 @@
                 <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
               <div>
-                <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700')}">
-                  ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
+                <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'))}">
+                  ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
                 </span>
               </div>
             </div>
@@ -1552,6 +1554,13 @@
               ${order.prescription_url 
                 ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
                 : ''}
+
+              <!-- Read-only Cancellation Reason Patch -->
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `
+                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
+                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
+                </div>
+              ` : ''}
             </div>
 
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
@@ -1569,9 +1578,9 @@
         alert("No orders to export!");
         return;
       }
-      let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status\n";
+      let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason\n";
       activeFilteredOrders.forEach(o => {
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
