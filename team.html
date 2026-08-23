@@ -265,6 +265,7 @@
             <option value="Order Processing">Order Processing</option>
             <option value="Dispatched">Dispatched</option>
             <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
             <option value="Feedback Submitted">Feedback Submitted</option>
           </select>
         </div>
@@ -1227,6 +1228,7 @@
         const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
+        const isCancelled = order.status === 'Cancelled';
         const isRouted = order.fulfillment_channel ? true : false;
         const routedLabel = order.fulfillment_channel === 'MP' ? '📦 M&P Helpline' : (order.mds_provider ? '⚡ MDS: ' + order.mds_provider : '⚡ MDS Express');
 
@@ -1244,8 +1246,8 @@
                 </div>
                 <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="text-xs font-bold px-3 py-1 rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20')}">
-                ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
+              <span class="text-xs font-bold px-3 py-1 rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'))}">
+                ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
               </span>
             </div>
 
@@ -1286,10 +1288,14 @@
                   <a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
                 </div>
               ` : ''}
-            </div>
 
-            <!-- CANCELLATION PATCH HERE -->
-              ${order.status === 'Cancelled' && order.cancellation_reason ? `<div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2"><strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}</div>` : ''}
+              <!-- Read-only Cancellation Reason Patch -->
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `
+                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
+                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
+                </div>
+              ` : ''}
+            </div>
 
             <!-- FULFILLMENT ROUTING ACTION BLOCK -->
             <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
