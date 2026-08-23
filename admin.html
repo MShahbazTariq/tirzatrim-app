@@ -580,16 +580,7 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentManager = null;
-    try {
-      const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-      if (saved && saved !== 'undefined' && saved !== 'null') {
-        currentManager = JSON.parse(saved);
-      }
-    } catch (e) {
-      currentManager = null;
-    }
-
+    let currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || localStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
@@ -769,7 +760,7 @@
     window.fetchManagerOrders = async function(silent = false) {
       if (!currentManager) return;
 
-      const sapKey = currentManager.manager_sap_id || currentManager.sap_id || '7613';
+      const sapKey = (currentManager.manager_sap_id || currentManager.sap_id || '').trim();
 
       const { data: repsData } = await client
         .from('reps')
@@ -876,39 +867,23 @@
     }
 
     function checkMgrSession() {
-      try {
-        const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-        if (saved && saved !== 'undefined' && saved !== 'null') {
-          currentManager = JSON.parse(saved);
-        }
-      } catch (e) {}
-
-      if (currentManager && (currentManager.manager_sap_id || currentManager.sap_id)) {
-        const authScreen = document.getElementById('authScreen');
-        const dashContent = document.getElementById('dashboardContent');
-        if (authScreen) authScreen.classList.add('hidden');
-        if (dashContent) dashContent.classList.remove('hidden');
+      if (currentManager) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
         
-        const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
-        const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
-        const mgrTeam = currentManager.team_name || 'QASWA';
-        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
+        const mgrName = currentManager.full_name || 'Zonal Manager';
+        const mgrZone = currentManager.zone_region || currentManager.zone || 'Zone';
+        const mgrTeam = currentManager.team_name || 'Team';
+        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '';
 
-        const nameEl = document.getElementById('mgrNameDisplay');
-        if (nameEl) nameEl.innerText = mgrName;
-        const zoneEl = document.getElementById('mgrZoneDisplay');
-        if (zoneEl) zoneEl.innerText = mgrZone;
-        const teamEl = document.getElementById('mgrTeamDisplay');
-        if (teamEl) teamEl.innerText = mgrTeam;
+        document.getElementById('mgrNameDisplay').innerText = mgrName;
+        document.getElementById('mgrZoneDisplay').innerText = mgrZone;
+        document.getElementById('mgrTeamDisplay').innerText = mgrTeam;
 
-        const menuUser = document.getElementById('menuUserName');
-        if (menuUser) menuUser.innerText = mgrName;
-        const avatar = document.getElementById('menuAvatarBadge');
-        if (avatar) avatar.innerText = getInitials(mgrName);
-        const menuZone = document.getElementById('menuZoneDisplay');
-        if (menuZone) menuZone.innerText = mgrZone;
-        const menuSap = document.getElementById('menuSapDisplay');
-        if (menuSap) menuSap.innerText = mgrSap;
+        document.getElementById('menuUserName').innerText = mgrName;
+        document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
+        document.getElementById('menuZoneDisplay').innerText = mgrZone;
+        document.getElementById('menuSapDisplay').innerText = mgrSap;
         
         initDates();
         window.fetchManagerOrders();
@@ -916,10 +891,8 @@
         fetchAdminMdsProviders();
         initRealtimeSync();
       } else {
-        const authScreen = document.getElementById('authScreen');
-        const dashContent = document.getElementById('dashboardContent');
-        if (authScreen) authScreen.classList.remove('hidden');
-        if (dashContent) dashContent.classList.add('hidden');
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
       }
     }
 
@@ -981,7 +954,7 @@
       try {
         const { data, error } = await client
           .from('managers')
-          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password, sap_id: manager_sap_id }])
+          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password }])
           .select();
 
         if (error) {
@@ -990,9 +963,8 @@
         }
 
         currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
-        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -1012,7 +984,7 @@
         const { data, error } = await client
           .from('managers')
           .select('*')
-          .or(`manager_sap_id.ilike.${sapId},sap_id.ilike.${sapId}`)
+          .ilike('manager_sap_id', sapId)
           .eq('password', pass)
           .limit(1);
 
@@ -1020,10 +992,8 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || sapId;
-        
-        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -1040,8 +1010,8 @@
         clearInterval(adminPollingInterval);
         adminPollingInterval = null;
       }
-      localStorage.removeItem('tt_current_manager');
       sessionStorage.removeItem('tt_current_manager');
+      localStorage.removeItem('tt_current_manager');
       currentManager = null;
       checkMgrSession();
     }
@@ -1620,12 +1590,8 @@
       a.click();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      checkMgrSession();
-      if (typeof checkGlobalBroadcast === 'function') {
-        checkGlobalBroadcast('admin');
-      }
-    });
+    checkMgrSession();
+    checkGlobalBroadcast('admin');
   </script>
 </body>
 </html>
