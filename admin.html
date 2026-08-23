@@ -760,7 +760,7 @@
     window.fetchManagerOrders = async function(silent = false) {
       if (!currentManager) return;
 
-      const sapKey = (currentManager.manager_sap_id || currentManager.sap_id || '').trim();
+      const sapKey = String(currentManager.manager_sap_id || currentManager.sap_id || '').trim();
 
       const { data: repsData } = await client
         .from('reps')
@@ -867,14 +867,14 @@
     }
 
     function checkMgrSession() {
-      if (currentManager) {
+      if (currentManager && (currentManager.manager_sap_id || currentManager.sap_id || currentManager.id)) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         
-        const mgrName = currentManager.full_name || 'Zonal Manager';
-        const mgrZone = currentManager.zone_region || currentManager.zone || 'Zone';
-        const mgrTeam = currentManager.team_name || 'Team';
-        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '';
+        const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
+        const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
+        const mgrTeam = currentManager.team_name || 'QASWA';
+        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
 
         document.getElementById('mgrNameDisplay').innerText = mgrName;
         document.getElementById('mgrZoneDisplay').innerText = mgrZone;
@@ -963,8 +963,8 @@
         }
 
         currentManager = data[0];
-        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -984,7 +984,7 @@
         const { data, error } = await client
           .from('managers')
           .select('*')
-          .ilike('manager_sap_id', sapId)
+          .eq('manager_sap_id', sapId)
           .eq('password', pass)
           .limit(1);
 
@@ -992,8 +992,8 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
-        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -1010,8 +1010,8 @@
         clearInterval(adminPollingInterval);
         adminPollingInterval = null;
       }
-      sessionStorage.removeItem('tt_current_manager');
       localStorage.removeItem('tt_current_manager');
+      sessionStorage.removeItem('tt_current_manager');
       currentManager = null;
       checkMgrSession();
     }
@@ -1590,6 +1590,7 @@
       a.click();
     }
 
+    // Direct synchronous call matching team.html
     checkMgrSession();
     checkGlobalBroadcast('admin');
   </script>
