@@ -580,7 +580,16 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentManager = JSON.parse(sessionStorage.getItem('tt_current_manager') || localStorage.getItem('tt_current_manager') || 'null');
+    let currentManager = null;
+    try {
+      const stored = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
+      if (stored && stored !== 'null' && stored !== 'undefined') {
+        currentManager = JSON.parse(stored);
+      }
+    } catch (e) {
+      currentManager = null;
+    }
+
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
@@ -760,62 +769,66 @@
     window.fetchManagerOrders = async function(silent = false) {
       if (!currentManager) return;
 
-      const sapKey = String(currentManager.manager_sap_id || currentManager.sap_id || '').trim();
+      try {
+        const sapKey = String(currentManager.manager_sap_id || currentManager.sap_id || '').trim();
 
-      const { data: repsData } = await client
-        .from('reps')
-        .select('*')
-        .eq('manager_sap_id', sapKey);
-
-      registeredReps = repsData || [];
-
-      const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter ? repFilter.value : 'ALL';
-      
-      if (repFilter) {
-        repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-          registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-        
-        if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-          repFilter.value = currentSelected;
-        }
-      }
-
-      const repCodes = registeredReps.map(r => r.territory_code);
-
-      const { data: orders, error } = await client
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        if (!silent) console.error("Error loading orders:", error.message);
-        return;
-      }
-
-      const allFetched = orders || [];
-      if (repCodes.length > 0) {
-        currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
-      } else {
-        currentOrdersData = allFetched;
-      }
-
-      const orderIds = currentOrdersData.map(o => o.id);
-      if (orderIds.length > 0) {
-        const { data: feedbacks } = await client
-          .from('feedback')
+        const { data: repsData } = await client
+          .from('reps')
           .select('*')
-          .in('order_id', orderIds);
+          .eq('manager_sap_id', sapKey);
 
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => {
-          feedbackMap[f.order_id] = f;
-        });
-      } else {
-        feedbackMap = {};
+        registeredReps = repsData || [];
+
+        const repFilter = document.getElementById('subordinateFilter');
+        const currentSelected = repFilter ? repFilter.value : 'ALL';
+        
+        if (repFilter) {
+          repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+            registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+          
+          if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+            repFilter.value = currentSelected;
+          }
+        }
+
+        const repCodes = registeredReps.map(r => r.territory_code);
+
+        const { data: orders, error } = await client
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          if (!silent) console.error("Error loading orders:", error.message);
+          return;
+        }
+
+        const allFetched = orders || [];
+        if (repCodes.length > 0) {
+          currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
+        } else {
+          currentOrdersData = allFetched;
+        }
+
+        const orderIds = currentOrdersData.map(o => o.id);
+        if (orderIds.length > 0) {
+          const { data: feedbacks } = await client
+            .from('feedback')
+            .select('*')
+            .in('order_id', orderIds);
+
+          feedbackMap = {};
+          (feedbacks || []).forEach(f => {
+            feedbackMap[f.order_id] = f;
+          });
+        } else {
+          feedbackMap = {};
+        }
+
+        applyAllFilters();
+      } catch (err) {
+        console.error("fetchManagerOrders exception:", err);
       }
-
-      applyAllFilters();
     };
 
     function initRealtimeSync() {
@@ -867,23 +880,32 @@
     }
 
     function checkMgrSession() {
-      if (currentManager && (currentManager.manager_sap_id || currentManager.sap_id || currentManager.id)) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
+      if (currentManager) {
+        const authScreen = document.getElementById('authScreen');
+        const dashContent = document.getElementById('dashboardContent');
+        if (authScreen) authScreen.classList.add('hidden');
+        if (dashContent) dashContent.classList.remove('hidden');
         
         const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
         const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
         const mgrTeam = currentManager.team_name || 'QASWA';
         const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
 
-        document.getElementById('mgrNameDisplay').innerText = mgrName;
-        document.getElementById('mgrZoneDisplay').innerText = mgrZone;
-        document.getElementById('mgrTeamDisplay').innerText = mgrTeam;
+        const nameDisplay = document.getElementById('mgrNameDisplay');
+        if (nameDisplay) nameDisplay.innerText = mgrName;
+        const zoneDisplay = document.getElementById('mgrZoneDisplay');
+        if (zoneDisplay) zoneDisplay.innerText = mgrZone;
+        const teamDisplay = document.getElementById('mgrTeamDisplay');
+        if (teamDisplay) teamDisplay.innerText = mgrTeam;
 
-        document.getElementById('menuUserName').innerText = mgrName;
-        document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
-        document.getElementById('menuZoneDisplay').innerText = mgrZone;
-        document.getElementById('menuSapDisplay').innerText = mgrSap;
+        const menuName = document.getElementById('menuUserName');
+        if (menuName) menuName.innerText = mgrName;
+        const menuAvatar = document.getElementById('menuAvatarBadge');
+        if (menuAvatar) menuAvatar.innerText = getInitials(mgrName);
+        const menuZone = document.getElementById('menuZoneDisplay');
+        if (menuZone) menuZone.innerText = mgrZone;
+        const menuSap = document.getElementById('menuSapDisplay');
+        if (menuSap) menuSap.innerText = mgrSap;
         
         initDates();
         window.fetchManagerOrders();
@@ -891,31 +913,37 @@
         fetchAdminMdsProviders();
         initRealtimeSync();
       } else {
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
+        const authScreen = document.getElementById('authScreen');
+        const dashContent = document.getElementById('dashboardContent');
+        if (authScreen) authScreen.classList.remove('hidden');
+        if (dashContent) dashContent.classList.add('hidden');
       }
     }
 
     /* MDS PARTNER MANAGEMENT FUNCTIONS */
     async function fetchAdminMdsProviders() {
-      const { data, error } = await client.from('mds_providers').select('*').order('created_at', { ascending: false });
-      const listEl = document.getElementById('mdsAdminList');
-      if (!listEl) return;
+      try {
+        const { data, error } = await client.from('mds_providers').select('*').order('created_at', { ascending: false });
+        const listEl = document.getElementById('mdsAdminList');
+        if (!listEl) return;
 
-      if (error || !data || data.length === 0) {
-        listEl.innerHTML = '<div class="text-slate-400 text-center py-2">No MDS partners registered yet.</div>';
-        return;
-      }
+        if (error || !data || data.length === 0) {
+          listEl.innerHTML = '<div class="text-slate-400 text-center py-2">No MDS partners registered yet.</div>';
+          return;
+        }
 
-      listEl.innerHTML = data.map(m => `
-        <div class="flex items-center justify-between py-2">
-          <div>
-            <span class="font-bold text-slate-900 dark:text-white text-sm">${m.provider_name}</span>
-            <span class="ml-2 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">${m.city}</span>
+        listEl.innerHTML = data.map(m => `
+          <div class="flex items-center justify-between py-2">
+            <div>
+              <span class="font-bold text-slate-900 dark:text-white text-sm">${m.provider_name}</span>
+              <span class="ml-2 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">${m.city}</span>
+            </div>
+            <button onclick="deleteMdsProvider('${m.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 font-bold rounded-lg hover:bg-rose-500/20 transition-all">🗑️ Remove</button>
           </div>
-          <button onclick="deleteMdsProvider('${m.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 font-bold rounded-lg hover:bg-rose-500/20 transition-all">🗑️ Remove</button>
-        </div>
-      `).join('');
+        `).join('');
+      } catch (err) {
+        console.warn("MDS provider fetch skipped or table empty:", err);
+      }
     }
 
     async function handleCreateMds(e) {
@@ -1017,14 +1045,18 @@
     }
 
     async function fetchBroadcasts() {
-      const { data, error } = await client
-        .from('broadcasts')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await client
+          .from('broadcasts')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        publishedBroadcasts = data;
-        renderBroadcastsTable();
+        if (!error && data) {
+          publishedBroadcasts = data;
+          renderBroadcastsTable();
+        }
+      } catch (err) {
+        console.warn("fetchBroadcasts error:", err);
       }
     }
 
@@ -1590,9 +1622,10 @@
       a.click();
     }
 
-    // Direct synchronous call matching team.html
     checkMgrSession();
-    checkGlobalBroadcast('admin');
+    if (typeof checkGlobalBroadcast === 'function') {
+      checkGlobalBroadcast('admin');
+    }
   </script>
 </body>
 </html>
