@@ -16,29 +16,21 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
 
-  <!-- AUTH / PASSWORD PROTECTION SCREEN -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600">
-        📦
-      </div>
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600">📦</div>
       <div>
         <h2 class="text-xl font-black text-slate-900 dark:text-white">M&P Helpline Portal</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="authSubtitle">Enter password to unlock dispatch queue</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="authSubtitle">Enter password to unlock dispatch queue (Default: admin123)</p>
       </div>
 
       <form id="authForm" onsubmit="handlePortalAuth(event)" class="space-y-4 text-left">
-        <div id="usernameBox">
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Username / ID</label>
-          <input type="text" id="authUsername" value="mnp_hub" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500 font-mono">
-        </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1" id="passLabel">Password (Default: admin123)</label>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1" id="passLabel">Password</label>
           <input type="password" id="authPassword" placeholder="Enter password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500">
         </div>
-        <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-600/20 transition-all">
-          Unlock M&P Console
-        </button>
+        <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock M&P Console</button>
       </form>
       <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
@@ -48,9 +40,8 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1">🏠 Home</a>
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1">🏠 Home</a>
           <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">M&P Helpline <span class="text-amber-600 dark:text-amber-400">Dispatch Hub</span></h1>
-          <span class="px-2.5 py-0.5 bg-amber-500/10 text-amber-600 text-xs font-bold rounded-full">Scheduled 24-48h</span>
         </div>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing all orders routed specifically to M&P Helpline fulfillment</p>
       </div>
@@ -60,7 +51,6 @@
       </div>
     </div>
 
-    <!-- ORDERS LIST CONTAINER -->
     <div class="space-y-3">
       <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
         <span>📦</span> M&P Routed Orders (<span id="filteredCount">0</span>)
@@ -87,17 +77,16 @@
       const pass = document.getElementById('authPassword').value.trim();
 
       try {
-        let { data, error } = await client.from('portal_auth').select('*').eq('portal_key', 'mnp_hub').single();
+        let { data } = await client.from('portal_auth').select('*').eq('portal_key', 'mnp_hub').single();
         
         if (!data) {
-          // Initialize default password if not exists
           await client.from('portal_auth').insert([{ portal_key: 'mnp_hub', password: 'admin123', is_default: true }]);
           data = { password: 'admin123', is_default: true };
         }
 
         if (isFirstLoginSetup) {
           await client.from('portal_auth').update({ password: pass, is_default: false }).eq('portal_key', 'mnp_hub');
-          alert("✅ New secure password saved successfully!");
+          alert("✅ New password set successfully!");
           sessionStorage.setItem('mnp_authenticated', 'true');
           unlockPortal();
           return;
