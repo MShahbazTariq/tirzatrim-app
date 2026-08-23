@@ -70,6 +70,22 @@
     let allOrders = [];
     let isFirstLoginSetup = false;
 
+    // Titration Mapping for Next Step-Up Target
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function getNextTargetDose(dose) {
+      if (!dose) return '5mg';
+      const clean = dose.trim();
+      return TITRATION_MAP[clean] || '5mg';
+    }
+
     async function handlePortalAuth(e) {
       e.preventDefault();
       const err = document.getElementById('authErrorMsg');
@@ -146,6 +162,7 @@
       grid.innerHTML = allOrders.map(order => {
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Completed'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
+        const nextTarget = getNextTargetDose(order.prescribed_dose);
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-sm">
@@ -156,11 +173,41 @@
               </div>
               <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20">${order.status}</span>
             </div>
+
             <div class="space-y-1 text-xs">
-              <div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${order.patient_name}</div>
+              <div class="flex items-center justify-between">
+                <div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <a href="tel:${order.mobile}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-emerald-600 text-xs font-bold">📞 Call</a>
+              </div>
               <div class="text-slate-400 font-mono">${order.mobile}</div>
               <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300">📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No address'}</div>
             </div>
+
+            <!-- Treatment Details Card -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-teal-600 dark:text-teal-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Current Dose & Pen</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Next Step-Up Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${nextTarget}</span>
+              </div>
+              ${order.prescription_url ? `
+                <div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right">
+                  <a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
+                </div>
+              ` : ''}
+            </div>
+
             <div class="grid grid-cols-2 gap-2 pt-1">
               <button onclick="updateStatus('${order.id}', 'Dispatched')" class="py-2 bg-amber-500/10 text-amber-600 font-bold rounded-xl text-xs">🚚 Out for Delivery</button>
               <button onclick="updateStatus('${order.id}', 'Delivered')" class="py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">✅ Delivered</button>
