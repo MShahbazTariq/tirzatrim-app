@@ -831,8 +831,6 @@
       const select = document.getElementById(`mdsSelect-${orderId}`);
       if (!select) return;
 
-      const currentChosen = window._selectedMdsProviders?.[orderId] || '';
-
       const { data: providers, error } = await client
         .from('mds_providers')
         .select('*')
@@ -845,7 +843,13 @@
       }
 
       select.innerHTML = '<option value="">Select MDS Partner...</option>' +
-        providers.map(p => `<option value="${p.provider_name}" ${p.provider_name === currentChosen ? 'selected' : ''}>${p.provider_name}</option>`).join('');
+        providers.map(p => `<option value="${p.provider_name}">${p.provider_name}</option>`).join('');
+
+      // Explicitly restore whichever partner was previously selected by the rep
+      const savedMds = window._selectedMdsProviders?.[orderId];
+      if (savedMds) {
+        select.value = savedMds;
+      }
     }
 
     function handleChannelChoice(orderId, channel, city) {
