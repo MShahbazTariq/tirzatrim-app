@@ -24,7 +24,7 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
-  <!-- PHYSICIAN LOOKUP AUTH SCREEN (Starts blank until searched) -->
+  <!-- PHYSICIAN LOOKUP AUTH SCREEN (Name & City) -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
       <div class="flex items-center justify-between">
@@ -39,19 +39,23 @@
           🩺
         </div>
         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Physician Portal Login</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Enter Doctor Name to view your referred patient feed</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Enter Doctor Name and City to view your referred patient feed</p>
       </div>
 
       <form onsubmit="handleDoctorLookup(event)" class="space-y-4 text-left">
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name *</label>
-          <input type="text" id="lookupDrName" placeholder="e.g. Dr. Nauman Butt" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <input type="text" id="lookupDrName" placeholder="e.g. Dr. Muhammad Ali" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">City *</label>
+          <input type="text" id="lookupCity" placeholder="e.g. Lahore" value="Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
         <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">
           Access Clinical Feed
         </button>
       </form>
-      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden">Please enter a valid doctor name.</p>
+      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden">Please enter valid doctor name and city.</p>
     </div>
   </div>
 
@@ -74,7 +78,7 @@
           </div>
           <div>
             <div id="menuDoctorName" class="text-sm font-bold text-slate-900 dark:text-white">Prescribing Doctor</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">TirzaTrim Clinical Partner</div>
+            <div id="menuCityName" class="text-xs text-slate-500 dark:text-slate-400">City</div>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
@@ -188,7 +192,7 @@
     <div id="view-orders" class="tab-view-container space-y-4">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, City, Mobile, Clinic..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Mobile, Clinic..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-sky-500">
           <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500">
             <option value="ALL">All Prescription Statuses</option>
             <option value="New Patient">New Patient</option>
@@ -302,6 +306,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let targetDoctorName = urlParams.get('dr') || sessionStorage.getItem('tt_current_doctor') || '';
+    let targetCity = urlParams.get('city') || sessionStorage.getItem('tt_current_city') || '';
 
     let allOrders = [];
     let feedbackMap = {};
@@ -444,18 +449,23 @@
     function handleDoctorLookup(e) {
       e.preventDefault();
       const val = document.getElementById('lookupDrName').value.trim();
+      const cityVal = document.getElementById('lookupCity').value.trim();
       if (!val) {
         document.getElementById('authErrorMsg').classList.remove('hidden');
         return;
       }
       targetDoctorName = val;
+      targetCity = cityVal || '';
       sessionStorage.setItem('tt_current_doctor', targetDoctorName);
+      sessionStorage.setItem('tt_current_city', targetCity);
       checkDoctorSession();
     }
 
     function handleDoctorLogout() {
       sessionStorage.removeItem('tt_current_doctor');
+      sessionStorage.removeItem('tt_current_city');
       targetDoctorName = '';
+      targetCity = '';
       checkDoctorSession();
     }
 
@@ -465,6 +475,7 @@
         document.getElementById('dashboardContent').classList.remove('hidden');
         document.getElementById('doctorNameDisplay').innerText = targetDoctorName;
         document.getElementById('menuDoctorName').innerText = targetDoctorName;
+        document.getElementById('menuCityName').innerText = targetCity ? `City: ${targetCity}` : 'National Clinical Partner';
         initDates();
         window.fetchDoctorOrders();
       } else {
@@ -476,7 +487,6 @@
     window.fetchDoctorOrders = async function() {
       if (!targetDoctorName) return;
       
-      // Typo-tolerant keyword splitting restricted strictly to doctor_name
       const cleanInput = targetDoctorName.replace(/^dr\.?\s*/i, '').trim();
       const keywords = cleanInput.split(/\s+/).filter(w => w.length > 1);
 
@@ -486,6 +496,10 @@
         query = query.or(conditions);
       } else {
         query = query.ilike('doctor_name', `%${cleanInput}%`);
+      }
+
+      if (targetCity && targetCity.toLowerCase() !== 'all') {
+        query = query.ilike('city', `%${targetCity.trim()}%`);
       }
 
       const { data: orders, error: orderErr } = await query.order('created_at', { ascending: false });
@@ -661,6 +675,7 @@
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
         const isCancelled = order.status === 'Cancelled';
+        const actualDoctor = order.doctor_name || targetDoctorName;
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
@@ -683,6 +698,10 @@
 
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-sky-600 dark:text-sky-300 text-sm">Dr. ${actualDoctor.replace(/^dr\.?\s*/i, '')}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
                 <span class="text-slate-500 dark:text-slate-400">Clinic</span>
                 <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'Designated Clinic'}</span>
               </div>
@@ -728,8 +747,8 @@
         }
 
         if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(targetDoctorName, 'doctor', targetDoctorName);
-          alert(`✅ Phone Linked!\n\nRole: Prescribing Doctor\nPhysician: ${targetDoctorName}\n\nYou will receive real-time order alerts.`);
+          await window.subscribeDeviceToPush(targetDoctorName, 'doctor', targetCity || 'National');
+          alert(`✅ Phone Linked!\n\nRole: Prescribing Doctor\nPhysician: ${targetDoctorName}\nCity: ${targetCity || 'All'}\n\nYou will receive real-time order alerts.`);
           if (pill) pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
           if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Push Alerts Active</span>`;
         }
