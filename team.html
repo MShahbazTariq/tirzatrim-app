@@ -467,7 +467,10 @@
 
     let realtimeChannel = null;
     let repPollingInterval = null;
-    window._selectedChannels = {}; // Track local selection state to prevent polling overwrites
+
+    // Track local UI selection state so background re-renders don't reset inputs
+    window._selectedChannels = {};
+    window._selectedMdsProviders = {};
 
     const TITRATION_MAP = {
       '2.5mg': '5mg',
@@ -630,16 +633,12 @@
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            window.fetchRepOrders(true);
-          }
+          () => { window.fetchRepOrders(true); }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'feedback' },
-          () => {
-            window.fetchRepOrders(true);
-          }
+          () => { window.fetchRepOrders(true); }
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -832,7 +831,7 @@
       const select = document.getElementById(`mdsSelect-${orderId}`);
       if (!select) return;
 
-      select.innerHTML = '<option value="">Loading MDS Partners...</option>';
+      const currentChosen = window._selectedMdsProviders?.[orderId] || '';
 
       const { data: providers, error } = await client
         .from('mds_providers')
@@ -846,7 +845,7 @@
       }
 
       select.innerHTML = '<option value="">Select MDS Partner...</option>' +
-        providers.map(p => `<option value="${p.provider_name}">${p.provider_name}</option>`).join('');
+        providers.map(p => `<option value="${p.provider_name}" ${p.provider_name === currentChosen ? 'selected' : ''}>${p.provider_name}</option>`).join('');
     }
 
     function handleChannelChoice(orderId, channel, city) {
@@ -858,6 +857,10 @@
       } else {
         if (mdsContainer) mdsContainer.classList.add('hidden');
       }
+    }
+
+    function handleMdsSelection(orderId, val) {
+      window._selectedMdsProviders[orderId] = val;
     }
 
     async function saveOrderRouting(orderId, city) {
@@ -894,6 +897,7 @@
         alert("Error routing order: " + error.message);
       } else {
         delete window._selectedChannels[orderId];
+        delete window._selectedMdsProviders[orderId];
         alert(`✅ Order successfully routed to ${channel === 'MP' ? 'M&P Helpline (Scheduled 24-48h)' : 'MDS Express (' + mdsProvider + ')'}!`);
         window.fetchRepOrders(true);
       }
@@ -1296,7 +1300,7 @@
                 </div>
 
                 <div id="mdsContainer-${order.id}" class="${selectedChan === 'MDS' ? '' : 'hidden'} space-y-1.5 pt-1">
-                  <select id="mdsSelect-${order.id}" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+                  <select id="mdsSelect-${order.id}" onchange="handleMdsSelection('${order.id}', this.value)" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
                     <option value="${order.mds_provider || ''}">${order.mds_provider || 'Select MDS Partner...'}</option>
                   </select>
                 </div>
@@ -1333,8 +1337,8 @@
           </div>
         `;
       }).join('');
-      
-      // Automatically trigger dropdown population for any card currently set to MDS
+
+      // Populate dropdown options for any card set to MDS
       activeFilteredOrders.forEach(order => {
         const selectedChan = window._selectedChannels[order.id] || order.fulfillment_channel;
         if (selectedChan === 'MDS') {
