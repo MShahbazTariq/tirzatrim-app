@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim — M&P Helpline Dispatch Console</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+  <script src="/broadcast.js"></script>
+  <script src="/notification.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+
+  <!-- AUTH / PASSWORD PROTECTION SCREEN -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600">
+        📦
+      </div>
+      <div>
+        <h2 class="text-xl font-black text-slate-900 dark:text-white">M&P Helpline Portal</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="authSubtitle">Enter password to unlock dispatch queue</p>
+      </div>
+
+      <form id="authForm" onsubmit="handlePortalAuth(event)" class="space-y-4 text-left">
+        <div id="usernameBox">
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Username / ID</label>
+          <input type="text" id="authUsername" value="mnp_hub" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500 font-mono">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1" id="passLabel">Password (Default: admin123)</label>
+          <input type="password" id="authPassword" placeholder="Enter password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500">
+        </div>
+        <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-600/20 transition-all">
+          Unlock M&P Console
+        </button>
+      </form>
+      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm">
+      <div>
+        <div class="flex items-center gap-2">
+          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1">🏠 Home</a>
+          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">M&P Helpline <span class="text-amber-600 dark:text-amber-400">Dispatch Hub</span></h1>
+          <span class="px-2.5 py-0.5 bg-amber-500/10 text-amber-600 text-xs font-bold rounded-full">Scheduled 24-48h</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing all orders routed specifically to M&P Helpline fulfillment</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="handleLogout()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-bold">🚪 Lock Portal</button>
+        <button onclick="window.fetchMnpOrders()" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold rounded-xl">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- ORDERS LIST CONTAINER -->
+    <div class="space-y-3">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span>📦</span> M&P Routed Orders (<span id="filteredCount">0</span>)
+      </h3>
+      <div id="ordersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full py-12 text-center text-slate-400 text-xs">Loading M&P queue...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allOrders = [];
+    let isFirstLoginSetup = false;
+
+    async function handlePortalAuth(e) {
+      e.preventDefault();
+      const err = document.getElementById('authErrorMsg');
+      err.classList.add('hidden');
+      const pass = document.getElementById('authPassword').value.trim();
+
+      try {
+        let { data, error } = await client.from('portal_auth').select('*').eq('portal_key', 'mnp_hub').single();
+        
+        if (!data) {
+          // Initialize default password if not exists
+          await client.from('portal_auth').insert([{ portal_key: 'mnp_hub', password: 'admin123', is_default: true }]);
+          data = { password: 'admin123', is_default: true };
+        }
+
+        if (isFirstLoginSetup) {
+          await client.from('portal_auth').update({ password: pass, is_default: false }).eq('portal_key', 'mnp_hub');
+          alert("✅ New secure password saved successfully!");
+          sessionStorage.setItem('mnp_authenticated', 'true');
+          unlockPortal();
+          return;
+        }
+
+        if (pass === data.password) {
+          if (data.is_default) {
+            isFirstLoginSetup = true;
+            document.getElementById('authSubtitle').innerText = "Security Notice: Please set a new secure password for this portal.";
+            document.getElementById('passLabel').innerText = "Set New Secure Password";
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authSubmitBtn').innerText = "Save & Unlock Portal";
+            return;
+          }
+          sessionStorage.setItem('mnp_authenticated', 'true');
+          unlockPortal();
+        } else {
+          throw new Error("Invalid password. (Default is admin123)");
+        }
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    function unlockPortal() {
+      document.getElementById('authScreen').classList.add('hidden');
+      window.fetchMnpOrders();
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('mnp_authenticated');
+      location.reload();
+    }
+
+    window.fetchMnpOrders = async function() {
+      const { data, error } = await client
+        .from('orders')
+        .select('*')
+        .eq('fulfillment_channel', 'MP')
+        .order('created_at', { ascending: false });
+
+      if (error) return;
+      allOrders = data || [];
+      renderOrders();
+    };
+
+    function renderOrders() {
+      const grid = document.getElementById('ordersGrid');
+      document.getElementById('filteredCount').innerText = allOrders.length;
+
+      if (allOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">No orders currently routed to M&P Helpline.</div>';
+        return;
+      }
+
+      grid.innerHTML = allOrders.map(order => {
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Completed'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-sm">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id}</span>
+                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleString()}</div>
+              </div>
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20">${order.status}</span>
+            </div>
+            <div class="space-y-1 text-xs">
+              <div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${order.patient_name}</div>
+              <div class="text-slate-400 font-mono">${order.mobile}</div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300">📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No address'}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="updateStatus('${order.id}', 'Dispatched')" class="py-2 bg-amber-500/10 text-amber-600 font-bold rounded-xl text-xs">🚚 Out for Delivery</button>
+              <button onclick="updateStatus('${order.id}', 'Delivered')" class="py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">✅ Delivered</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateStatus(id, status) {
+      await client.from('orders').update({ status }).eq('id', id);
+      window.fetchMnpOrders();
+    }
+
+    if (sessionStorage.getItem('mnp_authenticated') === 'true') {
+      unlockPortal();
+    }
+  </script>
+</body>
+</html>
