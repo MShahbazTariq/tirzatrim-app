@@ -18,7 +18,7 @@
 
   <!-- Quill Rich Text Editor -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/quill.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
   <style>
     /* Quill Editor Custom Theming */
@@ -308,22 +308,18 @@
     </div>
 
     <!-- 3. APP GRID LAUNCHPAD -->
-    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">Orders</span>
       </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends</span>
+        <span class="text-xs font-bold">Trends & Timeline</span>
       </button>
       <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📢</span>
         <span class="text-xs font-bold">Broadcast</span>
-      </button>
-      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📅</span>
-        <span class="text-xs font-bold">Timeline</span>
       </button>
       <button onclick="openRepsModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👔</span>
@@ -337,8 +333,26 @@
 
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
     
-    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
+    <!-- TAB 1: PATIENTS & ORDERS VIEW (With MDS Manager at Top) -->
     <div id="view-orders" class="tab-view-container space-y-4">
+      
+      <!-- MDS Partner Management Panel -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>⚡</span> Manage MDS Partners (Same-Day Urgent Delivery)
+        </h3>
+        <form onsubmit="handleCreateMds(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input type="text" id="newMdsName" placeholder="Provider Name (e.g. Rite Care)" required class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <input type="text" id="newMdsCity" placeholder="City (e.g. Lahore)" value="Lahore" required class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <button type="submit" class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+            ➕ Add MDS Partner
+          </button>
+        </form>
+        <div id="mdsAdminList" class="flex flex-wrap gap-2 pt-1 text-xs">
+          <span class="text-slate-400">Loading MDS partners...</span>
+        </div>
+      </div>
+
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Mobile, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
@@ -363,7 +377,7 @@
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
           </h3>
-          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">All Time</span>
         </div>
         <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
@@ -373,8 +387,38 @@
       </div>
     </div>
 
-    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <!-- TAB 2: MERGED TRENDS & TIMELINE VIEW -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <!-- Date Scope Configurator -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window & Timeline Scope
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: All Time (Complete Zone)
+        </div>
+      </div>
+
+      <!-- Chart & Breakdown -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -408,146 +452,89 @@
       </div>
     </div>
 
-    <!-- TAB 3: MULTI-PORTAL BROADCASTS & MDS PARTNERS VIEW -->
+    <!-- TAB 3: BROADCASTS VIEW -->
     <div id="view-broadcasts" class="tab-view-container space-y-4 hidden">
-      <div class="space-y-6">
-        <!-- Broadcast Publisher Form -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>📢</span> Multi-Portal Broadcast Publisher
-            </h3>
-            <span id="editBroadcastIndicator" class="hidden text-xs font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-              Editing Mode
-            </span>
-          </div>
-
-          <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
-            <input type="hidden" id="editBroadcastId" value="">
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Title *</label>
-                <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Category *</label>
-                <select id="bcCategory" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-                  <option value="Announcement">Announcement (General Notice)</option>
-                  <option value="Important Information">Important Information</option>
-                  <option value="Attention">Attention (Critical Action)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
-                <input type="datetime-local" id="bcStartTime" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional)</label>
-                <input type="datetime-local" id="bcExpiresAt" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
-              <div class="flex flex-wrap gap-4 text-sm font-semibold text-slate-800 dark:text-slate-200 pt-1">
-                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600"> Patients</label>
-                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600"> Doctors</label>
-                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600"> Riders</label>
-                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600"> Reps</label>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Message *</label>
-              <div id="bcEditor"></div>
-            </div>
-
-            <div class="flex items-center gap-2 pt-1">
-              <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow transition-all">
-                🚀 Publish Announcement
-              </button>
-              <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-sm font-bold rounded-xl transition-all">
-                Cancel
-              </button>
-            </div>
-          </form>
-
-          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Published Broadcast Log</h4>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-                <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[11px]">
-                  <tr>
-                    <th class="p-3">Title</th>
-                    <th class="p-3">Target Portals</th>
-                    <th class="p-3">Status / Expires</th>
-                    <th class="p-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                  <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading announcements...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- MDS PARTNER MANAGER SECTION FOR ADMIN -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>⚡</span> Manage MDS Partners (Same-Day Urgent)
-          </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Add or remove local delivery partners (e.g. Drug Solution Network, MedAM, Rite Care) available for reps to choose during order routing.</p>
-
-          <form onsubmit="handleCreateMds(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <input type="text" id="newMdsName" placeholder="Provider Name (e.g. Rite Care)" required class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <input type="text" id="newMdsCity" placeholder="City (e.g. Lahore)" value="Lahore" required class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <button type="submit" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
-              ➕ Add MDS Partner
-            </button>
-          </form>
-
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Active MDS Network Directory</h4>
-            <div id="mdsAdminList" class="space-y-2 divide-y divide-slate-200 dark:divide-slate-800 text-xs">
-              <div class="text-slate-400 text-center py-2">Loading MDS partners...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📢</span> Multi-Portal Broadcast Publisher
+          </h3>
+          <span id="editBroadcastIndicator" class="hidden text-xs font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+            Editing Mode
+          </span>
         </div>
 
-        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
+        <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
+          <input type="hidden" id="editBroadcastId" value="">
 
-        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Title *</label>
+              <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Category *</label>
+              <select id="bcCategory" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+                <option value="Announcement">Announcement (General Notice)</option>
+                <option value="Important Information">Important Information</option>
+                <option value="Attention">Attention (Critical Action)</option>
+              </select>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
+              <input type="datetime-local" id="bcStartTime" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional)</label>
+              <input type="datetime-local" id="bcExpiresAt" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            </div>
           </div>
-        </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
+            <div class="flex flex-wrap gap-4 text-sm font-semibold text-slate-800 dark:text-slate-200 pt-1">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600"> Patients</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600"> Doctors</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600"> Riders</label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600"> Reps</label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Message *</label>
+            <div id="bcEditor"></div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow transition-all">
+              🚀 Publish Announcement
+            </button>
+            <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-sm font-bold rounded-xl transition-all">
+              Cancel
+            </button>
+          </div>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Published Broadcast Log</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[11px]">
+                <tr>
+                  <th class="p-3">Title</th>
+                  <th class="p-3">Target Portals</th>
+                  <th class="p-3">Status / Expires</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading announcements...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -580,27 +567,7 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentManager = null;
-    try {
-      const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-      if (saved && saved !== 'undefined' && saved !== 'null') {
-        currentManager = JSON.parse(saved);
-      }
-    } catch (e) {
-      currentManager = null;
-    }
-
-    if (!currentManager) {
-      currentManager = {
-        full_name: "M. Shahbaz Tariq",
-        manager_sap_id: "7613",
-        zone_region: "LHR2",
-        team_name: "QASWA",
-        region: "Central"
-      };
-      localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
-    }
-
+    let currentManager = JSON.parse(localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
     let registeredReps = [];
     let feedbackMap = {};
@@ -925,12 +892,12 @@
         }
 
         listEl.innerHTML = data.map(m => `
-          <div class="flex items-center justify-between py-2">
+          <div class="flex items-center justify-between py-1.5 px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl">
             <div>
-              <span class="font-bold text-slate-900 dark:text-white text-sm">${m.provider_name}</span>
+              <span class="font-bold text-slate-900 dark:text-white text-xs">${m.provider_name}</span>
               <span class="ml-2 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">${m.city}</span>
             </div>
-            <button onclick="deleteMdsProvider('${m.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 font-bold rounded-lg hover:bg-rose-500/20 transition-all">🗑️ Remove</button>
+            <button onclick="deleteMdsProvider('${m.id}')" class="px-2 py-1 bg-rose-500/10 text-rose-600 font-bold rounded-lg hover:bg-rose-500/20 text-[10px] transition-all">🗑️ Remove</button>
           </div>
         `).join('');
       } catch (err) {
@@ -983,7 +950,6 @@
         }
 
         currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
@@ -1013,8 +979,6 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || sapId;
-        
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
