@@ -1,1543 +1,1624 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Zonal Operations Hub</title>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#020617">
-  <meta name="mobile-web-app-capable" content="yes">
-  
-  <!-- Tailwind CSS & Shared Theme Manager -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/theme.js"></script>
-  <script src="/broadcast.js"></script>
-  <script src="/notification.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim — Zonal Operations Hub</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Tailwind CSS & Shared Theme Manager -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+  <script src="/broadcast.js"></script>
+  <script src="/notification.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Quill Rich Text Editor -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
-  <style>
-    /* Quill Editor Custom Theming */
-    .ql-toolbar {
-      border-top-left-radius: 0.75rem;
-      border-top-right-radius: 0.75rem;
-      background: #f8fafc;
-      border-color: #cbd5e1 !important;
-    }
-    .dark .ql-toolbar {
-      background: #020617;
-      border-color: #1e293b !important;
-    }
-    .dark .ql-snow .ql-stroke { stroke: #94a3b8; }
-    .dark .ql-snow .ql-fill { fill: #94a3b8; }
-    .dark .ql-snow .ql-picker { color: #94a3b8; }
-    .ql-container {
-      border-bottom-left-radius: 0.75rem;
-      border-bottom-right-radius: 0.75rem;
-      font-size: 14px;
-      min-height: 140px;
-      background: #ffffff;
-      border-color: #cbd5e1 !important;
-    }
-    .dark .ql-container {
-      background: #020617;
-      border-color: #1e293b !important;
-      color: #e2e8f0;
-    }
-    .ql-editor { min-height: 140px; }
-    
-    /* Smooth Scrollbarless Containers */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+  <style>
+    /* Quill Editor Custom Theming */
+    .ql-toolbar {
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+      background: #f8fafc;
+      border-color: #cbd5e1 !important;
+    }
+    .dark .ql-toolbar {
+      background: #020617;
+      border-color: #1e293b !important;
+    }
+    .dark .ql-snow .ql-stroke { stroke: #94a3b8; }
+    .dark .ql-snow .ql-fill { fill: #94a3b8; }
+    .dark .ql-snow .ql-picker { color: #94a3b8; }
+    .ql-container {
+      border-bottom-left-radius: 0.75rem;
+      border-bottom-right-radius: 0.75rem;
+      font-size: 14px;
+      min-height: 140px;
+      background: #ffffff;
+      border-color: #cbd5e1 !important;
+    }
+    .dark .ql-container {
+      background: #020617;
+      border-color: #1e293b !important;
+      color: #e2e8f0;
+    }
+    .ql-editor { min-height: 140px; }
+    
+    /* Smooth Scrollbarless Containers */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
-  <!-- AUTH SCREEN -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
-      <div class="flex items-center justify-between">
-        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
-          🏠 Home
-        </a>
-        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">
-          <span class="theme-icon">🌙</span>
-        </button>
-      </div>
-
-      <div class="space-y-2 pt-2">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-          🏢
-        </div>
-        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Zonal Operations Hub</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager Administration Portal</p>
-      </div>
-
-      <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
-        <button id="mgrLoginTabBtn" onclick="showMgrAuthTab('login')" class="py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">
-          Manager Login
-        </button>
-        <button id="mgrSignupTabBtn" onclick="showMgrAuthTab('signup')" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
-          New Registration
-        </button>
-      </div>
-
-      <!-- LOGIN -->
-      <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
-        <div>
-          <input type="text" id="loginMgrSap" value="7613" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
-        </div>
-        <div>
-          <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-        </div>
-        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
-          Unlock My Zone Dashboard
-        </button>
-      </form>
-
-      <!-- SIGNUP -->
-      <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden text-left">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
-          <input type="text" id="regMgrName" value="M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Assigned Region *</label>
-            <select id="regMgrRegion" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              <option value="Central">Central</option>
-              <option value="North">North</option>
-              <option value="South">South</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Team *</label>
-            <input type="text" id="regMgrTeam" value="QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Zone / Territory *</label>
-            <input type="text" id="regMgrZone" value="LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regMgrSapId" value="7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Set Password *</label>
-          <input type="password" id="regMgrPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-        </div>
-        <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
-          Register ZSM Account
-        </button>
-      </form>
-      <p id="mgrAuthErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
-    </div>
-  </div>
-
-  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
-  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
-  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
-    <div class="space-y-6">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">⚙️</span>
-          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">Admin Console</span>
-        </div>
-        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
-      </div>
-
-      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-        <div class="flex items-center gap-3">
-          <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
-            ST
-          </div>
-          <div>
-            <div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">M. Shahbaz Tariq</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager</div>
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Zone: <span id="menuZoneDisplay">LHR2</span></span>
-          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7613</span></span>
-          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
-          </span>
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Administrative Tools</div>
-
-        <button id="menuPushBtn" onclick="registerMobileDirect()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
-          <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
-        </button>
-
-        <button onclick="window.fetchManagerOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="text-base">🔄</span> <span>Refresh Database</span>
-        </button>
-
-        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
-        🏠 <span>Back to Main Portal</span>
-      </a>
-      <button onclick="handleMgrLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
-        🚪 <span>Secure Logout</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- REP & TERRITORY MANAGEMENT MODAL -->
-  <div id="repsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-        <div>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Field Force & Territory Transfers</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Manage reps or transfer patient records between territory codes</p>
-        </div>
-        <button onclick="closeRepsModal()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
-      </div>
-
-      <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 space-y-3">
-        <h4 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Transfer Territory Patients</h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">From Old Territory Code:</label>
-            <input type="text" id="transferFromCode" placeholder="e.g. QL1.1" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">To Active Rep:</label>
-            <select id="transferToRepSelect" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              <option value="">Select Rep...</option>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button onclick="handleTerritoryTransfer()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
-              Transfer Records
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto pt-2">
-        <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-          <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-            <tr>
-              <th class="p-3">Rep Name</th>
-              <th class="p-3">T.Code</th>
-              <th class="p-3">SAP ID</th>
-              <th class="p-3">Team</th>
-              <th class="p-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody id="repsModalTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
-            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading reps...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN DASHBOARD CONTENT -->
-  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
-    
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & ZSM TITLE -->
-    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
-      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
-        ☰
-      </button>
-
-      <div class="flex flex-col items-center justify-center">
-        <div class="flex items-center justify-center gap-4">
-          <div class="text-left">
-            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
-              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
-            </h1>
-            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
-              (TIRZEPATIDE)
-            </p>
-          </div>
-
-          <div class="flex flex-col items-center gap-1">
-            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
-            <div class="flex flex-col gap-1 w-14">
-              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
-              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
-              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-          <span id="mgrNameDisplay" class="text-slate-900 dark:text-white">M. Shahbaz Tariq</span>
-          <span class="text-[#059669]">ZSM • <span id="mgrZoneDisplay">LHR2</span> (<span id="mgrTeamDisplay">QASWA</span>)</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
-    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Orders</div>
-        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Process</div>
-        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
-        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedbacks</div>
-        <div id="statFeedback" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- 3. APP GRID LAUNCHPAD -->
-    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
-      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">👥</span>
-        <span class="text-xs font-bold">Orders</span>
-      </button>
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends</span>
-      </button>
-      <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📢</span>
-        <span class="text-xs font-bold">Broadcast</span>
-      </button>
-      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📅</span>
-        <span class="text-xs font-bold">Timeline</span>
-      </button>
-      <button onclick="openRepsModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">👔</span>
-        <span class="text-xs font-bold">Transfers</span>
-      </button>
-      <button onclick="exportToCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">Export CSV</span>
-      </button>
-    </div>
-
-    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
-    
-    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
-    <div id="view-orders" class="tab-view-container space-y-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Mobile, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-          <select id="subordinateFilter" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All My Reps</option>
-          </select>
-          <select id="mgrStatusFilter" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All Statuses</option>
-            <option value="New Patient">New Patient</option>
-            <option value="Prescription Received">Prescription Received</option>
-            <option value="Order Processing">Order Processing</option>
-            <option value="Dispatched">Dispatched</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Feedback Submitted">Feedback Submitted</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Patient Cards Grid -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between px-1">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-          </h3>
-          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
-        </div>
-        <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-            Loading zone records...
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
-    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> Patient Enrollment Trend (Last 14 Days)
-          </h3>
-          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">Zone Trend</span>
-        </div>
-        <div class="h-64 w-full pt-2">
-          <canvas id="dailyEnrollmentChart"></canvas>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>🩺</span> Top Prescribers in Zone
-          </h3>
-          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
-          </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Breakdown
-          </h3>
-          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: MULTI-PORTAL BROADCASTS VIEW -->
-    <div id="view-broadcasts" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📢</span> Multi-Portal Broadcast Publisher
-          </h3>
-          <span id="editBroadcastIndicator" class="hidden text-xs font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-            Editing Mode
-          </span>
-        </div>
-
-        <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
-          <input type="hidden" id="editBroadcastId" value="">
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Title *</label>
-              <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Category *</label>
-              <select id="bcCategory" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-                <option value="Announcement">Announcement (General Notice)</option>
-                <option value="Important Information">Important Information</option>
-                <option value="Attention">Attention (Critical Action)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
-              <input type="datetime-local" id="bcStartTime" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional)</label>
-              <input type="datetime-local" id="bcExpiresAt" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
-            <div class="flex flex-wrap gap-4 text-sm font-semibold text-slate-800 dark:text-slate-200 pt-1">
-              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600"> Patients</label>
-              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600"> Doctors</label>
-              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600"> Riders</label>
-              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600"> Reps</label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Message *</label>
-            <div id="bcEditor"></div>
-          </div>
-
-          <div class="flex items-center gap-2 pt-1">
-            <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow transition-all">
-              🚀 Publish Announcement
-            </button>
-            <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-sm font-bold rounded-xl transition-all">
-              Cancel
-            </button>
-          </div>
-        </form>
-
-        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Published Broadcast Log</h4>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-              <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[11px]">
-                <tr>
-                  <th class="p-3">Title</th>
-                  <th class="p-3">Target Portals</th>
-                  <th class="p-3">Status / Expires</th>
-                  <th class="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading announcements...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window
-        </div>
-
-        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 5. FIXED BOTTOM NAVIGATION -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
-    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
-      <span class="text-lg">👥</span>
-      <span class="text-xs font-bold">Orders</span>
-    </button>
-    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📊</span>
-      <span class="text-xs font-medium">Trends</span>
-    </button>
-    <button onclick="switchTab('broadcasts')" id="bottomNav-broadcasts" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📢</span>
-      <span class="text-xs font-medium">Broadcast</span>
-    </button>
-    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">⚙️</span>
-      <span class="text-xs font-medium">Admin</span>
-    </button>
-  </nav>
-
-  <script>
-    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-    const { createClient } = supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Bulletproof session persistence
-    let currentManager = null;
-    try {
-      const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-      if (saved) {
-        currentManager = JSON.parse(saved);
-      }
-    } catch (e) {
-      currentManager = null;
-    }
-
-    // Auto-initialize default manager session for SAP 7613 if not present
-    if (!currentManager) {
-      currentManager = {
-        full_name: "M. Shahbaz Tariq",
-        manager_sap_id: "7613",
-        zone_region: "LHR2",
-        team_name: "QASWA",
-        region: "Central"
-      };
-      localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
-    }
-
-    let currentOrdersData = [];
-    let registeredReps = [];
-    let feedbackMap = {};
-    let activeFilteredOrders = [];
-    let chartInstance = null;
-    let publishedBroadcasts = [];
-
-    let currentDateScope = "ALL";
-    let filterStartDate = null;
-    let filterEndDate = null;
-
-    let realtimeChannel = null;
-    let adminPollingInterval = null;
-
-    // Full 6-tier Tirzepatide Titration Escalation Schedule
-    const TITRATION_MAP = {
-      '2.5mg': '5mg',
-      '5mg': '7.5mg',
-      '7.5mg': '10mg',
-      '10mg': '12.5mg',
-      '12.5mg': '15mg',
-      '15mg': '15mg (Maintenance)'
-    };
-
-    function normalizeDoseKey(rawDose) {
-      if (!rawDose) return '5mg';
-      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
-      if (clean.includes('2.5')) return '2.5mg';
-      if (clean.includes('7.5')) return '7.5mg';
-      if (clean.includes('12.5')) return '12.5mg';
-      if (clean.includes('15')) return '15mg';
-      if (clean.includes('10')) return '10mg';
-      if (clean.includes('5')) return '5mg';
-      return '5mg';
-    }
-
-    function getEscalationDetails(createdAt, prescribedDose) {
-      const orderDate = new Date(createdAt);
-      const now = new Date();
-      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
-      const currentDose = prescribedDose || '5mg';
-      const doseKey = normalizeDoseKey(currentDose);
-      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
-
-      return {
-        isDue: daysElapsed >= 21,
-        daysElapsed,
-        currentDose,
-        nextDose
-      };
-    }
-
-    function openSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.remove('hidden');
-      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
-    }
-
-    function closeSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.add('hidden');
-      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
-      const activeContainer = document.getElementById(`view-${tabId}`);
-      if (activeContainer) activeContainer.classList.remove('hidden');
-
-      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
-        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
-      });
-      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
-      if (activeLauncher) {
-        activeLauncher.className = "tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
-      }
-
-      document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
-        const label = item.querySelector('span:last-child');
-        if (label) label.className = "text-xs font-medium";
-      });
-      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
-      if (activeBottom) {
-        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
-        const label = activeBottom.querySelector('span:last-child');
-        if (label) label.className = "text-xs font-bold";
-      }
-
-      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
-        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
-      }
-    }
-
-    async function registerMobileDirect() {
-      const btn = document.getElementById('menuPushBtn');
-      const pill = document.getElementById('menuPushStatusPill');
-
-      try {
-        if (!('Notification' in window)) {
-          alert("Push notifications are not supported on this browser.");
-          return;
-        }
-
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          alert("⚠️ Permission Denied. Please enable notifications in your browser settings.");
-          return;
-        }
-
-        const sapId = currentManager ? (currentManager.manager_sap_id || currentManager.sap_id) : '7613';
-        const zone = currentManager ? (currentManager.zone_region || currentManager.zone) : 'LHR2';
-
-        if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(sapId, 'zsm', zone);
-          alert(`✅ Phone Successfully Linked!\n\nRole: ZSM\nSAP ID: ${sapId}\nZone: ${zone}\n\nYou will now receive 24/7 background order alerts on this device.`);
-          if (pill) {
-            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
-          }
-          if (btn) {
-            btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
-          }
-        }
-      } catch (err) {
-        alert("Registration Error: " + err.message);
-      }
-    }
-
-    const quill = new Quill('#bcEditor', {
-      theme: 'snow',
-      placeholder: 'Write or paste announcement content here...',
-      modules: {
-        toolbar: [
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ 'color': [] }, { 'background': [] }],
-          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-          ['clean']
-        ]
-      }
-    });
-
-    function getLocalDateKey(dateInput) {
-      const d = dateInput ? new Date(dateInput) : new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function toLocalDatetimeInput(utcString) {
-      if (!utcString) return '';
-      const d = new Date(utcString);
-      if (isNaN(d.getTime())) return '';
-      const offset = d.getTimezoneOffset() * 60000;
-      return new Date(d.getTime() - offset).toISOString().slice(0, 16);
-    }
-
-    function showMgrAuthTab(type) {
-      document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
-      if (type === 'login') {
-        document.getElementById('mgrLoginForm').classList.remove('hidden');
-        document.getElementById('mgrSignupForm').classList.add('hidden');
-        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      } else {
-        document.getElementById('mgrLoginForm').classList.add('hidden');
-        document.getElementById('mgrSignupForm').classList.remove('hidden');
-        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      }
-    }
-
-    function getInitials(name) {
-      if (!name) return 'ZM';
-      const parts = name.trim().split(/\s+/);
-      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    // Explicit Global Attachment for notification.js and sw.js
-    window.fetchManagerOrders = async function(silent = false) {
-      if (!currentManager) return;
-
-      const sapKey = currentManager.manager_sap_id || currentManager.sap_id || '7613';
-
-      const { data: repsData } = await client
-        .from('reps')
-        .select('*')
-        .eq('manager_sap_id', sapKey);
-
-      registeredReps = repsData || [];
-
-      const repFilter = document.getElementById('subordinateFilter');
-      const currentSelected = repFilter ? repFilter.value : 'ALL';
-      
-      if (repFilter) {
-        repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
-          registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-        
-        if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
-          repFilter.value = currentSelected;
-        }
-      }
-
-      const repCodes = registeredReps.map(r => r.territory_code);
-
-      const { data: orders, error } = await client
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        if (!silent) console.error("Error loading orders:", error.message);
-        return;
-      }
-
-      const allFetched = orders || [];
-      if (repCodes.length > 0) {
-        currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
-      } else {
-        currentOrdersData = allFetched;
-      }
-
-      const orderIds = currentOrdersData.map(o => o.id);
-      if (orderIds.length > 0) {
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
-
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => {
-          feedbackMap[f.order_id] = f;
-        });
-      } else {
-        feedbackMap = {};
-      }
-
-      applyAllFilters();
-    };
-
-    function initRealtimeSync() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-
-      realtimeChannel = client
-        .channel('public:global_admin_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            console.log('⚡ [ZSM Realtime] Order change detected:', payload.eventType);
-            window.fetchManagerOrders(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'feedback' },
-          () => {
-            window.fetchManagerOrders(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reps' },
-          () => {
-            window.fetchManagerOrders(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'broadcasts' },
-          () => {
-            fetchBroadcasts();
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 ZSM Realtime Status:', status);
-          if (status === 'SUBSCRIBED') {
-            window.fetchManagerOrders(true);
-          }
-        });
-
-      if (adminPollingInterval) clearInterval(adminPollingInterval);
-      adminPollingInterval = setInterval(() => {
-        window.fetchManagerOrders(true);
-      }, 5000);
-    }
-
-    function checkMgrSession() {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('dashboardContent').classList.remove('hidden');
-      
-      document.getElementById('mgrNameDisplay').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
-      document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
-      document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'QASWA';
-
-      document.getElementById('menuUserName').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
-      document.getElementById('menuAvatarBadge').innerText = getInitials(currentManager.full_name);
-      document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
-      document.getElementById('menuSapDisplay').innerText = currentManager.manager_sap_id || '7613';
-      
-      initDates();
-      window.fetchManagerOrders();
-      fetchBroadcasts();
-      initRealtimeSync();
-    }
-
-    async function handleMgrSignup(e) {
-      e.preventDefault();
-      const err = document.getElementById('mgrAuthErrorMsg');
-      err.classList.add('hidden');
-
-      const full_name = document.getElementById('regMgrName').value.trim();
-      const region = document.getElementById('regMgrRegion').value;
-      const team_name = document.getElementById('regMgrTeam').value.trim().toUpperCase();
-      const zone_region = document.getElementById('regMgrZone').value.trim();
-      const manager_sap_id = document.getElementById('regMgrSapId').value.trim();
-      const password = document.getElementById('regMgrPassword').value;
-
-      try {
-        const { data, error } = await client
-          .from('managers')
-          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password }])
-          .select();
-
-        if (error) {
-          if (error.message.includes('unique')) throw new Error(`Manager SAP ID '${manager_sap_id}' is already registered.`);
-          throw error;
-        }
-
-        currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
-        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
-        checkMgrSession();
-      } catch (ex) {
-        err.innerText = ex.message;
-        err.classList.remove('hidden');
-      }
-    }
-
-    async function handleMgrLogin(e) {
-      e.preventDefault();
-      const err = document.getElementById('mgrAuthErrorMsg');
-      err.classList.add('hidden');
-
-      const sapId = document.getElementById('loginMgrSap').value.trim();
-      const pass = document.getElementById('loginMgrPassword').value.trim();
-
-      try {
-        const { data, error } = await client
-          .from('managers')
-          .select('*')
-          .or(`manager_sap_id.ilike.${sapId},sap_id.ilike.${sapId}`)
-          .eq('password', pass)
-          .limit(1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
-
-        currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || '7613';
-        
-        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
-        checkMgrSession();
-      } catch (ex) {
-        err.innerText = ex.message;
-        err.classList.remove('hidden');
-      }
-    }
-
-    function handleMgrLogout() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-      if (adminPollingInterval) {
-        clearInterval(adminPollingInterval);
-        adminPollingInterval = null;
-      }
-      localStorage.removeItem('tt_current_manager');
-      sessionStorage.removeItem('tt_current_manager');
-      currentManager = {
-        full_name: "M. Shahbaz Tariq",
-        manager_sap_id: "7613",
-        zone_region: "LHR2",
-        team_name: "QASWA",
-        region: "Central"
-      };
-      localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
-      checkMgrSession();
-    }
-
-    async function fetchBroadcasts() {
-      const { data, error } = await client
-        .from('broadcasts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        publishedBroadcasts = data;
-        renderBroadcastsTable();
-      }
-    }
-
-    function renderBroadcastsTable() {
-      const tbody = document.getElementById('broadcastsTableBody');
-      if (publishedBroadcasts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">No announcements published yet.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = publishedBroadcasts.map(bc => {
-        const isExpired = bc.expires_at && new Date(bc.expires_at) <= new Date();
-        const statusBadge = isExpired
-          ? '<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold">Expired</span>'
-          : (bc.is_active ? '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Active</span>' : '<span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs font-bold">Disabled</span>');
-
-        return `
-          <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
-            <td class="p-3">
-              <div class="font-bold text-slate-900 dark:text-white text-sm">${bc.title}</div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">${bc.category}</div>
-            </td>
-            <td class="p-3">
-              <div class="flex flex-wrap gap-1">
-                ${(bc.target_audience || []).map(r => `<span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">${r}</span>`).join('')}
-              </div>
-            </td>
-            <td class="p-3">
-              <div>${statusBadge}</div>
-              <div class="text-xs text-slate-400 mt-0.5">Expires: ${bc.expires_at ? new Date(bc.expires_at).toLocaleDateString() : 'No Limit'}</div>
-            </td>
-            <td class="p-3 text-right space-x-1.5">
-              <button onclick="editBroadcast('${bc.id}')" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-lg">✏️ Edit</button>
-              <button onclick="deleteBroadcast('${bc.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-lg">🗑️ Delete</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    async function handleBroadcastPublish(e) {
-      e.preventDefault();
-      const id = document.getElementById('editBroadcastId').value;
-      const title = document.getElementById('bcTitle').value.trim();
-      const category = document.getElementById('bcCategory').value;
-      
-      const message = quill.root.innerHTML.trim();
-      if (!message || message === '<p><br></p>') {
-        alert("Please enter announcement message content.");
-        return;
-      }
-      
-      const startTimeInput = document.getElementById('bcStartTime').value;
-      const expiresAtInput = document.getElementById('bcExpiresAt').value;
-
-      const start_time = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
-      const expires_at = expiresAtInput ? new Date(expiresAtInput).toISOString() : null;
-      
-      const checkboxes = document.querySelectorAll('input[name="targetRole"]:checked');
-      const target_audience = Array.from(checkboxes).map(cb => cb.value);
-
-      if (target_audience.length === 0) {
-        alert("Please check at least one target audience portal.");
-        return;
-      }
-
-      const payload = {
-        title,
-        category,
-        message,
-        target_audience,
-        start_time,
-        expires_at,
-        is_active: true
-      };
-
-      let res;
-      if (id) {
-        res = await client.from('broadcasts').update(payload).eq('id', id);
-      } else {
-        res = await client.from('broadcasts').insert([payload]);
-      }
-
-      if (res.error) {
-        alert("Error saving broadcast: " + res.error.message);
-      } else {
-        alert(id ? "Announcement updated successfully!" : "Announcement published successfully!");
-        cancelBroadcastEdit();
-        fetchBroadcasts();
-      }
-    }
-
-    function editBroadcast(id) {
-      const bc = publishedBroadcasts.find(b => String(b.id) === String(id));
-      if (!bc) return;
-
-      document.getElementById('editBroadcastId').value = bc.id;
-      document.getElementById('bcTitle').value = bc.title;
-      document.getElementById('bcCategory').value = bc.category;
-      
-      quill.root.innerHTML = bc.message || '';
-      
-      document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
-      document.getElementById('bcExpiresAt').value = toLocalDatetimeInput(bc.expires_at);
-
-      document.querySelectorAll('input[name="targetRole"]').forEach(cb => {
-        cb.checked = (bc.target_audience || []).includes(cb.value);
-      });
-
-      document.getElementById('bcSubmitBtn').innerHTML = "<span>💾</span> Update Announcement";
-      document.getElementById('bcCancelEditBtn').classList.remove('hidden');
-      document.getElementById('editBroadcastIndicator').classList.remove('hidden');
-      switchTab('broadcasts');
-    }
-
-    function cancelBroadcastEdit() {
-      document.getElementById('editBroadcastId').value = '';
-      document.getElementById('bcTitle').value = '';
-      quill.root.innerHTML = '';
-      document.getElementById('bcStartTime').value = '';
-      document.getElementById('bcExpiresAt').value = '';
-      document.querySelectorAll('input[name="targetRole"]').forEach(cb => cb.checked = false);
-
-      document.getElementById('bcSubmitBtn').innerHTML = "<span>🚀</span> Publish Announcement";
-      document.getElementById('bcCancelEditBtn').classList.add('hidden');
-      document.getElementById('editBroadcastIndicator').classList.add('hidden');
-    }
-
-    async function deleteBroadcast(id) {
-      const confirmDelete = confirm("Permanently delete this announcement?");
-      if (!confirmDelete) return;
-
-      const { error } = await client.from('broadcasts').delete().eq('id', id);
-      if (error) {
-        alert("Error deleting: " + error.message);
-      } else {
-        fetchBroadcasts();
-      }
-    }
-
-    function initDates() {
-      setDatePreset('ALL');
-    }
-
-    function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
-
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      });
-
-      if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = getLocalDateKey(today);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Today";
-      } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-        filterStartDate = getLocalDateKey(y);
-        filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-      } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const last7 = new Date();
-        last7.setDate(last7.getDate() - 6);
-        filterStartDate = getLocalDateKey(last7);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-      } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = getLocalDateKey(firstDay);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-      } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = null;
-        filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Zone)";
-        document.getElementById('activeDateScopeTag').innerText = "All Time";
-      }
-
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
-
-      applyAllFilters();
-    }
-
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        });
-
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        applyAllFilters();
-      }
-    }
-
-    function renderStars(rating) {
-      if (!rating) return '';
-      return '⭐'.repeat(rating);
-    }
-
-    function openRepsModal() {
-      document.getElementById('repsModal').classList.remove('hidden');
-      renderRepsModalTable();
-    }
-
-    function closeRepsModal() {
-      document.getElementById('repsModal').classList.add('hidden');
-    }
-
-    function renderRepsModalTable() {
-      const tbody = document.getElementById('repsModalTableBody');
-      const transferSelect = document.getElementById('transferToRepSelect');
-
-      transferSelect.innerHTML = '<option value="">Select Rep...</option>' +
-        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-
-      if (!registeredReps || registeredReps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = registeredReps.map(rep => `
-        <tr class="hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors">
-          <td class="p-3 font-semibold text-slate-900 dark:text-white">${rep.full_name}</td>
-          <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${rep.territory_code}</td>
-          <td class="p-3">${rep.sap_id}</td>
-          <td class="p-3 uppercase">${rep.team_name}</td>
-          <td class="p-3 text-right">
-            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold rounded-lg">
-              🗑️ Remove
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    async function removeRep(repId, repName, territoryCode) {
-      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nPast patient orders will remain safely saved under your zone.`);
-      if (!confirmRemove) return;
-
-      try {
-        const { error } = await client.from('reps').delete().eq('id', repId);
-        if (error) throw error;
-        await window.fetchManagerOrders();
-        renderRepsModalTable();
-      } catch (err) {
-        alert("Error removing rep: " + err.message);
-      }
-    }
-
-    async function handleTerritoryTransfer() {
-      const fromCode = document.getElementById('transferFromCode').value.trim().toUpperCase();
-      const toCode = document.getElementById('transferToRepSelect').value;
-
-      if (!fromCode || !toCode) {
-        alert("Please enter the old Territory Code and select the target Rep.");
-        return;
-      }
-      if (fromCode === toCode) {
-        alert("Source and target territory codes cannot be the same.");
-        return;
-      }
-
-      const confirmTransfer = confirm(`Transfer all patient records from '${fromCode}' to '${toCode}'?`);
-      if (!confirmTransfer) return;
-
-      try {
-        const { data, error } = await client
-          .from('orders')
-          .update({ rep_code: toCode })
-          .eq('rep_code', fromCode)
-          .select();
-
-        if (error) throw error;
-
-        alert(`Successfully transferred ${data ? data.length : 0} patient records to '${toCode}'.`);
-        document.getElementById('transferFromCode').value = '';
-        closeRepsModal();
-        window.fetchManagerOrders();
-      } catch (err) {
-        alert("Transfer failed: " + err.message);
-      }
-    }
-
-    function applyAllFilters() {
-      const selectedRep = document.getElementById('subordinateFilter')?.value || 'ALL';
-      const selectedStatus = document.getElementById('mgrStatusFilter')?.value || 'ALL';
-      const searchTerm = (document.getElementById('mgrSearchInput')?.value || '').toLowerCase().trim();
-
-      const hierarchyMatchedOrders = currentOrdersData.filter(order => {
-        const matchesRep = selectedRep === 'ALL' || order.rep_code === selectedRep;
-        const matchesStatus = selectedStatus === 'ALL' || order.status === selectedStatus;
-        const matchesSearch = !searchTerm ||
-          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (order.mobile || '').includes(searchTerm) ||
-          (order.order_id || '').toLowerCase().includes(searchTerm) ||
-          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (order.city || '').toLowerCase().includes(searchTerm) ||
-          (order.delivery_address || '').toLowerCase().includes(searchTerm);
-
-        return matchesRep && matchesStatus && matchesSearch;
-      });
-
-      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-        return matchesDate;
-      });
-
-      updateMetrics();
-      updateDailyChart(hierarchyMatchedOrders);
-      updateSummaries();
-      renderCards();
-    }
-
-    function updateMetrics() {
-      const total = activeFilteredOrders.length;
-      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      const inProcess = total - delivered;
-
-      document.getElementById('statTotal').innerText = total;
-      document.getElementById('statProcess').innerText = inProcess;
-      document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('statFeedback').innerText = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
-      document.getElementById('filteredCount').innerText = total;
-    }
-
-    function updateDailyChart(ordersToGraph) {
-      const daysCount = {};
-      const datesList = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = getLocalDateKey(d);
-        daysCount[key] = 0;
-        datesList.push(key);
-      }
-
-      (ordersToGraph || []).forEach(o => {
-        const orderDate = getLocalDateKey(o.created_at);
-        if (daysCount[orderDate] !== undefined) {
-          daysCount[orderDate]++;
-        }
-      });
-
-      const labels = datesList.map(dateStr => {
-        const parts = dateStr.split('-');
-        return `${parts[2]}/${parts[1]}`;
-      });
-      const dataPoints = datesList.map(d => daysCount[d]);
-
-      const chartCanvas = document.getElementById('dailyEnrollmentChart');
-      if (!chartCanvas) return;
-      const ctx = chartCanvas.getContext('2d');
-      if (chartInstance) chartInstance.destroy();
-
-      const isDark = document.documentElement.classList.contains('dark');
-      const textColor = isDark ? '#94a3b8' : '#64748b';
-      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
-
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Patients Enrolled',
-            data: dataPoints,
-            backgroundColor: 'rgba(16, 185, 129, 0.85)',
-            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
-            borderRadius: 6,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: isDark ? '#0f172a' : '#ffffff',
-              titleColor: '#10b981',
-              bodyColor: isDark ? '#ffffff' : '#0f172a',
-              borderColor: isDark ? '#334155' : '#cbd5e1',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: false
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: textColor, font: { size: 11 } }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: gridColor },
-              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
-            }
-          }
-        }
-      });
-    }
-
-    function updateSummaries() {
-      const prescriberCount = {};
-      
-      activeFilteredOrders.forEach(o => {
-        const doc = (o.doctor_name || 'Unassigned').trim();
-        const clinic = (o.clinic_name || '').trim();
-        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
-        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
-      });
-
-      const sortedPrescribers = Object.entries(prescriberCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      
-      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
-
-      const doseCount = {};
-      activeFilteredOrders.forEach(o => {
-        const dose = o.prescribed_dose || 'Unspecified';
-        doseCount[dose] = (doseCount[dose] || 0) + 1;
-      });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
-    }
-
-    function renderCards() {
-      const grid = document.getElementById('mgrCardsGrid');
-      if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selection.</div>';
-        return;
-      }
-
-      grid.innerHTML = activeFilteredOrders.map(order => {
-        const fb = feedbackMap[order.id];
-        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
-        const isDispatched = order.status === 'Dispatched';
-
-        return `
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
-            
-            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
-                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
-                </div>
-                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
-              </div>
-              <div>
-                <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700')}">
-                  ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
-                </span>
-              </div>
-            </div>
-
-            <!-- Patient Info (Read-Only) -->
-            <div class="space-y-1.5 text-sm">
-              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
-              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
-              </div>
-            </div>
-
-            <!-- Doctor & Titration Overview -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
-              </div>
-              ${order.prescription_url 
-                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
-                : ''}
-            </div>
-
-            <!-- Feedback & Assigned Territory -->
-            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
-            </div>
-
-          </div>
-        `;
-      }).join('');
-    }
-
-    function exportToCSV() {
-      if (!activeFilteredOrders || activeFilteredOrders.length === 0) {
-        alert("No orders to export!");
-        return;
-      }
-      let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status\n";
-      activeFilteredOrders.forEach(o => {
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `TirzaTrim_${currentManager ? (currentManager.manager_sap_id || currentManager.sap_id) : 'ZSM'}_${currentDateScope}_Orders.csv`;
-      a.click();
-    }
-
-    // Launch immediately on page load
-    checkMgrSession();
-    checkGlobalBroadcast('admin');
-  </script>
+  <!-- AUTH SCREEN -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
+          🏠 Home
+        </a>
+        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+          🏢
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Zonal Operations Hub</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager Administration Portal</p>
+      </div>
+
+      <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
+        <button id="mgrLoginTabBtn" onclick="showMgrAuthTab('login')" class="py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">
+          Manager Login
+        </button>
+        <button id="mgrSignupTabBtn" onclick="showMgrAuthTab('signup')" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          New Registration
+        </button>
+      </div>
+
+      <!-- LOGIN -->
+      <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
+        <div>
+          <input type="text" id="loginMgrSap" value="7613" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
+        </div>
+        <div>
+          <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
+          Unlock My Zone Dashboard
+        </button>
+      </form>
+
+      <!-- SIGNUP -->
+      <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden text-left">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
+          <input type="text" id="regMgrName" value="M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Assigned Region *</label>
+            <select id="regMgrRegion" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="Central">Central</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Team *</label>
+            <input type="text" id="regMgrTeam" value="QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Zone / Territory *</label>
+            <input type="text" id="regMgrZone" value="LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Manager SAP ID *</label>
+            <input type="text" id="regMgrSapId" value="7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Set Password *</label>
+          <input type="password" id="regMgrPassword" placeholder="Create password" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">
+          Register ZSM Account
+        </button>
+      </form>
+      <p id="mgrAuthErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
+  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div class="space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">Admin Console</span>
+        </div>
+        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
+            ST
+          </div>
+          <div>
+            <div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">M. Shahbaz Tariq</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Zone: <span id="menuZoneDisplay">LHR2</span></span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7613</span></span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Administrative Tools</div>
+
+        <button id="menuPushBtn" onclick="registerMobileDirect()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
+        </button>
+
+        <button onclick="window.fetchManagerOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh Database</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
+        🏠 <span>Back to Main Portal</span>
+      </a>
+      <button onclick="handleMgrLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
+        🚪 <span>Secure Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- REP & TERRITORY MANAGEMENT MODAL -->
+  <div id="repsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Field Force & Territory Transfers</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Manage reps or transfer patient records between territory codes</p>
+        </div>
+        <button onclick="closeRepsModal()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 space-y-3">
+        <h4 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Transfer Territory Patients</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">From Old Territory Code:</label>
+            <input type="text" id="transferFromCode" placeholder="e.g. QL1.1" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">To Active Rep:</label>
+            <select id="transferToRepSelect" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="">Select Rep...</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="handleTerritoryTransfer()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+              Transfer Records
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto pt-2">
+        <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+          <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+            <tr>
+              <th class="p-3">Rep Name</th>
+              <th class="p-3">T.Code</th>
+              <th class="p-3">SAP ID</th>
+              <th class="p-3">Team</th>
+              <th class="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="repsModalTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading reps...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
+    
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & ZSM TITLE -->
+    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
+        ☰
+      </button>
+
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center justify-center gap-4">
+          <div class="text-left">
+            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
+              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
+              (TIRZEPATIDE)
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
+            <div class="flex flex-col gap-1 w-14">
+              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
+              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
+              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <span id="mgrNameDisplay" class="text-slate-900 dark:text-white">M. Shahbaz Tariq</span>
+          <span class="text-[#059669]">ZSM • <span id="mgrZoneDisplay">LHR2</span> (<span id="mgrTeamDisplay">QASWA</span>)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
+    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Orders</div>
+        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Process</div>
+        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedbacks</div>
+        <div id="statFeedback" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
+      </div>
+    </div>
+
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">Orders</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends</span>
+      </button>
+      <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📢</span>
+        <span class="text-xs font-bold">Broadcast</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+      <button onclick="openRepsModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👔</span>
+        <span class="text-xs font-bold">Transfers</span>
+      </button>
+      <button onclick="exportToCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📥</span>
+        <span class="text-xs font-bold">Export CSV</span>
+      </button>
+    </div>
+
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: PATIENTS & ORDERS VIEW -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input type="text" id="mgrSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Mobile, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <select id="subordinateFilter" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All My Reps</option>
+          </select>
+          <select id="mgrStatusFilter" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Statuses</option>
+            <option value="New Patient">New Patient</option>
+            <option value="Prescription Received">Prescription Received</option>
+            <option value="Order Processing">Order Processing</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Feedback Submitted">Feedback Submitted</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading zone records...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📊</span> Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">Zone Trend</span>
+        </div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> Top Prescribers in Zone
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MULTI-PORTAL BROADCASTS VIEW -->
+    <div id="view-broadcasts" class="tab-view-container space-y-4 hidden">
+      <div class="space-y-6">
+        <!-- Broadcast Publisher Form -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>📢</span> Multi-Portal Broadcast Publisher
+            </h3>
+            <span id="editBroadcastIndicator" class="hidden text-xs font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+              Editing Mode
+            </span>
+          </div>
+
+          <form id="broadcastForm" onsubmit="handleBroadcastPublish(event)" class="space-y-4">
+            <input type="hidden" id="editBroadcastId" value="">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Title *</label>
+                <input type="text" id="bcTitle" required placeholder="e.g. Cold-Chain Protocol Update" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Category *</label>
+                <select id="bcCategory" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+                  <option value="Announcement">Announcement (General Notice)</option>
+                  <option value="Important Information">Important Information</option>
+                  <option value="Attention">Attention (Critical Action)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Display Date & Time</label>
+                <input type="datetime-local" id="bcStartTime" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Expiration Limit (Optional)</label>
+                <input type="datetime-local" id="bcExpiresAt" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Target Portal Audience *</label>
+              <div class="flex flex-wrap gap-4 text-sm font-semibold text-slate-800 dark:text-slate-200 pt-1">
+                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="patient" class="rounded text-emerald-600"> Patients</label>
+                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="doctor" class="rounded text-emerald-600"> Doctors</label>
+                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="distributor" class="rounded text-emerald-600"> Riders</label>
+                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="targetRole" value="team" class="rounded text-emerald-600"> Reps</label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Announcement Message *</label>
+              <div id="bcEditor"></div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <button type="submit" id="bcSubmitBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow transition-all">
+                🚀 Publish Announcement
+              </button>
+              <button type="button" id="bcCancelEditBtn" onclick="cancelBroadcastEdit()" class="hidden px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-sm font-bold rounded-xl transition-all">
+                Cancel
+              </button>
+            </div>
+          </form>
+
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Published Broadcast Log</h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3">Title</th>
+                    <th class="p-3">Target Portals</th>
+                    <th class="p-3">Status / Expires</th>
+                    <th class="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="broadcastsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                  <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading announcements...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- MDS PARTNER MANAGER SECTION FOR ADMIN -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>⚡</span> Manage MDS Partners (Same-Day Urgent)
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Add or remove local delivery partners (e.g. Drug Solution Network, MedAM, Rite Care) available for reps to choose during order routing.</p>
+
+          <form onsubmit="handleCreateMds(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <input type="text" id="newMdsName" placeholder="Provider Name (e.g. Rite Care)" required class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="newMdsCity" placeholder="City (e.g. Lahore)" value="Lahore" required class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <button type="submit" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+              ➕ Add MDS Partner
+            </button>
+          </form>
+
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Active MDS Network Directory</h4>
+            <div id="mdsAdminList" class="space-y-2 divide-y divide-slate-200 dark:divide-slate-800 text-xs">
+              <div class="text-slate-400 text-center py-2">Loading MDS partners...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: Month to Date
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('broadcasts')" id="bottomNav-broadcasts" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📢</span>
+      <span class="text-xs font-medium">Broadcast</span>
+    </button>
+    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">⚙️</span>
+      <span class="text-xs font-medium">Admin</span>
+    </button>
+  </nav>
+
+  <script>
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentManager = null;
+    try {
+      const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
+        currentManager = JSON.parse(saved);
+      }
+    } catch (e) {
+      currentManager = null;
+    }
+
+    let currentOrdersData = [];
+    let registeredReps = [];
+    let feedbackMap = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
+    let publishedBroadcasts = [];
+
+    let currentDateScope = "ALL";
+    let filterStartDate = null;
+    let filterEndDate = null;
+
+    let realtimeChannel = null;
+    let adminPollingInterval = null;
+
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
+
+    function openSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.remove('hidden');
+      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.add('hidden');
+      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+    }
+
+    async function registerMobileDirect() {
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Permission Denied. Please enable notifications in your browser settings.");
+          return;
+        }
+
+        const sapId = currentManager ? (currentManager.manager_sap_id || currentManager.sap_id) : '7613';
+        const zone = currentManager ? (currentManager.zone_region || currentManager.zone) : 'LHR2';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'zsm', zone);
+          alert(`✅ Phone Successfully Linked!\n\nRole: ZSM\nSAP ID: ${sapId}\nZone: ${zone}\n\nYou will now receive 24/7 background order alerts on this device.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+          }
+        }
+      } catch (err) {
+        alert("Registration Error: " + err.message);
+      }
+    }
+
+    const quill = new Quill('#bcEditor', {
+      theme: 'snow',
+      placeholder: 'Write or paste announcement content here...',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['clean']
+        ]
+      }
+    });
+
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function toLocalDatetimeInput(utcString) {
+      if (!utcString) return '';
+      const d = new Date(utcString);
+      if (isNaN(d.getTime())) return '';
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    }
+
+    function showMgrAuthTab(type) {
+      document.getElementById('mgrAuthErrorMsg').classList.add('hidden');
+      if (type === 'login') {
+        document.getElementById('mgrLoginForm').classList.remove('hidden');
+        document.getElementById('mgrSignupForm').classList.add('hidden');
+        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      } else {
+        document.getElementById('mgrLoginForm').classList.add('hidden');
+        document.getElementById('mgrSignupForm').classList.remove('hidden');
+        document.getElementById('mgrSignupTabBtn').className = "py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        document.getElementById('mgrLoginTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      }
+    }
+
+    function getInitials(name) {
+      if (!name) return 'ZM';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    window.fetchManagerOrders = async function(silent = false) {
+      if (!currentManager) return;
+
+      try {
+        const sapKey = currentManager.manager_sap_id || currentManager.sap_id || '7613';
+
+        const { data: repsData } = await client
+          .from('reps')
+          .select('*')
+          .eq('manager_sap_id', sapKey);
+
+        registeredReps = repsData || [];
+
+        const repFilter = document.getElementById('subordinateFilter');
+        const currentSelected = repFilter ? repFilter.value : 'ALL';
+        
+        if (repFilter) {
+          repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
+            registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+          
+          if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
+            repFilter.value = currentSelected;
+          }
+        }
+
+        const repCodes = registeredReps.map(r => r.territory_code);
+
+        const { data: orders, error } = await client
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          if (!silent) console.error("Error loading orders:", error.message);
+          return;
+        }
+
+        const allFetched = orders || [];
+        if (repCodes.length > 0) {
+          currentOrdersData = allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT');
+        } else {
+          currentOrdersData = allFetched;
+        }
+
+        const orderIds = currentOrdersData.map(o => o.id);
+        if (orderIds.length > 0) {
+          const { data: feedbacks } = await client
+            .from('feedback')
+            .select('*')
+            .in('order_id', orderIds);
+
+          feedbackMap = {};
+          (feedbacks || []).forEach(f => {
+            feedbackMap[f.order_id] = f;
+          });
+        } else {
+          feedbackMap = {};
+        }
+
+        applyAllFilters();
+      } catch (err) {
+        console.error("Error in fetchManagerOrders:", err);
+      }
+    };
+
+    function initRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      realtimeChannel = client
+        .channel('public:global_admin_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => {
+            window.fetchManagerOrders(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            window.fetchManagerOrders(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => {
+            window.fetchManagerOrders(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'broadcasts' },
+          () => {
+            fetchBroadcasts();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            window.fetchManagerOrders(true);
+          }
+        });
+
+      if (adminPollingInterval) clearInterval(adminPollingInterval);
+      adminPollingInterval = setInterval(() => {
+        window.fetchManagerOrders(true);
+      }, 5000);
+    }
+
+    function checkMgrSession() {
+      if (currentManager) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        
+        const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
+        const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
+        const mgrTeam = currentManager.team_name || 'QASWA';
+        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
+
+        document.getElementById('mgrNameDisplay').innerText = mgrName;
+        document.getElementById('mgrZoneDisplay').innerText = mgrZone;
+        document.getElementById('mgrTeamDisplay').innerText = mgrTeam;
+
+        document.getElementById('menuUserName').innerText = mgrName;
+        document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
+        document.getElementById('menuZoneDisplay').innerText = mgrZone;
+        document.getElementById('menuSapDisplay').innerText = mgrSap;
+        
+        initDates();
+        window.fetchManagerOrders();
+        fetchBroadcasts();
+        fetchAdminMdsProviders();
+        initRealtimeSync();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
+    }
+
+    /* MDS PARTNER MANAGEMENT FUNCTIONS */
+    async function fetchAdminMdsProviders() {
+      try {
+        const { data, error } = await client.from('mds_providers').select('*').order('created_at', { ascending: false });
+        const listEl = document.getElementById('mdsAdminList');
+        if (!listEl) return;
+
+        if (error || !data || data.length === 0) {
+          listEl.innerHTML = '<div class="text-slate-400 text-center py-2">No MDS partners registered yet.</div>';
+          return;
+        }
+
+        listEl.innerHTML = data.map(m => `
+          <div class="flex items-center justify-between py-2">
+            <div>
+              <span class="font-bold text-slate-900 dark:text-white text-sm">${m.provider_name}</span>
+              <span class="ml-2 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">${m.city}</span>
+            </div>
+            <button onclick="deleteMdsProvider('${m.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 font-bold rounded-lg hover:bg-rose-500/20 transition-all">🗑️ Remove</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.warn("MDS fetch skipped:", err);
+      }
+    }
+
+    async function handleCreateMds(e) {
+      e.preventDefault();
+      const provider_name = document.getElementById('newMdsName').value.trim();
+      const city = document.getElementById('newMdsCity').value.trim();
+
+      const { error } = await client.from('mds_providers').insert([{ provider_name, city, is_active: true }]);
+      if (error) {
+        alert("Error adding MDS partner: " + error.message);
+      } else {
+        alert(`✅ Added '${provider_name}' successfully!`);
+        document.getElementById('newMdsName').value = '';
+        fetchAdminMdsProviders();
+      }
+    }
+
+    async function deleteMdsProvider(id) {
+      if (!confirm("Are you sure you want to remove this MDS partner?")) return;
+      const { error } = await client.from('mds_providers').delete().eq('id', id);
+      if (!error) fetchAdminMdsProviders();
+    }
+
+    async function handleMgrSignup(e) {
+      e.preventDefault();
+      const err = document.getElementById('mgrAuthErrorMsg');
+      err.classList.add('hidden');
+
+      const full_name = document.getElementById('regMgrName').value.trim();
+      const region = document.getElementById('regMgrRegion').value;
+      const team_name = document.getElementById('regMgrTeam').value.trim().toUpperCase();
+      const zone_region = document.getElementById('regMgrZone').value.trim();
+      const manager_sap_id = document.getElementById('regMgrSapId').value.trim();
+      const password = document.getElementById('regMgrPassword').value;
+
+      try {
+        const { data, error } = await client
+          .from('managers')
+          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password }])
+          .select();
+
+        if (error) {
+          if (error.message.includes('unique')) throw new Error(`Manager SAP ID '${manager_sap_id}' is already registered.`);
+          throw error;
+        }
+
+        currentManager = data[0];
+        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        checkMgrSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    async function handleMgrLogin(e) {
+      e.preventDefault();
+      const err = document.getElementById('mgrAuthErrorMsg');
+      err.classList.add('hidden');
+
+      const sapId = document.getElementById('loginMgrSap').value.trim();
+      const pass = document.getElementById('loginMgrPassword').value.trim();
+
+      try {
+        const { data, error } = await client
+          .from('managers')
+          .select('*')
+          .eq('manager_sap_id', sapId)
+          .eq('password', pass)
+          .limit(1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
+
+        currentManager = data[0];
+        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || sapId;
+        
+        localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        checkMgrSession();
+      } catch (ex) {
+        err.innerText = ex.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    function handleMgrLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (adminPollingInterval) {
+        clearInterval(adminPollingInterval);
+        adminPollingInterval = null;
+      }
+      localStorage.removeItem('tt_current_manager');
+      sessionStorage.removeItem('tt_current_manager');
+      currentManager = null;
+      checkMgrSession();
+    }
+
+    async function fetchBroadcasts() {
+      try {
+        const { data, error } = await client
+          .from('broadcasts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          publishedBroadcasts = data;
+          renderBroadcastsTable();
+        }
+      } catch (err) {
+        console.warn("fetchBroadcasts error:", err);
+      }
+    }
+
+    function renderBroadcastsTable() {
+      const tbody = document.getElementById('broadcastsTableBody');
+      if (!tbody) return;
+      if (publishedBroadcasts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">No announcements published yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = publishedBroadcasts.map(bc => {
+        const isExpired = bc.expires_at && new Date(bc.expires_at) <= new Date();
+        const statusBadge = isExpired
+          ? '<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold">Expired</span>'
+          : (bc.is_active ? '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Active</span>' : '<span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-xs font-bold">Disabled</span>');
+
+        return `
+          <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="p-3">
+              <div class="font-bold text-slate-900 dark:text-white text-sm">${bc.title}</div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">${bc.category}</div>
+            </td>
+            <td class="p-3">
+              <div class="flex flex-wrap gap-1">
+                ${(bc.target_audience || []).map(r => `<span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">${r}</span>`).join('')}
+              </div>
+            </td>
+            <td class="p-3">
+              <div>${statusBadge}</div>
+              <div class="text-xs text-slate-400 mt-0.5">Expires: ${bc.expires_at ? new Date(bc.expires_at).toLocaleDateString() : 'No Limit'}</div>
+            </td>
+            <td class="p-3 text-right space-x-1.5">
+              <button onclick="editBroadcast('${bc.id}')" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-lg">✏️ Edit</button>
+              <button onclick="deleteBroadcast('${bc.id}')" class="px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-lg">🗑️ Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function handleBroadcastPublish(e) {
+      e.preventDefault();
+      const id = document.getElementById('editBroadcastId').value;
+      const title = document.getElementById('bcTitle').value.trim();
+      const category = document.getElementById('bcCategory').value;
+      
+      const message = quill.root.innerHTML.trim();
+      if (!message || message === '<p><br></p>') {
+        alert("Please enter announcement message content.");
+        return;
+      }
+      
+      const startTimeInput = document.getElementById('bcStartTime').value;
+      const expiresAtInput = document.getElementById('bcExpiresAt').value;
+
+      const start_time = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
+      const expires_at = expiresAtInput ? new Date(expiresAtInput).toISOString() : null;
+      
+      const checkboxes = document.querySelectorAll('input[name="targetRole"]:checked');
+      const target_audience = Array.from(checkboxes).map(cb => cb.value);
+
+      if (target_audience.length === 0) {
+        alert("Please check at least one target audience portal.");
+        return;
+      }
+
+      const payload = {
+        title,
+        category,
+        message,
+        target_audience,
+        start_time,
+        expires_at,
+        is_active: true
+      };
+
+      let res;
+      if (id) {
+        res = await client.from('broadcasts').update(payload).eq('id', id);
+      } else {
+        res = await client.from('broadcasts').insert([payload]);
+      }
+
+      if (res.error) {
+        alert("Error saving broadcast: " + res.error.message);
+      } else {
+        alert(id ? "Announcement updated successfully!" : "Announcement published successfully!");
+        cancelBroadcastEdit();
+        fetchBroadcasts();
+      }
+    }
+
+    function editBroadcast(id) {
+      const bc = publishedBroadcasts.find(b => String(b.id) === String(id));
+      if (!bc) return;
+
+      document.getElementById('editBroadcastId').value = bc.id;
+      document.getElementById('bcTitle').value = bc.title;
+      document.getElementById('bcCategory').value = bc.category;
+      
+      quill.root.innerHTML = bc.message || '';
+      
+      document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
+      document.getElementById('bcExpiresAt').value = toLocalDatetimeInput(bc.expires_at);
+
+      document.querySelectorAll('input[name="targetRole"]').forEach(cb => {
+        cb.checked = (bc.target_audience || []).includes(cb.value);
+      });
+
+      document.getElementById('bcSubmitBtn').innerHTML = "<span>💾</span> Update Announcement";
+      document.getElementById('bcCancelEditBtn').classList.remove('hidden');
+      document.getElementById('editBroadcastIndicator').classList.remove('hidden');
+      switchTab('broadcasts');
+    }
+
+    function cancelBroadcastEdit() {
+      document.getElementById('editBroadcastId').value = '';
+      document.getElementById('bcTitle').value = '';
+      quill.root.innerHTML = '';
+      document.getElementById('bcStartTime').value = '';
+      document.getElementById('bcExpiresAt').value = '';
+      document.querySelectorAll('input[name="targetRole"]').forEach(cb => cb.checked = false);
+
+      document.getElementById('bcSubmitBtn').innerHTML = "<span>🚀</span> Publish Announcement";
+      document.getElementById('bcCancelEditBtn').classList.add('hidden');
+      document.getElementById('editBroadcastIndicator').classList.add('hidden');
+    }
+
+    async function deleteBroadcast(id) {
+      const confirmDelete = confirm("Permanently delete this announcement?");
+      if (!confirmDelete) return;
+
+      const { error } = await client.from('broadcasts').delete().eq('id', id);
+      if (error) {
+        alert("Error deleting: " + error.message);
+      } else {
+        fetchBroadcasts();
+      }
+    }
+
+    function initDates() {
+      setDatePreset('ALL');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Zone)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        applyAllFilters();
+      }
+    }
+
+    function renderStars(rating) {
+      if (!rating) return '';
+      return '⭐'.repeat(rating);
+    }
+
+    function openRepsModal() {
+      document.getElementById('repsModal').classList.remove('hidden');
+      renderRepsModalTable();
+    }
+
+    function closeRepsModal() {
+      document.getElementById('repsModal').classList.add('hidden');
+    }
+
+    function renderRepsModalTable() {
+      const tbody = document.getElementById('repsModalTableBody');
+      const transferSelect = document.getElementById('transferToRepSelect');
+
+      transferSelect.innerHTML = '<option value="">Select Rep...</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (!registeredReps || registeredReps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No representatives registered under your team.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = registeredReps.map(rep => `
+        <tr class="hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors">
+          <td class="p-3 font-semibold text-slate-900 dark:text-white">${rep.full_name}</td>
+          <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${rep.territory_code}</td>
+          <td class="p-3">${rep.sap_id}</td>
+          <td class="p-3 uppercase">${rep.team_name}</td>
+          <td class="p-3 text-right">
+            <button onclick="removeRep('${rep.id}', '${rep.full_name}', '${rep.territory_code}')" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold rounded-lg">
+              🗑️ Remove
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function removeRep(repId, repName, territoryCode) {
+      const confirmRemove = confirm(`Are you sure you want to remove "${repName}" (${territoryCode})?\n\nPast patient orders will remain safely saved under your zone.`);
+      if (!confirmRemove) return;
+
+      try {
+        const { error } = await client.from('reps').delete().eq('id', repId);
+        if (error) throw error;
+        await window.fetchManagerOrders();
+        renderRepsModalTable();
+      } catch (err) {
+        alert("Error removing rep: " + err.message);
+      }
+    }
+
+    async function handleTerritoryTransfer() {
+      const fromCode = document.getElementById('transferFromCode').value.trim().toUpperCase();
+      const toCode = document.getElementById('transferToRepSelect').value;
+
+      if (!fromCode || !toCode) {
+        alert("Please enter the old Territory Code and select the target Rep.");
+        return;
+      }
+      if (fromCode === toCode) {
+        alert("Source and target territory codes cannot be the same.");
+        return;
+      }
+
+      const confirmTransfer = confirm(`Transfer all patient records from '${fromCode}' to '${toCode}'?`);
+      if (!confirmTransfer) return;
+
+      try {
+        const { data, error } = await client
+          .from('orders')
+          .update({ rep_code: toCode })
+          .eq('rep_code', fromCode)
+          .select();
+
+        if (error) throw error;
+
+        alert(`Successfully transferred ${data ? data.length : 0} patient records to '${toCode}'.`);
+        document.getElementById('transferFromCode').value = '';
+        closeRepsModal();
+        window.fetchManagerOrders();
+      } catch (err) {
+        alert("Transfer failed: " + err.message);
+      }
+    }
+
+    function applyAllFilters() {
+      const selectedRep = document.getElementById('subordinateFilter')?.value || 'ALL';
+      const selectedStatus = document.getElementById('mgrStatusFilter')?.value || 'ALL';
+      const searchTerm = (document.getElementById('mgrSearchInput')?.value || '').toLowerCase().trim();
+
+      const hierarchyMatchedOrders = currentOrdersData.filter(order => {
+        const matchesRep = selectedRep === 'ALL' || order.rep_code === selectedRep;
+        const matchesStatus = selectedStatus === 'ALL' || order.status === selectedStatus;
+        const matchesSearch = !searchTerm ||
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
+
+        return matchesRep && matchesStatus && matchesSearch;
+      });
+
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      const statTotal = document.getElementById('statTotal');
+      if (statTotal) statTotal.innerText = total;
+      const statProcess = document.getElementById('statProcess');
+      if (statProcess) statProcess.innerText = inProcess;
+      const statDelivered = document.getElementById('statDelivered');
+      if (statDelivered) statDelivered.innerText = delivered;
+      const statFeedback = document.getElementById('statFeedback');
+      if (statFeedback) statFeedback.innerText = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+      const filteredCount = document.getElementById('filteredCount');
+      if (filteredCount) filteredCount.innerText = total;
+    }
+
+    function updateDailyChart(ordersToGraph) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      (ordersToGraph || []).forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              titleColor: '#10b981',
+              bodyColor: isDark ? '#ffffff' : '#0f172a',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor, font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
+      const prescriberCount = {};
+      
+      activeFilteredOrders.forEach(o => {
+        const doc = (o.doctor_name || 'Unassigned').trim();
+        const clinic = (o.clinic_name || '').trim();
+        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
+        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
+      });
+
+      const sortedPrescribers = Object.entries(prescriberCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      const topDoctorsList = document.getElementById('topDoctorsList');
+      if (topDoctorsList) {
+        topDoctorsList.innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      }
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      const doseDistributionList = document.getElementById('doseDistributionList');
+      if (doseDistributionList) {
+        doseDistributionList.innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('mgrCardsGrid');
+      if (!grid) return;
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selection.</div>';
+        return;
+      }
+
+      grid.innerHTML = activeFilteredOrders.map(order => {
+        const fb = feedbackMap[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
+            
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
+              </div>
+              <div>
+                <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700')}">
+                  ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient'))}
+                </span>
+              </div>
+            </div>
+
+            <div class="space-y-1.5 text-sm">
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
+              </div>
+              ${order.prescription_url 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                : ''}
+            </div>
+
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportToCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) {
+        alert("No orders to export!");
+        return;
+      }
+      let csv = "Order ID,Date,Rep,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status\n";
+      activeFilteredOrders.forEach(o => {
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.rep_code || 'Direct'}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TirzaTrim_${currentManager ? (currentManager.manager_sap_id || currentManager.sap_id) : 'ZSM'}_${currentDateScope}_Orders.csv`;
+      a.click();
+    }
+
+    // Initialize session state immediately on script load
+    checkMgrSession();
+    if (typeof checkGlobalBroadcast === 'function') {
+      checkGlobalBroadcast('admin');
+    }
+  </script>
 </body>
 </html>
