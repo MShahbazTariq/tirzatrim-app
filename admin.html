@@ -580,7 +580,6 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Bulletproof session persistence
     let currentManager = null;
     try {
       const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
@@ -605,7 +604,6 @@
     let realtimeChannel = null;
     let adminPollingInterval = null;
 
-    // Full 6-tier Tirzepatide Titration Escalation Schedule
     const TITRATION_MAP = {
       '2.5mg': '5mg',
       '5mg': '7.5mg',
@@ -768,7 +766,6 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    // Explicit Global Attachment for notification.js and sw.js
     window.fetchManagerOrders = async function(silent = false) {
       if (!currentManager) return;
 
@@ -841,8 +838,7 @@
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            console.log('⚡ [ZSM Realtime] Order change detected:', payload.eventType);
+          () => {
             window.fetchManagerOrders(true);
           }
         )
@@ -868,7 +864,6 @@
           }
         )
         .subscribe((status) => {
-          console.log('📡 ZSM Realtime Status:', status);
           if (status === 'SUBSCRIBED') {
             window.fetchManagerOrders(true);
           }
@@ -881,23 +876,39 @@
     }
 
     function checkMgrSession() {
+      try {
+        const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
+        if (saved && saved !== 'undefined' && saved !== 'null') {
+          currentManager = JSON.parse(saved);
+        }
+      } catch (e) {}
+
       if (currentManager && (currentManager.manager_sap_id || currentManager.sap_id)) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
+        const authScreen = document.getElementById('authScreen');
+        const dashContent = document.getElementById('dashboardContent');
+        if (authScreen) authScreen.classList.add('hidden');
+        if (dashContent) dashContent.classList.remove('hidden');
         
         const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
         const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
         const mgrTeam = currentManager.team_name || 'QASWA';
         const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
 
-        document.getElementById('mgrNameDisplay').innerText = mgrName;
-        document.getElementById('mgrZoneDisplay').innerText = mgrZone;
-        document.getElementById('mgrTeamDisplay').innerText = mgrTeam;
+        const nameEl = document.getElementById('mgrNameDisplay');
+        if (nameEl) nameEl.innerText = mgrName;
+        const zoneEl = document.getElementById('mgrZoneDisplay');
+        if (zoneEl) zoneEl.innerText = mgrZone;
+        const teamEl = document.getElementById('mgrTeamDisplay');
+        if (teamEl) teamEl.innerText = mgrTeam;
 
-        document.getElementById('menuUserName').innerText = mgrName;
-        document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
-        document.getElementById('menuZoneDisplay').innerText = mgrZone;
-        document.getElementById('menuSapDisplay').innerText = mgrSap;
+        const menuUser = document.getElementById('menuUserName');
+        if (menuUser) menuUser.innerText = mgrName;
+        const avatar = document.getElementById('menuAvatarBadge');
+        if (avatar) avatar.innerText = getInitials(mgrName);
+        const menuZone = document.getElementById('menuZoneDisplay');
+        if (menuZone) menuZone.innerText = mgrZone;
+        const menuSap = document.getElementById('menuSapDisplay');
+        if (menuSap) menuSap.innerText = mgrSap;
         
         initDates();
         window.fetchManagerOrders();
@@ -905,8 +916,10 @@
         fetchAdminMdsProviders();
         initRealtimeSync();
       } else {
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
+        const authScreen = document.getElementById('authScreen');
+        const dashContent = document.getElementById('dashboardContent');
+        if (authScreen) authScreen.classList.remove('hidden');
+        if (dashContent) dashContent.classList.add('hidden');
       }
     }
 
@@ -1047,6 +1060,7 @@
 
     function renderBroadcastsTable() {
       const tbody = document.getElementById('broadcastsTableBody');
+      if (!tbody) return;
       if (publishedBroadcasts.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">No announcements published yet.</td></tr>';
         return;
@@ -1388,11 +1402,16 @@
       const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       const inProcess = total - delivered;
 
-      document.getElementById('statTotal').innerText = total;
-      document.getElementById('statProcess').innerText = inProcess;
-      document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('statFeedback').innerText = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
-      document.getElementById('filteredCount').innerText = total;
+      const totalEl = document.getElementById('statTotal');
+      if (totalEl) totalEl.innerText = total;
+      const processEl = document.getElementById('statProcess');
+      if (processEl) processEl.innerText = inProcess;
+      const deliveredEl = document.getElementById('statDelivered');
+      if (deliveredEl) deliveredEl.innerText = delivered;
+      const feedbackEl = document.getElementById('statFeedback');
+      if (feedbackEl) feedbackEl.innerText = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+      const filteredEl = document.getElementById('filteredCount');
+      if (filteredEl) filteredEl.innerText = total;
     }
 
     function updateDailyChart(ordersToGraph) {
@@ -1485,28 +1504,35 @@
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
       
-      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      const topDocEl = document.getElementById('topDoctorsList');
+      if (topDocEl) {
+        topDocEl.innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${prescriber.replace(/^Dr\.?\s*/i, '')}</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      }
 
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
         const dose = o.prescribed_dose || 'Unspecified';
         doseCount[dose] = (doseCount[dose] || 0) + 1;
       });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      const doseListEl = document.getElementById('doseDistributionList');
+      if (doseListEl) {
+        doseListEl.innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      }
     }
 
     function renderCards() {
       const grid = document.getElementById('mgrCardsGrid');
+      if (!grid) return;
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selection.</div>';
         return;
@@ -1521,7 +1547,6 @@
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
@@ -1538,7 +1563,6 @@
               </div>
             </div>
 
-            <!-- Patient Info (Read-Only) -->
             <div class="space-y-1.5 text-sm">
               <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
@@ -1547,7 +1571,6 @@
               </div>
             </div>
 
-            <!-- Doctor & Titration Overview -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
@@ -1570,7 +1593,6 @@
                 : ''}
             </div>
 
-            <!-- Feedback & Assigned Territory -->
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
@@ -1598,9 +1620,12 @@
       a.click();
     }
 
-    // Launch immediately on page load
-    checkMgrSession();
-    checkGlobalBroadcast('admin');
+    window.addEventListener('DOMContentLoaded', () => {
+      checkMgrSession();
+      if (typeof checkGlobalBroadcast === 'function') {
+        checkGlobalBroadcast('admin');
+      }
+    });
   </script>
 </body>
 </html>
