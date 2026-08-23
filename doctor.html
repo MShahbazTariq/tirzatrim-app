@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Doctor Monitoring Portal</title>
+  <title>TirzaTrim — Head Office Executive Suite</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
@@ -11,166 +11,326 @@
   <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
-  <script src="/broadcast.js"></script>
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Smooth Scrollbarless Containers */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- Top Header & Dual Search Input Bar -->
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm dark:shadow-none">
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1 transition-all">
-            🏠 Home
-          </a>
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="docHeaderName">
-            Doctor <span class="text-blue-600 dark:text-blue-400">Monitoring Portal</span>
-          </h1>
-          <span id="hcpBadge" class="px-2.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full hidden">HCP Live</span>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="docSubHeader">Live prescription tracker and fulfillment feedback for healthcare providers</p>
-      </div>
-
-      <!-- Prescribing Doctor Search Form & Theme Toggle -->
-      <div class="flex flex-wrap items-center gap-2">
-        <form onsubmit="handleDoctorSearchSubmit(event)" class="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-950 p-2 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <input type="text" id="docNameQueryInput" placeholder="Doctor Name (e.g. Qamar Sajjad)" required class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none placeholder-slate-400 dark:placeholder-slate-500 w-44 sm:w-48 font-medium focus:border-blue-500">
-          <input type="text" id="clinicQueryInput" placeholder="Clinic / Hospital (e.g. FMH)" class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none placeholder-slate-400 dark:placeholder-slate-500 w-40 sm:w-44 font-medium focus:border-blue-500">
-          <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/20">
-            View Patients
-          </button>
-          <button type="button" onclick="resetDoctorFilter()" title="Clear and reset to zero" class="px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold rounded-xl transition-all">
-            ✕
-          </button>
-        </form>
-
+  <!-- PIN AUTH MODAL -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 text-center relative">
+      
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
+          🏠 Home
+        </a>
         <button 
           onclick="toggleTheme()" 
-          type="button"
-          class="px-3 py-2.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-xs font-bold transition-all flex items-center gap-1.5"
-          title="Toggle Dark / Light Mode"
+          type="button" 
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
+          title="Toggle Theme"
         >
           <span class="theme-icon">🌙</span>
         </button>
       </div>
-    </div>
 
-    <!-- TIMELINE & DATE SCOPE CONTROLS -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-2">
-          <span>📅</span> Timeline & Date Scope
+      <div class="space-y-2 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+          🏛️
         </div>
-        
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Head Office Suite</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">CEO • CCO • Director Sales & Marketing • GM</p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-          <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-blue-500">
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-          <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-blue-500">
-        </div>
-        <span id="dateScopeBadge" class="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
-          Showing: Month to Date
-        </span>
-      </div>
-    </div>
-
-    <!-- Summary Metrics -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Referred Patients</div>
-        <div id="statTotal" class="text-3xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Completed Deliveries</div>
-        <div id="statDelivered" class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm dark:shadow-none">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Feedback Submissions</div>
-        <div id="statFeedback" class="text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- SEARCH & STATUS CONTROLS -->
-    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm dark:shadow-none">
-      <div class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-2">
-        <span>🔍</span> Patient Search & Filter
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <form onsubmit="handleMasterPinLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Fulfillment Status</label>
-          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-blue-500">
-            <option value="ALL">All Delivery Statuses</option>
-            <option value="Delivered">Delivered & Confirmed</option>
-            <option value="Dispatched">Dispatched / Out for Delivery</option>
-            <option value="Processing">Order Processing / In Transit</option>
-            <option value="Feedback">Feedback Submitted</option>
+          <input type="password" id="masterPinInput" placeholder="Enter Executive Master Key" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-center text-sm font-mono tracking-widest text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
+          Unlock National Command Center
+        </button>
+      </form>
+      <p id="pinErrorMsg" class="text-xs text-rose-500 font-medium hidden">Invalid Executive Master Key</p>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SLIDE-OVER DRAWER (HQ Profile & Administration Tools) -->
+  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div class="space-y-6">
+      <!-- Menu Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">HQ Console</span>
+        </div>
+        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <!-- Executive Profile Card in Menu -->
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
+            HQ
+          </div>
+          <div>
+            <div class="text-sm font-bold text-slate-900 dark:text-white">National Command</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Scope: National</span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">HQ Key Active</span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
+
+      <!-- Administrative Tools List -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
+
+        <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable National Push Alerts</span>
+        </button>
+
+        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh National Data</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
+        🏠 <span>Back to Main Portal</span>
+      </a>
+      <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
+        🚪 <span>Lock Suite</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
+    
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE -->
+    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
+      
+      <!-- Right Floating Hamburger Button -->
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
+        ☰
+      </button>
+
+      <!-- Center Logo & Branding Block Exactly Matching index.html -->
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center justify-center gap-4">
+          <div class="text-left">
+            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
+              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
+              (TIRZEPATIDE)
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
+            <div class="flex flex-col gap-1 w-14">
+              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
+              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
+              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <span class="text-slate-900 dark:text-white">National Command Center</span>
+          <span class="text-[#059669]">HQ • Executive Suite</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
+    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
+        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
+        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
+        <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
+      </div>
+    </div>
+
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">National Orders</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends & KOLs</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📥</span>
+        <span class="text-xs font-bold">National CSV</span>
+      </button>
+    </div>
+
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>🔍</span> Cascading Multi-Level Search (Region → ZSM → Rep → Keyword)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <select id="filterRegion" onchange="onRegionChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Regions (National)</option>
+            <option value="Central">Central Region</option>
+            <option value="North">North Region</option>
+            <option value="South">South Region</option>
           </select>
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All ZSMs in Region</option>
+          </select>
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Reps in Selection</option>
+          </select>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Keyword Search</label>
-          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="Patient name, city, dose, order ID..." class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-blue-500 placeholder-slate-400 dark:placeholder-slate-600">
+      </div>
+
+      <!-- Patient Cards Grid (Read-Only National Overview) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading national records...
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- GRAPHS & DOSAGE BREAKDOWN -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-3 shadow-sm dark:shadow-none">
+    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> Daily Prescription Referral Trend (Last 14 Days)
+            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
           </h3>
-          <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">Daily Trend</span>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
         </div>
-        <div class="h-56 w-full pt-2">
-          <canvas id="dailyChart"></canvas>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
         </div>
       </div>
 
-      <div class="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 rounded-3xl space-y-4 flex flex-col justify-between shadow-sm dark:shadow-none">
-        <div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Share
+            <span>🩺</span> National Top Prescribing Doctors
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Distribution across TirzaTrim multi-dose strengths</p>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
         </div>
-        <div id="doseShareList" class="space-y-2 text-xs divide-y divide-slate-200 dark:divide-slate-800/60 my-auto">
-          <div class="text-slate-400 dark:text-slate-500 py-4 text-center">No doctor selected.</div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- PATIENT CARDS CONTAINER -->
-    <div class="space-y-3 pt-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>👥</span> Referred Patient Records (<span id="filteredCount">0</span>)
-        </h3>
-      </div>
-      <div id="doctorCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full py-16 text-center text-slate-400 dark:text-slate-500 text-sm">
-          Please enter doctor name and clinic above to load referred patients.
+    <!-- TAB 3: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: Month to Date
         </div>
       </div>
     </div>
 
   </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📅</span>
+      <span class="text-xs font-medium">Timeline</span>
+    </button>
+    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">⚙️</span>
+      <span class="text-xs font-medium">HQ Menu</span>
+    </button>
+  </nav>
 
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
@@ -178,19 +338,98 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let rawOrders = [];
-    let cachedFeedbacks = {};
+    const MASTER_KEY = "HQ2026";
+    let allOrders = [];
+    let allManagers = [];
+    let allReps = [];
+    let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
-    let currentDoctorName = "";
-    let currentClinicName = "";
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
 
     let realtimeChannel = null;
-    let doctorPollingInterval = null;
+    let hqPollingInterval = null;
+
+    // Full 6-tier Tirzepatide Titration Escalation Schedule
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
+
+    function openSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.remove('hidden');
+      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.add('hidden');
+      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+    }
 
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
@@ -198,148 +437,6 @@
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
-    }
-
-    // Sound-based Phonetic Root Generator
-    function getPhoneticSoundRoot(word) {
-      if (!word) return '';
-      let s = word.toLowerCase()
-        .replace(/^(dr\.?|doctor)\s+/i, '')
-        .replace(/[^a-z0-9]/g, '');
-
-      s = s.replace(/ph/g, 'f')
-           .replace(/q|k/g, 'k')
-           .replace(/z|x/g, 's')
-           .replace(/c(?=[iey])/g, 's')
-           .replace(/c/g, 'k')
-           .replace(/mohamm?ad|mohd|muhamm?ed|mohamad|mhamd/g, 'mhmd')
-           .replace(/nauman|nouman|noman/g, 'nmn')
-           .replace(/j|z/g, 'j');
-
-      if (s.length === 0) return '';
-      const firstChar = s[0];
-
-      const rest = s.slice(1)
-        .replace(/[aeiouwyh]/g, '')
-        .replace(/([a-z])\1+/g, '$1');
-
-      return (firstChar + rest).replace(/([a-z])\1+/g, '$1');
-    }
-
-    function isWordSoundMatch(w1, w2) {
-      const p1 = getPhoneticSoundRoot(w1);
-      const p2 = getPhoneticSoundRoot(w2);
-      if (!p1 || !p2) return false;
-      return p1 === p2 || p1.includes(p2) || p2.includes(p1);
-    }
-
-    function isDoctorAndClinicMatch(order, searchDoc, searchClinic) {
-      if (!searchDoc) return false;
-
-      // 1. Doctor Name Phonetic Matching
-      const searchDocTokens = (searchDoc || '')
-        .toLowerCase()
-        .replace(/^(dr\.?|doctor)\s+/i, '')
-        .split(/\s+/)
-        .filter(w => w.length > 0);
-
-      const orderDocTokens = (order.doctor_name || '')
-        .toLowerCase()
-        .replace(/^(dr\.?|doctor)\s+/i, '')
-        .split(/\s+/)
-        .filter(w => w.length > 0);
-
-      const docMatches = searchDocTokens.every(st => 
-        orderDocTokens.some(ot => isWordSoundMatch(st, ot))
-      );
-
-      if (!docMatches) return false;
-
-      // 2. Clinic Matching
-      if (searchClinic && searchClinic.trim().length > 0) {
-        const oClinic = (order.clinic_name || '').toLowerCase();
-        const sClinic = searchClinic.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const oRaw = oClinic.replace(/[^a-z0-9]/g, '');
-
-        if (!oRaw) return false;
-
-        const clinicAcronym = oClinic
-          .split(/[\s\(\)\-\/]+/)
-          .filter(Boolean)
-          .map(w => w[0])
-          .join('')
-          .toLowerCase();
-
-        const clinicMatches = oRaw.includes(sClinic) || 
-                              sClinic.includes(oRaw) || 
-                              clinicAcronym.includes(sClinic) || 
-                              isWordSoundMatch(searchClinic, order.clinic_name);
-
-        return clinicMatches;
-      }
-
-      return true;
-    }
-
-    function initDoctorPortal() {
-      const urlParams = new URLSearchParams(window.location.search);
-      currentDoctorName = (urlParams.get('dr') || '').trim();
-      currentClinicName = (urlParams.get('clinic') || '').trim();
-
-      const docInput = document.getElementById('docNameQueryInput');
-      const clinicInput = document.getElementById('clinicQueryInput');
-      const header = document.getElementById('docHeaderName');
-      const subHeader = document.getElementById('docSubHeader');
-      const badge = document.getElementById('hcpBadge');
-
-      if (currentDoctorName) {
-        docInput.value = currentDoctorName;
-        clinicInput.value = currentClinicName;
-        header.innerHTML = `Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')} ${currentClinicName ? `<span class="text-slate-500 dark:text-slate-400 text-lg">(${currentClinicName})</span>` : ''}'s <span class="text-blue-600 dark:text-blue-400">Portal</span>`;
-        subHeader.innerText = `Live prescription tracker and fulfillment feedback for Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')}`;
-        badge.classList.remove('hidden');
-      } else {
-        docInput.value = '';
-        clinicInput.value = '';
-        header.innerHTML = `Doctor <span class="text-blue-600 dark:text-blue-400">Monitoring Portal</span>`;
-        subHeader.innerText = `Live prescription tracker and fulfillment feedback for healthcare providers`;
-        badge.classList.add('hidden');
-      }
-
-      initDates();
-      window.fetchDoctorOrders();
-      initDoctorRealtimeSync();
-    }
-
-    function handleDoctorSearchSubmit(e) {
-      e.preventDefault();
-      applyDoctorSearch();
-    }
-
-    function applyDoctorSearch() {
-      const docName = document.getElementById('docNameQueryInput').value.trim();
-      const clinicName = document.getElementById('clinicQueryInput').value.trim();
-
-      if (!docName) {
-        resetDoctorFilter();
-      } else {
-        const queryParams = new URLSearchParams();
-        queryParams.set('dr', docName);
-        if (clinicName) queryParams.set('clinic', clinicName);
-        window.history.pushState({}, '', `/doctor.html?${queryParams.toString()}`);
-        initDoctorPortal();
-      }
-    }
-
-    function resetDoctorFilter() {
-      document.getElementById('docNameQueryInput').value = '';
-      document.getElementById('clinicQueryInput').value = '';
-      window.history.pushState({}, '', '/doctor.html');
-      currentDoctorName = '';
-      currentClinicName = '';
-      rawOrders = [];
-      cachedFeedbacks = {};
-      initDoctorPortal();
     }
 
     function initDates() {
@@ -352,39 +449,44 @@
 
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
 
       if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
       } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const y = new Date();
         y.setDate(y.getDate() - 1);
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
       } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const last7 = new Date();
         last7.setDate(last7.getDate() - 6);
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
       } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
       } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time";
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
       document.getElementById('calendarFromDate').value = filterStartDate || '';
@@ -404,11 +506,164 @@
         
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
 
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
+      }
+    }
+
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchEverything = async function(silent = false) {
+      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      if (orderErr) {
+        if (!silent) console.error("Error loading orders:", orderErr.message);
+        return;
+      }
+      allOrders = orders || [];
+
+      const { data: managers } = await client.from('managers').select('*');
+      allManagers = managers || [];
+
+      const { data: reps } = await client.from('reps').select('*');
+      allReps = reps || [];
+
+      if (allOrders.length > 0) {
+        const orderIds = allOrders.map(o => o.id);
+        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
+      } else {
+        feedbackMap = {};
+      }
+
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    };
+
+    function initHQRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      // 1. Unfiltered WebSocket Connection for HQ Dashboard
+      realtimeChannel = client
+        .channel('public:global_exec_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            window.fetchEverything(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => {
+            window.fetchEverything(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'managers' },
+          () => {
+            window.fetchEverything(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => {
+            window.fetchEverything(true);
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            window.fetchEverything(true);
+          }
+        });
+
+      // 2. 5-Second Heartbeat Bridge
+      if (hqPollingInterval) clearInterval(hqPollingInterval);
+      hqPollingInterval = setInterval(() => {
+        window.fetchEverything(true);
+      }, 5000);
+    }
+
+    function checkHoSession() {
+      if (sessionStorage.getItem('tt_ho_auth') === 'true') {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        initDates();
+        window.fetchEverything();
+        initHQRealtimeSync();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
+    }
+
+    function handleMasterPinLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('masterPinInput').value.trim();
+      if (input === MASTER_KEY || input.toLowerCase() === "macter2026") {
+        sessionStorage.setItem('tt_ho_auth', 'true');
+        checkHoSession();
+      } else {
+        document.getElementById('pinErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    function handleHeadOfficeLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (hqPollingInterval) {
+        clearInterval(hqPollingInterval);
+        hqPollingInterval = null;
+      }
+      sessionStorage.removeItem('tt_ho_auth');
+      checkHoSession();
+    }
+
+    async function registerHoMobilePush() {
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+          return;
+        }
+
+        const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
+        const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
+          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+          }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
       }
     }
 
@@ -417,114 +672,112 @@
       return '⭐'.repeat(rating);
     }
 
-    // Explicit Global Attachment for notification.js and sw.js
-    window.fetchDoctorOrders = async function(silent = false) {
-      if (!currentDoctorName) {
-        rawOrders = [];
-        cachedFeedbacks = {};
-        applyAllFilters();
-        return;
+    function populateManagerDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const mgrSelect = document.getElementById('filterManager');
+      const currentVal = mgrSelect.value;
+      
+      const filteredManagers = selectedRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
+        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+
+      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
+        mgrSelect.value = currentVal;
       }
+    }
 
-      const { data: allOrders, error } = await client
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+    function populateRepDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const selectedManagerSap = document.getElementById('filterManager').value;
+      const repSelect = document.getElementById('filterRep');
+      const currentVal = repSelect.value;
 
-      if (error) {
-        if (!silent) console.error("Error loading records:", error.message);
-        return;
-      }
+      let filteredReps = [];
 
-      rawOrders = (allOrders || []).filter(o => isDoctorAndClinicMatch(o, currentDoctorName, currentClinicName));
+      if (selectedManagerSap !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
+      } else if (selectedRegion !== 'ALL') {
+        const regionManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === selectedRegion)
+          .map(m => m.manager_sap_id);
 
-      if (rawOrders.length > 0) {
-        const orderIds = rawOrders.map(o => o.id);
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
-
-        cachedFeedbacks = {};
-        (feedbacks || []).forEach(f => {
-          cachedFeedbacks[f.order_id] = f;
-        });
+        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
       } else {
-        cachedFeedbacks = {};
+        filteredReps = allReps;
       }
 
+      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+        repSelect.value = currentVal;
+      }
+    }
+
+    function onRegionChange() {
+      populateManagerDropdown();
+      populateRepDropdown();
       applyAllFilters();
-    };
+    }
 
-    function initDoctorRealtimeSync() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-
-      // 1. Unfiltered WebSocket Connection for Prescribing Doctor
-      realtimeChannel = client
-        .channel('public:global_doctor_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            console.log('⚡ [Doctor Realtime] Order event detected:', payload.eventType);
-            window.fetchDoctorOrders(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'feedback' },
-          () => {
-            window.fetchDoctorOrders(true);
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 Doctor Realtime Status:', status);
-          if (status === 'SUBSCRIBED') {
-            window.fetchDoctorOrders(true);
-          }
-        });
-
-      // 2. 5-Second Heartbeat Bridge
-      if (doctorPollingInterval) clearInterval(doctorPollingInterval);
-      doctorPollingInterval = setInterval(() => {
-        window.fetchDoctorOrders(true);
-      }, 5000);
+    function onManagerChange() {
+      populateRepDropdown();
+      applyAllFilters();
     }
 
     function applyAllFilters() {
-      const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
-      const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
+      const region = document.getElementById('filterRegion')?.value || 'ALL';
+      const managerSap = document.getElementById('filterManager')?.value || 'ALL';
+      const repCode = document.getElementById('filterRep')?.value || 'ALL';
+      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-      const hierarchyMatched = rawOrders.filter(order => {
-        let matchesStatus = true;
-        const s = order.status || '';
+      let allowedManagerSaps = [];
+      let allowedReps = [];
 
-        if (statusFilter === 'Delivered') {
-          matchesStatus = ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(s);
-        } else if (statusFilter === 'Dispatched') {
-          matchesStatus = s === 'Dispatched';
-        } else if (statusFilter === 'Processing') {
-          matchesStatus = ['New Patient', 'Prescription Received', 'Prescription Verified', 'Order Processing'].includes(s);
-        } else if (statusFilter === 'Feedback') {
-          matchesStatus = !!cachedFeedbacks[order.id];
+      if (region !== 'ALL') {
+        allowedManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === region)
+          .map(m => m.manager_sap_id);
+        allowedReps = allReps
+          .filter(r => allowedManagerSaps.includes(r.manager_sap_id))
+          .map(r => r.territory_code);
+      }
+
+      if (managerSap !== 'ALL') {
+        allowedReps = allReps
+          .filter(r => r.manager_sap_id === managerSap)
+          .map(r => r.territory_code);
+      }
+
+      const hierarchyMatchedOrders = allOrders.filter(o => {
+        let matchesRegion = true;
+        if (region !== 'ALL') {
+          matchesRegion = allowedManagerSaps.includes(o.manager_sap_id) || allowedReps.includes(o.rep_code);
         }
 
-        const matchesSearch = !searchTerm || 
-          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (order.city || '').toLowerCase().includes(searchTerm) ||
-          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (order.delivery_address || '').toLowerCase().includes(searchTerm) ||
-          (order.prescribed_dose || '').toLowerCase().includes(searchTerm) ||
-          (order.order_id || '').toLowerCase().includes(searchTerm);
+        let matchesManager = true;
+        if (managerSap !== 'ALL') {
+          matchesManager = o.manager_sap_id === managerSap || allowedReps.includes(o.rep_code);
+        }
 
-        return matchesStatus && matchesSearch;
+        const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
+        const matchesSearch = !searchTerm ||
+          (o.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (o.mobile || '').includes(searchTerm) ||
+          (o.order_id || '').toLowerCase().includes(searchTerm) ||
+          (o.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (o.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (o.city || '').toLowerCase().includes(searchTerm) ||
+          (o.delivery_address || '').toLowerCase().includes(searchTerm);
+
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
       });
 
-      activeFilteredOrders = hierarchyMatched.filter(o => {
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
         if (filterStartDate && filterEndDate) {
@@ -534,20 +787,28 @@
       });
 
       updateMetrics();
-      updateDailyChart(hierarchyMatched);
+      updateDailyChart(hierarchyMatchedOrders);
       updateSummaries();
       renderCards();
     }
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
-      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(o.status)).length;
-      const feedbackCount = activeFilteredOrders.filter(o => cachedFeedbacks[o.id]).length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
 
       document.getElementById('statTotal').innerText = total;
+      document.getElementById('statProcess').innerText = inProcess;
       document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('statFeedback').innerText = feedbackCount;
       document.getElementById('filteredCount').innerText = total;
+
+      const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
+      if (ratings.length > 0) {
+        const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        document.getElementById('statRating').innerText = `${avg} ⭐`;
+      } else {
+        document.getElementById('statRating').innerText = '5.0 ⭐';
+      }
     }
 
     function updateDailyChart(ordersToGraph) {
@@ -574,7 +835,7 @@
       });
       const dataPoints = datesList.map(d => daysCount[d]);
 
-      const chartCanvas = document.getElementById('dailyChart');
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
       if (!chartCanvas) return;
       const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
@@ -588,10 +849,10 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Referrals',
+            label: 'Patients Enrolled',
             data: dataPoints,
-            backgroundColor: 'rgba(59, 130, 246, 0.85)',
-            hoverBackgroundColor: 'rgba(96, 165, 250, 1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
             borderRadius: 6,
             borderSkipped: false
           }]
@@ -599,104 +860,166 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              titleColor: '#10b981',
+              bodyColor: isDark ? '#ffffff' : '#0f172a',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
           scales: {
-            x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
-            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 }, precision: 0 } }
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor, font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
+            }
           }
         }
       });
     }
 
     function updateSummaries() {
-      const doseCount = {};
+      const prescriberCount = {};
+      
       activeFilteredOrders.forEach(o => {
-        const dose = o.prescribed_dose || '5mg';
-        doseCount[dose] = (doseCount[dose] || 0) + 1;
+        const doc = (o.doctor_name || 'Unassigned').trim();
+        const clinic = (o.clinic_name || '').trim();
+        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
+        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
       });
 
-      const entries = Object.entries(doseCount);
-      document.getElementById('doseShareList').innerHTML = entries.length ? entries.map(([dose, count]) => `
+      const sortedPrescribers = Object.entries(prescriberCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">${count} Patients</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-4 text-center">No dosage records found.</div>';
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+        </div>
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
 
     function renderCards() {
-      const grid = document.getElementById('doctorCardsGrid');
-      
-      if (!currentDoctorName) {
-        grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 dark:text-slate-500 text-sm">
-          Please enter doctor name and clinic above to load referred patients.
-        </div>`;
-        return;
-      }
-
+      const grid = document.getElementById('hoCardsGrid');
       if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 dark:text-slate-500 text-sm">
-          No patient records found matching Dr. ${currentDoctorName.replace(/^(dr\.?|doctor)\s*/i, '')} ${currentClinicName ? `(${currentClinicName})` : ''}.
-        </div>`;
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
       }
 
       grid.innerHTML = activeFilteredOrders.map(order => {
-        const fb = cachedFeedbacks[order.id];
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Feedback Submitted', 'Completed', 'Usage Guidance Completed'].includes(order.status);
+        const fb = feedbackMap[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
+        const isCancelled = order.status === 'Cancelled';
 
         return `
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none transition-all">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <div class="font-mono font-bold text-slate-900 dark:text-white text-xs">${order.order_id}</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${new Date(order.created_at).toLocaleDateString()}</div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
               </div>
-              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20')}">
-                ${isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'Processing'))}
+              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'))}">
+                ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
               </span>
             </div>
 
-            <div class="space-y-1.5 text-xs">
-              <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address'}
+            <!-- Patient Information (Read-Only) -->
+            <div class="space-y-1.5 text-sm">
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
               </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white space-y-1.5 text-xs">
+            <!-- Doctor & Titration Overview -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Prescribed By</span>
-                <span class="font-bold text-blue-600 dark:text-blue-400">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Clinic / Hospital</span>
-                <span class="font-semibold text-slate-700 dark:text-blue-200">${order.clinic_name || 'N/A'}</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Indication</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-200">${order.indication || 'Weight Management'}</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
               </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1">
-                <span class="text-slate-500 dark:text-slate-400 text-[11px]">Prescribed Dose</span>
-                <span class="font-bold text-slate-900 dark:text-slate-100">${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
+              ${order.prescription_url 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                : ''}
+
+              <!-- Read-only Cancellation Reason Patch -->
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `
+                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
+                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
+                </div>
+              ` : ''}
             </div>
 
-            <div class="text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Patient Review:</span>
-              <span>${fb ? `<span class="text-amber-500 dark:text-amber-400 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 dark:text-slate-500 italic">Pending</span>'}</span>
+            <!-- Feedback -->
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
             </div>
-
           </div>
         `;
       }).join('');
     }
 
-    initDoctorPortal();
-    checkGlobalBroadcast('doctor');
+    function exportFilteredCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
+      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
+      
+      activeFilteredOrders.forEach(o => {
+        const fb = feedbackMap[o.id];
+        const rating = fb ? fb.overall_rating : "Pending";
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}","${rating}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
+      a.click();
+    }
+
+    checkHoSession();
   </script>
 </body>
 </html>
