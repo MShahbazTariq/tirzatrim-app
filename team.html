@@ -673,7 +673,6 @@
         
         initDates();
         window.fetchRepOrders();
-        fetchRepMdsProviders();
         initRepRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -829,15 +828,6 @@
     }
 
     /* FULFILLMENT ROUTING LOGIC (M&P vs MDS) */
-    async function fetchRepMdsProviders() {
-      try {
-        const { data, error } = await client.from('mds_providers').select('*').eq('is_active', true);
-        window.cachedMdsProviders = data || [];
-      } catch (e) {
-        window.cachedMdsProviders = [];
-      }
-    }
-
     async function populateMdsDropdown(orderId, city) {
       const container = document.getElementById(`mdsContainer-${orderId}`);
       if (!container) return;
@@ -1226,6 +1216,7 @@
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
         const isRouted = order.fulfillment_channel ? true : false;
+        const routedLabel = order.fulfillment_channel === 'MP' ? '📦 M&P Helpline' : (order.mds_provider ? '⚡ MDS: ' + order.mds_provider : '⚡ MDS Express');
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
@@ -1283,37 +1274,35 @@
               ` : ''}
             </div>
 
-            <!-- FULFILLMENT ROUTING ACTION BLOCK -->
+            <!-- FULFILLMENT ROUTING ACTION BLOCK (Always available to view & update) -->
             <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
               <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                 <span>🚚 Fulfillment Route:</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">
-                  ${isRouted ? (order.fulfillment_channel === 'MP' ? '📦 M&P Helpline' : '⚡ MDS: ' + (order.mds_provider || 'Express')) : '⚠️ Routing Pending'}
+                  ${isRouted ? routedLabel : '⚠️ Routing Pending'}
                 </span>
               </div>
 
-              ${!isRouted ? `
-                <div class="space-y-2 pt-1">
-                  <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="channel-${order.id}" value="MP" onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
-                    </label>
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="channel-${order.id}" value="MDS" onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
-                    </label>
-                  </div>
-
-                  <div id="mdsContainer-${order.id}" class="hidden space-y-1.5 pt-1">
-                    <select id="mdsSelect-${order.id}" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
-                      <option value="">Select MDS Partner...</option>
-                    </select>
-                  </div>
-
-                  <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
-                    🚀 Confirm & Route Order
-                  </button>
+              <div class="space-y-2 pt-1">
+                <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="channel-${order.id}" value="MP" ${order.fulfillment_channel === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
+                  </label>
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="channel-${order.id}" value="MDS" ${order.fulfillment_channel === 'MDS' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
+                  </label>
                 </div>
-              ` : ''}
+
+                <div id="mdsContainer-${order.id}" class="${order.fulfillment_channel === 'MDS' ? '' : 'hidden'} space-y-1.5 pt-1">
+                  <select id="mdsSelect-${order.id}" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+                    <option value="${order.mds_provider || ''}">${order.mds_provider || 'Select MDS Partner...'}</option>
+                  </select>
+                </div>
+
+                <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
+                  🚀 Save & Update Routing
+                </button>
+              </div>
             </div>
 
             <!-- Patient Feedback -->
