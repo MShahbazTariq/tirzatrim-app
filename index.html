@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <!-- 4 Main Cards Grid (Team, M&P, MDS, Doctor) -->
+    <!-- 4 Main Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
       <!-- 1. Internal Team Portal -->
@@ -183,20 +183,15 @@
 
   </div>
 
-  <!-- ROLE MODAL (4 Internal Hierarchy Tiers Only) -->
+  <!-- ROLE MODAL -->
   <div id="roleModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
-      
-      <button onclick="closeRoleModal()" class="absolute top-5 right-5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-lg w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors">
-        ✕
-      </button>
-
+      <button onclick="closeRoleModal()" class="absolute top-5 right-5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-lg w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors">✕</button>
       <div class="text-center space-y-1">
         <div class="text-2xl">👥</div>
         <h3 class="text-lg font-bold text-slate-900 dark:text-white">Select Operations Tier</h3>
         <p class="text-xs text-slate-500 dark:text-slate-400">Choose your workspace level to proceed</p>
       </div>
-
       <div class="grid grid-cols-1 gap-2.5 pt-2">
         <a href="/headoffice.html" class="flex items-center gap-3.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 transition-all group">
           <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl shrink-0">🏛️</div>
@@ -237,10 +232,31 @@
     </div>
   </div>
 
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2"><span class="text-lg">⚙️</span><h3 class="text-base font-bold text-slate-900 dark:text-white">Notification Center</h3></div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">✕</button>
+      </div>
+      <div class="flex items-center justify-between p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+        <div><div class="text-xs font-bold text-emerald-900 dark:text-emerald-300">Push Notifications</div><div class="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">Allow alerts on this device</div></div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="masterNotifToggle" onchange="handleMasterToggle(this.checked)" class="sr-only peer">
+          <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+        </label>
+      </div>
+      <button onclick="closeSettingsModal()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md">Save Preferences</button>
+    </div>
+  </div>
+
   <script>
     function openRoleModal() { document.getElementById('roleModal').classList.remove('hidden'); }
     function closeRoleModal() { document.getElementById('roleModal').classList.add('hidden'); }
     document.getElementById('roleModal').addEventListener('click', function(e) { if (e.target === this) closeRoleModal(); });
+
+    function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
 
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
