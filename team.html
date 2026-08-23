@@ -626,7 +626,6 @@
 
       if (!currentRep) return;
 
-      // 1. Unfiltered WebSocket Connection
       realtimeChannel = client
         .channel('public:global_rep_sync')
         .on(
@@ -652,7 +651,6 @@
           }
         });
 
-      // 2. 5-Second Heartbeat Bridge to Guarantee Sync
       if (repPollingInterval) clearInterval(repPollingInterval);
       repPollingInterval = setInterval(() => {
         window.fetchRepOrders(true);
@@ -788,8 +786,6 @@
           if (btn) {
             btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
           }
-        } else {
-          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Error: " + err.message);
@@ -829,6 +825,78 @@
       const message = `Respected ${doc.name},\n\nThank you for prescribing TirzaTrim.\n\n📲 *Patient Prescription Submission Link:*\n${patientOrderLink}\n\n📊 *Your Dedicated Doctor Monitoring Portal:*\n${doc.url}\n\nYou can track all your referred patients' fulfillment and verified service feedback live using the portal link above.\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
 
       openWhatsAppUniversal("", message);
+    }
+
+    /* FULFILLMENT ROUTING LOGIC (M&P vs MDS) */
+    async function populateMdsDropdown(orderId, city) {
+      const container = document.getElementById(`mdsContainer-${orderId}`);
+      if (!container) return;
+
+      container.classList.remove('hidden');
+      const select = document.getElementById(`mdsSelect-${orderId}`);
+      select.innerHTML = '<option value="">Loading MDS Partners...</option>';
+
+      const { data: providers, error } = await client
+        .from('mds_providers')
+        .select('*')
+        .ilike('city', (city || 'Lahore').trim())
+        .eq('is_active', true);
+
+      if (error || !providers || providers.length === 0) {
+        select.innerHTML = '<option value="">No MDS partners available for ' + (city || 'this city') + '</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">Select MDS Partner...</option>' +
+        providers.map(p => `<option value="${p.provider_name}">${p.provider_name}</option>`).join('');
+    }
+
+    function handleChannelChoice(orderId, channel, city) {
+      const mdsContainer = document.getElementById(`mdsContainer-${orderId}`);
+      if (channel === 'MDS') {
+        mdsContainer.classList.remove('hidden');
+        populateMdsDropdown(orderId, city);
+      } else {
+        mdsContainer.classList.add('hidden');
+      }
+    }
+
+    async function saveOrderRouting(orderId, city) {
+      const channelEl = document.querySelector(`input[name="channel-${orderId}"]:checked`);
+      if (!channelEl) {
+        alert("Please select a fulfillment channel (M&P Helpline or MDS Express).");
+        return;
+      }
+
+      const channel = channelEl.value;
+      let mdsProvider = null;
+
+      if (channel === 'MDS') {
+        const select = document.getElementById(`mdsSelect-${orderId}`);
+        mdsProvider = select ? select.value : '';
+        if (!mdsProvider) {
+          alert("Please select a specific MDS partner (e.g. Drug Solution Network, MedAM, Rite Care).");
+          return;
+        }
+      }
+
+      const updatePayload = {
+        fulfillment_channel: channel,
+        mds_provider: mdsProvider,
+        status: 'Order Processing'
+      };
+
+      const { error } = await client
+        .from('orders')
+        .update(updatePayload)
+        .eq('id', orderId);
+
+      if (error) {
+        alert("Error routing order: " + error.message);
+      } else {
+        alert(`✅ Order successfully routed to ${channel === 'MP' ? 'M&P Helpline (Scheduled 24-48h)' : 'MDS Express (' + mdsProvider + ')'}!`);
+        window.fetchRepOrders(true);
+      }
     }
 
     /* QR CODE MODAL HANDLERS */
@@ -1017,7 +1085,6 @@
       const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       const inProcess = total - delivered;
 
-      // Update counters in DOM
       document.getElementById('repStatTotal').innerText = total;
       document.getElementById('repStatProcess').innerText = inProcess;
       document.getElementById('repStatDelivered').innerText = delivered;
@@ -1148,6 +1215,7 @@
         const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
+        const isRouted = order.fulfillment_channel ? true : false;
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
@@ -1201,6 +1269,39 @@
               ${order.prescription_url ? `
                 <div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right">
                   <a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- FULFILLMENT ROUTING ACTION BLOCK -->
+            <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+              <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>🚚 Fulfillment Route:</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">
+                  ${isRouted ? (order.fulfillment_channel === 'MP' ? '📦 M&P Helpline' : '⚡ MDS: ' + (order.mds_provider || 'Express')) : '⚠️ Routing Pending'}
+                </span>
+              </div>
+
+              ${!isRouted ? `
+                <div class="space-y-2 pt-1">
+                  <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="channel-${order.id}" value="MP" onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="channel-${order.id}" value="MDS" onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
+                    </label>
+                  </div>
+
+                  <div id="mdsContainer-${order.id}" class="hidden space-y-1.5 pt-1">
+                    <select id="mdsSelect-${order.id}" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+                      <option value="">Select MDS Partner...</option>
+                    </select>
+                  </div>
+
+                  <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
+                    🚀 Confirm & Route Order
+                  </button>
                 </div>
               ` : ''}
             </div>
