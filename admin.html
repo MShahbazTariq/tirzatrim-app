@@ -89,7 +89,7 @@
       <!-- LOGIN -->
       <form id="mgrLoginForm" onsubmit="handleMgrLogin(event)" class="space-y-4">
         <div>
-          <input type="text" id="loginMgrSap" value="7613" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
+          <input type="text" id="loginMgrSap" placeholder="Manager SAP ID (e.g. 7613)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-mono">
         </div>
         <div>
           <input type="password" id="loginMgrPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
@@ -103,7 +103,7 @@
       <form id="mgrSignupForm" onsubmit="handleMgrSignup(event)" class="space-y-3 hidden text-left">
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
-          <input type="text" id="regMgrName" value="M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          <input type="text" id="regMgrName" placeholder="e.g. M. Shahbaz Tariq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -116,17 +116,17 @@
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Team *</label>
-            <input type="text" id="regMgrTeam" value="QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrTeam" placeholder="e.g. QASWA" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-emerald-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Zone / Territory *</label>
-            <input type="text" id="regMgrZone" value="LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrZone" placeholder="e.g. LHR2" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Manager SAP ID *</label>
-            <input type="text" id="regMgrSapId" value="7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
+            <input type="text" id="regMgrSapId" placeholder="e.g. 7613" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-bold outline-none focus:border-emerald-500">
           </div>
         </div>
         <div>
@@ -584,23 +584,11 @@
     let currentManager = null;
     try {
       const saved = localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager');
-      if (saved) {
+      if (saved && saved !== 'undefined' && saved !== 'null') {
         currentManager = JSON.parse(saved);
       }
     } catch (e) {
       currentManager = null;
-    }
-
-    // Auto-initialize default manager session for SAP 7613 if not present
-    if (!currentManager) {
-      currentManager = {
-        full_name: "M. Shahbaz Tariq",
-        manager_sap_id: "7613",
-        zone_region: "LHR2",
-        team_name: "QASWA",
-        region: "Central"
-      };
-      localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
     }
 
     let currentOrdersData = [];
@@ -893,23 +881,33 @@
     }
 
     function checkMgrSession() {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('dashboardContent').classList.remove('hidden');
-      
-      document.getElementById('mgrNameDisplay').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
-      document.getElementById('mgrZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
-      document.getElementById('mgrTeamDisplay').innerText = currentManager.team_name || 'QASWA';
+      if (currentManager && (currentManager.manager_sap_id || currentManager.sap_id)) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        
+        const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
+        const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
+        const mgrTeam = currentManager.team_name || 'QASWA';
+        const mgrSap = currentManager.manager_sap_id || currentManager.sap_id || '7613';
 
-      document.getElementById('menuUserName').innerText = currentManager.full_name || 'M. Shahbaz Tariq';
-      document.getElementById('menuAvatarBadge').innerText = getInitials(currentManager.full_name);
-      document.getElementById('menuZoneDisplay').innerText = currentManager.zone_region || 'LHR2';
-      document.getElementById('menuSapDisplay').innerText = currentManager.manager_sap_id || '7613';
-      
-      initDates();
-      window.fetchManagerOrders();
-      fetchBroadcasts();
-      fetchAdminMdsProviders();
-      initRealtimeSync();
+        document.getElementById('mgrNameDisplay').innerText = mgrName;
+        document.getElementById('mgrZoneDisplay').innerText = mgrZone;
+        document.getElementById('mgrTeamDisplay').innerText = mgrTeam;
+
+        document.getElementById('menuUserName').innerText = mgrName;
+        document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
+        document.getElementById('menuZoneDisplay').innerText = mgrZone;
+        document.getElementById('menuSapDisplay').innerText = mgrSap;
+        
+        initDates();
+        window.fetchManagerOrders();
+        fetchBroadcasts();
+        fetchAdminMdsProviders();
+        initRealtimeSync();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
     }
 
     /* MDS PARTNER MANAGEMENT FUNCTIONS */
@@ -970,7 +968,7 @@
       try {
         const { data, error } = await client
           .from('managers')
-          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password }])
+          .insert([{ full_name, region, team_name, zone_region, manager_sap_id, password, sap_id: manager_sap_id }])
           .select();
 
         if (error) {
@@ -981,6 +979,7 @@
         currentManager = data[0];
         currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id;
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -1008,9 +1007,10 @@
         if (!data || data.length === 0) throw new Error('Invalid Manager SAP ID or Password.');
 
         currentManager = data[0];
-        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || '7613';
+        currentManager.manager_sap_id = currentManager.manager_sap_id || currentManager.sap_id || sapId;
         
         localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+        sessionStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
         checkMgrSession();
       } catch (ex) {
         err.innerText = ex.message;
@@ -1029,14 +1029,7 @@
       }
       localStorage.removeItem('tt_current_manager');
       sessionStorage.removeItem('tt_current_manager');
-      currentManager = {
-        full_name: "M. Shahbaz Tariq",
-        manager_sap_id: "7613",
-        zone_region: "LHR2",
-        team_name: "QASWA",
-        region: "Central"
-      };
-      localStorage.setItem('tt_current_manager', JSON.stringify(currentManager));
+      currentManager = null;
       checkMgrSession();
     }
 
