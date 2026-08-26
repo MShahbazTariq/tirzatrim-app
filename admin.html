@@ -7,7 +7,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
   <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
@@ -49,7 +49,7 @@
       color: #e2e8f0;
     }
     .ql-editor { min-height: 140px; }
-    
+
     /* Smooth Scrollbarless Containers */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -252,8 +252,8 @@
 
   <!-- MAIN DASHBOARD CONTENT -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
-    
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & ZSM TITLE -->
+
+    <!-- 1. HEADER -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
       <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
         ☰
@@ -336,10 +336,10 @@
     </div>
 
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
-    
+
     <!-- TAB 1: PATIENTS & ORDERS VIEW -->
     <div id="view-orders" class="tab-view-container space-y-4">
-      
+
       <!-- MDS Partner Management Panel -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-sm">
         <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -392,10 +392,10 @@
       </div>
     </div>
 
-    <!-- NEW TAB: TEAM DOCTOR LIST WITH ZSM CSV UPLOADER -->
+    <!-- TAB 2: TEAM DOCTOR LIST WITH ZSM CSV UPLOADER & FILTER/SORT BAR -->
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
-        
+
         <!-- ZSM CSV UPLOADER TOOL BAR -->
         <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -411,7 +411,7 @@
               📥 Download CSV Template
             </button>
           </div>
-          
+
           <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
             <input type="file" id="csvFileInput" accept=".csv" class="w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500">
             <button onclick="handleZsmCsvUpload()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
@@ -420,7 +420,7 @@
           </div>
         </div>
 
-        <!-- Filter & Search Toolbar -->
+        <!-- Filter & Sort Toolbar matching Team Portal -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -434,11 +434,32 @@
             <select id="kamFilterSelect" onchange="renderTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="ALL">All KAMs / Reps</option>
             </select>
-            <input type="text" id="teamDocSearch" oninput="renderTeamDoctorsTable()" placeholder="🔍 Search Doctor Name..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <input type="text" id="teamDocSearch" oninput="renderTeamDoctorsTable()" placeholder="🔍 Search Doctor..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            
+            <!-- Sort Dropdown -->
+            <select id="doctorSortSelect" onchange="renderTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="NAME_ASC">Sort: Name (A-Z)</option>
+              <option value="GRADE_ASC">Sort: Class (A to B)</option>
+              <option value="TARGET_DESC">Sort: Target (High to Low)</option>
+            </select>
+
             <button onclick="fetchTeamDoctors()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
               🔄 Refresh List
             </button>
           </div>
+        </div>
+
+        <!-- QUICK FILTER BUTTON BAR -->
+        <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+          <button onclick="setTeamDoctorFilter('ALL')" id="filterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all">All Doctors</button>
+          <button onclick="setTeamDoctorFilter('CLASS_A')" id="filterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class A</button>
+          <button onclick="setTeamDoctorFilter('CLASS_B')" id="filterBtn-CLASS_B" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class B</button>
+          <button onclick="setTeamDoctorFilter('VISIT_YES')" id="filterBtn-VISIT_YES" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit Yes</button>
+          <button onclick="setTeamDoctorFilter('VISIT_NO')" id="filterBtn-VISIT_NO" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit No</button>
+          <button onclick="setTeamDoctorFilter('NP')" id="filterBtn-NP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Non Prescriber (NP)</button>
+          <button onclick="setTeamDoctorFilter('IFP')" id="filterBtn-IFP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Infrequent / Trialist (IFP)</button>
+          <button onclick="setTeamDoctorFilter('FP')" id="filterBtn-FP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Frequent Prescriber (FP)</button>
+          <button onclick="setTeamDoctorFilter('BOC')" id="filterBtn-BOC" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Brand of Choice (BOC)</button>
         </div>
 
         <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
@@ -469,7 +490,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: MERGED TRENDS & TIMELINE VIEW -->
+    <!-- TAB 3: MERGED TRENDS & TIMELINE VIEW -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
       <!-- Date Scope Configurator -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
@@ -534,7 +555,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: BROADCASTS VIEW -->
+    <!-- TAB 4: BROADCASTS VIEW -->
     <div id="view-broadcasts" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -662,6 +683,7 @@
     let chartInstance = null;
     let publishedBroadcasts = [];
 
+    let currentTeamDoctorFilter = "ALL";
     let currentDateScope = "ALL";
     let filterStartDate = null;
     let filterEndDate = null;
@@ -849,11 +871,11 @@
 
         const repFilter = document.getElementById('subordinateFilter');
         const currentSelected = repFilter ? repFilter.value : 'ALL';
-        
+
         if (repFilter) {
           repFilter.innerHTML = '<option value="ALL">All My Reps</option>' +
             registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-          
+
           if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) {
             repFilter.value = currentSelected;
           }
@@ -909,7 +931,7 @@
 
         if (!error && data) {
           teamDoctorsData = data;
-          
+
           const kamSelect = document.getElementById('kamFilterSelect');
           const currentKam = kamSelect ? kamSelect.value : 'ALL';
           const uniqueKams = [...new Set(data.map(d => d['KAM / EMP Name']).filter(Boolean))];
@@ -929,26 +951,64 @@
       }
     }
 
+    function setTeamDoctorFilter(filterType) {
+      currentTeamDoctorFilter = filterType;
+      ['ALL', 'CLASS_A', 'CLASS_B', 'VISIT_YES', 'VISIT_NO', 'NP', 'IFP', 'FP', 'BOC'].forEach(id => {
+        const btn = document.getElementById(`filterBtn-${id}`);
+        if (btn) {
+          btn.className = id === filterType 
+            ? "px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all"
+            : "px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all";
+        }
+      });
+      renderTeamDoctorsTable();
+    }
+
     function renderTeamDoctorsTable() {
       const tbody = document.getElementById('teamDoctorsTableBody');
       if (!tbody) return;
 
       const kamVal = document.getElementById('kamFilterSelect')?.value || 'ALL';
       const search = (document.getElementById('teamDocSearch')?.value || '').toLowerCase().trim();
+      const sortVal = document.getElementById('doctorSortSelect')?.value || 'NAME_ASC';
 
       const filtered = teamDoctorsData.filter(doc => {
         const kamName = doc['KAM / EMP Name'] || '';
         const docName = (doc['Doctor Name'] || '').toLowerCase();
         const spec = (doc['Doctor Speciality'] || '').toLowerCase();
+        const grade = (doc['Doctor Grade MREP'] || '').toUpperCase().trim();
+        const visit = (doc['VISIT STATUS'] || '').toUpperCase().trim();
+        const status = (doc['STATUS'] || '').toUpperCase().trim();
 
         const matchesKam = kamVal === 'ALL' || kamName === kamVal;
         const matchesSearch = !search || docName.includes(search) || spec.includes(search);
+        if (!matchesKam || !matchesSearch) return false;
 
-        return matchesKam && matchesSearch;
+        if (currentTeamDoctorFilter === 'CLASS_A') return grade === 'A' || grade === 'CLASS A';
+        if (currentTeamDoctorFilter === 'CLASS_B') return grade === 'B' || grade === 'CLASS B';
+        if (currentTeamDoctorFilter === 'VISIT_YES') return visit === 'YES';
+        if (currentTeamDoctorFilter === 'VISIT_NO') return visit === 'NO';
+        if (currentTeamDoctorFilter === 'NP') return status.includes('NP') || status.includes('NON');
+        if (currentTeamDoctorFilter === 'IFP') return status.includes('IFP') || status.includes('TRIAL');
+        if (currentTeamDoctorFilter === 'FP') return status === 'FP' || status.includes('FREQUENT');
+        if (currentTeamDoctorFilter === 'BOC') return status.includes('BOC') || status.includes('CHOICE');
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'NAME_ASC') {
+          return (a['Doctor Name'] || '').localeCompare(b['Doctor Name'] || '');
+        } else if (sortVal === 'GRADE_ASC') {
+          return (a['Doctor Grade MREP'] || '').localeCompare(b['Doctor Grade MREP'] || '');
+        } else if (sortVal === 'TARGET_DESC') {
+          return (Number(b['Target pat per MTH']) || 0) - (Number(a['Target pat per MTH']) || 0);
+        }
+        return 0;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="p-8 text-center text-slate-400">No doctor records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="p-8 text-center text-slate-400">No doctor records found matching this filter.</td></tr>';
         return;
       }
 
@@ -1100,7 +1160,7 @@
       if (currentManager) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
-        
+
         const mgrName = currentManager.full_name || 'M. Shahbaz Tariq';
         const mgrZone = currentManager.zone_region || currentManager.zone || 'LHR2';
         const mgrTeam = currentManager.team_name || 'QASWA';
@@ -1114,7 +1174,7 @@
         document.getElementById('menuAvatarBadge').innerText = getInitials(mgrName);
         document.getElementById('menuZoneDisplay').innerText = mgrZone;
         document.getElementById('menuSapDisplay').innerText = mgrSap;
-        
+
         initDates();
         window.fetchManagerOrders();
         fetchBroadcasts();
@@ -1310,19 +1370,19 @@
       const id = document.getElementById('editBroadcastId').value;
       const title = document.getElementById('bcTitle').value.trim();
       const category = document.getElementById('bcCategory').value;
-      
+
       const message = quill.root.innerHTML.trim();
       if (!message || message === '<p><br></p>') {
         alert("Please enter announcement message content.");
         return;
       }
-      
+
       const startTimeInput = document.getElementById('bcStartTime').value;
       const expiresAtInput = document.getElementById('bcExpiresAt').value;
 
       const start_time = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
       const expires_at = expiresAtInput ? new Date(expiresAtInput).toISOString() : null;
-      
+
       const checkboxes = document.querySelectorAll('input[name="targetRole"]:checked');
       const target_audience = Array.from(checkboxes).map(cb => cb.value);
 
@@ -1364,9 +1424,9 @@
       document.getElementById('editBroadcastId').value = bc.id;
       document.getElementById('bcTitle').value = bc.title;
       document.getElementById('bcCategory').value = bc.category;
-      
+
       quill.root.innerHTML = bc.message || '';
-      
+
       document.getElementById('bcStartTime').value = toLocalDatetimeInput(bc.start_time);
       document.getElementById('bcExpiresAt').value = toLocalDatetimeInput(bc.expires_at);
 
@@ -1469,7 +1529,7 @@
         filterStartDate = from;
         filterEndDate = to;
         currentDateScope = "CUSTOM";
-        
+
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
           if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
@@ -1701,7 +1761,7 @@
 
     function updateSummaries() {
       const prescriberCount = {};
-      
+
       activeFilteredOrders.forEach(o => {
         const doc = (o.doctor_name || 'Unassigned').trim();
         const clinic = (o.clinic_name || '').trim();
@@ -1712,7 +1772,7 @@
       const sortedPrescribers = Object.entries(prescriberCount)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
-      
+
       const topDoctorsList = document.getElementById('topDoctorsList');
       if (topDoctorsList) {
         topDoctorsList.innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
@@ -1756,7 +1816,7 @@
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
-            
+
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
