@@ -824,7 +824,6 @@
     function toggleDeleteMode() {
       isDeleteMode = !isDeleteMode;
       const btn = document.getElementById('deleteModeBtn');
-      const saveBtn = document.getElementById('saveChangesBtn');
       const deleteTh = document.getElementById('deleteHeaderTh');
 
       if (isDeleteMode) {
@@ -835,16 +834,14 @@
         if (actionTh) actionTh.classList.add('hidden');
         
         btn.className = "px-3.5 py-2 bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition-all";
-        btn.innerHTML = "🗑️ Deletion Active";
+        btn.innerHTML = "🗑️ Confirm Delete Selected";
+        btn.setAttribute("onclick", "deleteSelectedDoctors()");
         deleteTh.classList.remove('hidden');
-        saveBtn.classList.remove('hidden');
-        saveBtn.innerText = "🗑️ Confirm Delete Selected";
       } else {
         btn.className = "px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all";
         btn.innerHTML = "🗑️ Delete";
+        btn.setAttribute("onclick", "toggleDeleteMode()");
         deleteTh.classList.add('hidden');
-        saveBtn.classList.add('hidden');
-        saveBtn.innerText = "💾 Save Changes";
       }
       renderTerritoryDoctors();
     }
@@ -962,16 +959,27 @@
     }
 
     async function saveSingleDoctorRow(origCode) {
-      const newCode = document.getElementById(`docCode-${origCode}`).value.trim();
-      const newName = document.getElementById(`docName-${origCode}`).value.trim();
-      const newSpec = document.getElementById(`spec-${origCode}`).value.trim();
-      const newGrade = document.getElementById(`grade-${origCode}`).value.trim();
-      const newFreq = document.getElementById(`freq-${origCode}`).value.trim();
-      const newOpd = document.getElementById(`opd-${origCode}`).value.trim();
-      const newTarget = document.getElementById(`target-${origCode}`).value.trim();
-      const newStatus = document.getElementById(`status-${origCode}`).value.trim();
-      const newVisitStatus = document.getElementById(`visitStatus-${origCode}`).value;
-      const newPlan = document.getElementById(`plan-${origCode}`).value.trim();
+      const codeInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="docCode-"]`);
+      const nameInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="docName-"]`);
+      const specInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="spec-"]`);
+      const gradeInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="grade-"]`);
+      const freqInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="freq-"]`);
+      const opdInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="opd-"]`);
+      const targetInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="target-"]`);
+      const statusInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="status-"]`);
+      const visitSelect = document.querySelector(`tr[data-original-code="${origCode}"] select[id^="visitStatus-"]`);
+      const planInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="plan-"]`);
+
+      const newCode = codeInput ? codeInput.value.trim() : origCode;
+      const newName = nameInput ? nameInput.value.trim() : '';
+      const newSpec = specInput ? specInput.value.trim() : '';
+      const newGrade = gradeInput ? gradeInput.value.trim() : '';
+      const newFreq = freqInput ? freqInput.value.trim() : '';
+      const newOpd = opdInput ? opdInput.value.trim() : 0;
+      const newTarget = targetInput ? targetInput.value.trim() : 0;
+      const newStatus = statusInput ? statusInput.value.trim() : '';
+      const newVisitStatus = visitSelect ? visitSelect.value : 'NO';
+      const newPlan = planInput ? planInput.value.trim() : '';
 
       const { error } = await client
         .from('territory_doctors')
@@ -993,36 +1001,34 @@
       if (error) {
         alert("Error updating row: " + error.message);
       } else {
-        alert(`✅ Dr. ${newName} updated successfully!`);
+        alert(`✅ Row updated successfully!`);
         window.fetchTerritoryDoctors();
       }
     }
 
-    async function saveChanges() {
-      if (isDeleteMode) {
-        const checkedBoxes = document.querySelectorAll('.docRowCheckbox:checked');
-        if (checkedBoxes.length === 0) {
-          alert("Please select at least one doctor to delete.");
-          return;
-        }
-        const confirmDel = confirm(`Permanently delete ${checkedBoxes.length} selected doctor(s) from your territory?`);
-        if (!confirmDel) return;
-
-        for (const cb of checkedBoxes) {
-          const { error } = await client
-            .from('territory_doctors')
-            .delete()
-            .ilike('Territory ID', currentRep.territory_code)
-            .eq('Mrep Doctor Code', cb.value);
-
-          if (error) {
-            console.error("Delete error:", error.message);
-          }
-        }
-        alert("🗑️ Selected doctors deleted successfully!");
-        toggleDeleteMode();
-        window.fetchTerritoryDoctors();
+    async function deleteSelectedDoctors() {
+      const checkedBoxes = document.querySelectorAll('.docRowCheckbox:checked');
+      if (checkedBoxes.length === 0) {
+        alert("Please select at least one doctor checkbox to delete.");
+        return;
       }
+      const confirmDel = confirm(`Permanently delete ${checkedBoxes.length} selected doctor(s) from your territory?`);
+      if (!confirmDel) return;
+
+      for (const cb of checkedBoxes) {
+        const { error } = await client
+          .from('territory_doctors')
+          .delete()
+          .ilike('Territory ID', currentRep.territory_code)
+          .eq('Mrep Doctor Code', cb.value);
+
+        if (error) {
+          console.error("Delete error:", error.message);
+        }
+      }
+      alert("🗑️ Selected doctors deleted successfully!");
+      toggleDeleteMode();
+      window.fetchTerritoryDoctors();
     }
 
     function openAddDoctorModal() {
@@ -1045,7 +1051,6 @@
       const status = document.getElementById('addDocStatus').value.trim().toUpperCase();
       const plan = document.getElementById('addDocPlan').value.trim();
 
-      const { data: maxRow } = await client.from('territory_doctors').select('*').limit(1);
       const nextSr = 1000 + Math.floor(Math.random() * 90000);
 
       const { error } = await client.from('territory_doctors').insert([{
