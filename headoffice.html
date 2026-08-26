@@ -1,1025 +1,1217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TirzaTrim — Head Office Executive Suite</title>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#020617">
-  <meta name="mobile-web-app-capable" content="yes">
-  
-  <!-- Tailwind CSS & Shared Theme Manager -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/theme.js"></script>
-  <script src="/notification.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim — Head Office Executive Suite</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Tailwind CSS & Shared Theme Manager -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+  <script src="/notification.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    /* Smooth Scrollbarless Containers */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+  <style>
+    /* Smooth Scrollbarless Containers */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
 
-  <!-- PIN AUTH MODAL -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 text-center relative">
-      
-      <div class="flex items-center justify-between">
-        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
-          🏠 Home
-        </a>
-        <button 
-          onclick="toggleTheme()" 
-          type="button" 
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
-          title="Toggle Theme"
-        >
-          <span class="theme-icon">🌙</span>
-        </button>
-      </div>
-
-      <div class="space-y-2 pt-2">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-          🏛️
-        </div>
-        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Head Office Suite</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">CEO • CCO • Director Sales & Marketing • GM</p>
-      </div>
-
-      <form onsubmit="handleMasterPinLogin(event)" class="space-y-4">
-        <div>
-          <input type="password" id="masterPinInput" placeholder="Enter Executive Master Key" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-center text-sm font-mono tracking-widest text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
-        </div>
-        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
-          Unlock National Command Center
-        </button>
-      </form>
-      <p id="pinErrorMsg" class="text-xs text-rose-500 font-medium hidden">Invalid Executive Master Key</p>
-    </div>
-  </div>
-
-  <!-- EXECUTIVE SLIDE-OVER DRAWER (HQ Profile & Administration Tools) -->
-  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
-  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
-    <div class="space-y-6">
-      <!-- Menu Header -->
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">⚙️</span>
-          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">HQ Console</span>
-        </div>
-        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
-      </div>
-
-      <!-- Executive Profile Card in Menu -->
-      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
-            HQ
-          </div>
-          <div>
-            <div class="text-sm font-bold text-slate-900 dark:text-white">National Command</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Scope: National</span>
-          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">HQ Key Active</span>
-          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
-          </span>
-        </div>
-      </div>
-
-      <!-- Administrative Tools List -->
-      <div class="space-y-2">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
-
-        <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
-          <span class="text-base">🔔</span> <span>Enable National Push Alerts</span>
-        </button>
-
-        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="text-base">🔄</span> <span>Refresh National Data</span>
-        </button>
-
-        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Bottom Actions -->
-    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
-        🏠 <span>Back to Main Portal</span>
-      </a>
-      <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
-        🚪 <span>Lock Suite</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
-  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
-    
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE -->
-    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
-      
-      <!-- Right Floating Hamburger Button -->
-      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
-        ☰
-      </button>
-
-      <!-- Center Logo & Branding Block Exactly Matching index.html -->
-      <div class="flex flex-col items-center justify-center">
-        <div class="flex items-center justify-center gap-4">
-          <div class="text-left">
-            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
-              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
-            </h1>
-            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
-              (TIRZEPATIDE)
-            </p>
-          </div>
-
-          <div class="flex flex-col items-center gap-1">
-            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
-            <div class="flex flex-col gap-1 w-14">
-              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
-              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
-              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-          <span class="text-slate-900 dark:text-white">National Command Center</span>
-          <span class="text-[#059669]">HQ • Executive Suite</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
-    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
-        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
-        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
-        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
-        <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
-      </div>
-    </div>
-
-    <!-- 3. APP GRID LAUNCHPAD -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">👥</span>
-        <span class="text-xs font-bold">National Orders</span>
-      </button>
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends & KOLs</span>
-      </button>
-      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📅</span>
-        <span class="text-xs font-bold">Timeline</span>
-      </button>
-      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">National CSV</span>
-      </button>
-    </div>
-
-    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
-    
-    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
-    <div id="view-orders" class="tab-view-container space-y-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>🔍</span> Cascading Multi-Level Search (Region → ZSM → Rep → Keyword)
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <select id="filterRegion" onchange="onRegionChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All Regions (National)</option>
-            <option value="Central">Central Region</option>
-            <option value="North">North Region</option>
-            <option value="South">South Region</option>
-          </select>
-          <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All ZSMs in Region</option>
-          </select>
-          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <option value="ALL">All Reps in Selection</option>
-          </select>
-          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-        </div>
-      </div>
-
-      <!-- Patient Cards Grid (Read-Only National Overview) -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between px-1">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-          </h3>
-          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
-        </div>
-        <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-            Loading national records...
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
-    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
-          </h3>
-          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
-        </div>
-        <div class="h-64 w-full pt-2">
-          <canvas id="dailyEnrollmentChart"></canvas>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>🩺</span> National Top Prescribing Doctors
-          </h3>
-          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
-          </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Breakdown
-          </h3>
-          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: TIMELINE & DATE SCOPE VIEW -->
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window
-        </div>
-
-        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 5. FIXED BOTTOM NAVIGATION -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
-    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
-      <span class="text-lg">👥</span>
-      <span class="text-xs font-bold">Orders</span>
-    </button>
-    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📊</span>
-      <span class="text-xs font-medium">Trends</span>
-    </button>
-    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📅</span>
-      <span class="text-xs font-medium">Timeline</span>
-    </button>
-    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">⚙️</span>
-      <span class="text-xs font-medium">HQ Menu</span>
-    </button>
-  </nav>
-
-  <script>
-    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-    const { createClient } = supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const MASTER_KEY = "HQ2026";
-    let allOrders = [];
-    let allManagers = [];
-    let allReps = [];
-    let feedbackMap = {};
-    let activeFilteredOrders = [];
-    let chartInstance = null;
-
-    let currentDateScope = "MTD";
-    let filterStartDate = null;
-    let filterEndDate = null;
-
-    let realtimeChannel = null;
-    let hqPollingInterval = null;
-
-    // Full 6-tier Tirzepatide Titration Escalation Schedule
-    const TITRATION_MAP = {
-      '2.5mg': '5mg',
-      '5mg': '7.5mg',
-      '7.5mg': '10mg',
-      '10mg': '12.5mg',
-      '12.5mg': '15mg',
-      '15mg': '15mg (Maintenance)'
-    };
-
-    function normalizeDoseKey(rawDose) {
-      if (!rawDose) return '5mg';
-      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
-      if (clean.includes('2.5')) return '2.5mg';
-      if (clean.includes('7.5')) return '7.5mg';
-      if (clean.includes('12.5')) return '12.5mg';
-      if (clean.includes('15')) return '15mg';
-      if (clean.includes('10')) return '10mg';
-      if (clean.includes('5')) return '5mg';
-      return '5mg';
-    }
-
-    function getEscalationDetails(createdAt, prescribedDose) {
-      const orderDate = new Date(createdAt);
-      const now = new Date();
-      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
-      const currentDose = prescribedDose || '5mg';
-      const doseKey = normalizeDoseKey(currentDose);
-      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
-
-      return {
-        isDue: daysElapsed >= 21,
-        daysElapsed,
-        currentDose,
-        nextDose
-      };
-    }
-
-    function openSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.remove('hidden');
-      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
-    }
-
-    function closeSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.add('hidden');
-      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
-      const activeContainer = document.getElementById(`view-${tabId}`);
-      if (activeContainer) activeContainer.classList.remove('hidden');
-
-      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
-        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
-      });
-      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
-      if (activeLauncher) {
-        activeLauncher.className = "tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
-      }
-
-      document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
-        const label = item.querySelector('span:last-child');
-        if (label) label.className = "text-xs font-medium";
-      });
-      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
-      if (activeBottom) {
-        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
-        const label = activeBottom.querySelector('span:last-child');
-        if (label) label.className = "text-xs font-bold";
-      }
-
-      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
-        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
-      }
-    }
-
-    function getLocalDateKey(dateInput) {
-      const d = dateInput ? new Date(dateInput) : new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function initDates() {
-      setDatePreset('MTD');
-    }
-
-    function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
-
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      });
-
-      if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = getLocalDateKey(today);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Today";
-      } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-        filterStartDate = getLocalDateKey(y);
-        filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-      } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const last7 = new Date();
-        last7.setDate(last7.getDate() - 6);
-        filterStartDate = getLocalDateKey(last7);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-      } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = getLocalDateKey(firstDay);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-      } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = null;
-        filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
-        document.getElementById('activeDateScopeTag').innerText = "All Time";
-      }
-
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
-
-      applyAllFilters();
-    }
-
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        });
-
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        applyAllFilters();
-      }
-    }
-
-    // Explicit Global Attachment for notification.js and sw.js
-    window.fetchEverything = async function(silent = false) {
-      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
-      if (orderErr) {
-        if (!silent) console.error("Error loading orders:", orderErr.message);
-        return;
-      }
-      allOrders = orders || [];
-
-      const { data: managers } = await client.from('managers').select('*');
-      allManagers = managers || [];
-
-      const { data: reps } = await client.from('reps').select('*');
-      allReps = reps || [];
-
-      if (allOrders.length > 0) {
-        const orderIds = allOrders.map(o => o.id);
-        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
-      } else {
-        feedbackMap = {};
-      }
-
-      populateManagerDropdown();
-      populateRepDropdown();
-      applyAllFilters();
-    };
-
-    function initHQRealtimeSync() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-
-      // 1. Unfiltered WebSocket Connection for HQ Dashboard
-      realtimeChannel = client
-        .channel('public:global_exec_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            window.fetchEverything(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'feedback' },
-          () => {
-            window.fetchEverything(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'managers' },
-          () => {
-            window.fetchEverything(true);
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reps' },
-          () => {
-            window.fetchEverything(true);
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            window.fetchEverything(true);
-          }
-        });
-
-      // 2. 5-Second Heartbeat Bridge
-      if (hqPollingInterval) clearInterval(hqPollingInterval);
-      hqPollingInterval = setInterval(() => {
-        window.fetchEverything(true);
-      }, 5000);
-    }
-
-    function checkHoSession() {
-      if (sessionStorage.getItem('tt_ho_auth') === 'true') {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-        initDates();
-        window.fetchEverything();
-        initHQRealtimeSync();
-      } else {
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
-      }
-    }
-
-    function handleMasterPinLogin(e) {
-      e.preventDefault();
-      const input = document.getElementById('masterPinInput').value.trim();
-      if (input === MASTER_KEY || input.toLowerCase() === "macter2026") {
-        sessionStorage.setItem('tt_ho_auth', 'true');
-        checkHoSession();
-      } else {
-        document.getElementById('pinErrorMsg').classList.remove('hidden');
-      }
-    }
-
-    function handleHeadOfficeLogout() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-      if (hqPollingInterval) {
-        clearInterval(hqPollingInterval);
-        hqPollingInterval = null;
-      }
-      sessionStorage.removeItem('tt_ho_auth');
-      checkHoSession();
-    }
-
-    async function registerHoMobilePush() {
-      const btn = document.getElementById('menuPushBtn');
-      const pill = document.getElementById('menuPushStatusPill');
-
-      try {
-        if (!('Notification' in window)) {
-          alert("Push notifications are not supported on this browser.");
-          return;
-        }
-
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
-          return;
-        }
-
-        const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
-        const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
-
-        if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
-          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
-          if (pill) {
-            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
-          }
-          if (btn) {
-            btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
-          }
-        } else {
-          alert("Notification script initializing. Please refresh and try again.");
-        }
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
-    }
-
-    function renderStars(rating) {
-      if (!rating) return '';
-      return '⭐'.repeat(rating);
-    }
-
-    function populateManagerDropdown() {
-      const selectedRegion = document.getElementById('filterRegion').value;
-      const mgrSelect = document.getElementById('filterManager');
-      const currentVal = mgrSelect.value;
-      
-      const filteredManagers = selectedRegion === 'ALL'
-        ? allManagers
-        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
-
-      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
-        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
-
-      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
-        mgrSelect.value = currentVal;
-      }
-    }
-
-    function populateRepDropdown() {
-      const selectedRegion = document.getElementById('filterRegion').value;
-      const selectedManagerSap = document.getElementById('filterManager').value;
-      const repSelect = document.getElementById('filterRep');
-      const currentVal = repSelect.value;
-
-      let filteredReps = [];
-
-      if (selectedManagerSap !== 'ALL') {
-        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
-      } else if (selectedRegion !== 'ALL') {
-        const regionManagerSaps = allManagers
-          .filter(m => (m.region || 'Central') === selectedRegion)
-          .map(m => m.manager_sap_id);
-
-        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
-      } else {
-        filteredReps = allReps;
-      }
-
-      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
-        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-
-      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
-        repSelect.value = currentVal;
-      }
-    }
-
-    function onRegionChange() {
-      populateManagerDropdown();
-      populateRepDropdown();
-      applyAllFilters();
-    }
-
-    function onManagerChange() {
-      populateRepDropdown();
-      applyAllFilters();
-    }
-
-    function applyAllFilters() {
-      const region = document.getElementById('filterRegion')?.value || 'ALL';
-      const managerSap = document.getElementById('filterManager')?.value || 'ALL';
-      const repCode = document.getElementById('filterRep')?.value || 'ALL';
-      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
-
-      let allowedManagerSaps = [];
-      let allowedReps = [];
-
-      if (region !== 'ALL') {
-        allowedManagerSaps = allManagers
-          .filter(m => (m.region || 'Central') === region)
-          .map(m => m.manager_sap_id);
-        allowedReps = allReps
-          .filter(r => allowedManagerSaps.includes(r.manager_sap_id))
-          .map(r => r.territory_code);
-      }
-
-      if (managerSap !== 'ALL') {
-        allowedReps = allReps
-          .filter(r => r.manager_sap_id === managerSap)
-          .map(r => r.territory_code);
-      }
-
-      const hierarchyMatchedOrders = allOrders.filter(o => {
-        let matchesRegion = true;
-        if (region !== 'ALL') {
-          matchesRegion = allowedManagerSaps.includes(o.manager_sap_id) || allowedReps.includes(o.rep_code);
-        }
-
-        let matchesManager = true;
-        if (managerSap !== 'ALL') {
-          matchesManager = o.manager_sap_id === managerSap || allowedReps.includes(o.rep_code);
-        }
-
-        const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
-        const matchesSearch = !searchTerm ||
-          (o.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (o.mobile || '').includes(searchTerm) ||
-          (o.order_id || '').toLowerCase().includes(searchTerm) ||
-          (o.rep_code || '').toLowerCase().includes(searchTerm) ||
-          (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (o.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (o.city || '').toLowerCase().includes(searchTerm) ||
-          (o.delivery_address || '').toLowerCase().includes(searchTerm);
-
-        return matchesRegion && matchesManager && matchesRep && matchesSearch;
-      });
-
-      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-        return matchesDate;
-      });
-
-      updateMetrics();
-      updateDailyChart(hierarchyMatchedOrders);
-      updateSummaries();
-      renderCards();
-    }
-
-    function updateMetrics() {
-      const total = activeFilteredOrders.length;
-      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-      const inProcess = total - delivered;
-
-      document.getElementById('statTotal').innerText = total;
-      document.getElementById('statProcess').innerText = inProcess;
-      document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('filteredCount').innerText = total;
-
-      const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
-      if (ratings.length > 0) {
-        const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
-        document.getElementById('statRating').innerText = `${avg} ⭐`;
-      } else {
-        document.getElementById('statRating').innerText = '5.0 ⭐';
-      }
-    }
-
-    function updateDailyChart(ordersToGraph) {
-      const daysCount = {};
-      const datesList = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = getLocalDateKey(d);
-        daysCount[key] = 0;
-        datesList.push(key);
-      }
-
-      (ordersToGraph || []).forEach(o => {
-        const orderDate = getLocalDateKey(o.created_at);
-        if (daysCount[orderDate] !== undefined) {
-          daysCount[orderDate]++;
-        }
-      });
-
-      const labels = datesList.map(dateStr => {
-        const parts = dateStr.split('-');
-        return `${parts[2]}/${parts[1]}`;
-      });
-      const dataPoints = datesList.map(d => daysCount[d]);
-
-      const chartCanvas = document.getElementById('dailyEnrollmentChart');
-      if (!chartCanvas) return;
-      const ctx = chartCanvas.getContext('2d');
-      if (chartInstance) chartInstance.destroy();
-
-      const isDark = document.documentElement.classList.contains('dark');
-      const textColor = isDark ? '#94a3b8' : '#64748b';
-      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
-
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Patients Enrolled',
-            data: dataPoints,
-            backgroundColor: 'rgba(16, 185, 129, 0.85)',
-            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
-            borderRadius: 6,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: isDark ? '#0f172a' : '#ffffff',
-              titleColor: '#10b981',
-              bodyColor: isDark ? '#ffffff' : '#0f172a',
-              borderColor: isDark ? '#334155' : '#cbd5e1',
-              borderWidth: 1,
-              padding: 10,
-              displayColors: false
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: textColor, font: { size: 11 } }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: gridColor },
-              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
-            }
-          }
-        }
-      });
-    }
-
-    function updateSummaries() {
-      const prescriberCount = {};
-      
-      activeFilteredOrders.forEach(o => {
-        const doc = (o.doctor_name || 'Unassigned').trim();
-        const clinic = (o.clinic_name || '').trim();
-        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
-        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
-      });
-
-      const sortedPrescribers = Object.entries(prescriberCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      
-      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
-
-      const doseCount = {};
-      activeFilteredOrders.forEach(o => {
-        const dose = o.prescribed_dose || 'Unspecified';
-        doseCount[dose] = (doseCount[dose] || 0) + 1;
-      });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
-    }
-
-    function renderCards() {
-      const grid = document.getElementById('hoCardsGrid');
-      if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
-        return;
-      }
-
-      grid.innerHTML = activeFilteredOrders.map(order => {
-        const fb = feedbackMap[order.id];
-        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
-        const isDispatched = order.status === 'Dispatched';
-        const isCancelled = order.status === 'Cancelled';
-
-        return `
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
-            
-            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
-            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
-                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
-                </div>
-                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
-              </div>
-              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'))}">
-                ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
-              </span>
-            </div>
-
-            <!-- Patient Information (Read-Only) -->
-            <div class="space-y-1.5 text-sm">
-              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
-              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
-                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
-              </div>
-            </div>
-
-            <!-- Doctor & Titration Overview -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
-              </div>
-              ${order.prescription_url 
-                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
-                : ''}
-
-              <!-- Read-only Cancellation Reason Patch -->
-              ${order.status === 'Cancelled' && order.cancellation_reason ? `
-                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
-                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
-                </div>
-              ` : ''}
-            </div>
-
-            <!-- Feedback -->
-            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
-              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function exportFilteredCSV() {
-      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
-      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
-      
-      activeFilteredOrders.forEach(o => {
-        const fb = feedbackMap[o.id];
-        const rating = fb ? fb.overall_rating : "Pending";
-        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}","${rating}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
-      a.click();
-    }
-
-    checkHoSession();
-  </script>
+  <!-- PIN AUTH MODAL -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 text-center relative">
+      
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
+          🏠 Home
+        </a>
+        <button 
+          onclick="toggleTheme()" 
+          type="button" 
+          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
+          title="Toggle Theme"
+        >
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+          🏛️
+        </div>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Head Office Suite</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">CEO • CCO • Director Sales & Marketing • GM</p>
+      </div>
+
+      <form onsubmit="handleMasterPinLogin(event)" class="space-y-4">
+        <div>
+          <input type="password" id="masterPinInput" placeholder="Enter Executive Master Key" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-center text-sm font-mono tracking-widest text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500 placeholder-slate-400 dark:placeholder-slate-600">
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
+          Unlock National Command Center
+        </button>
+      </form>
+      <p id="pinErrorMsg" class="text-xs text-rose-500 font-medium hidden">Invalid Executive Master Key</p>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SLIDE-OVER DRAWER (HQ Profile & Administration Tools) -->
+  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div class="space-y-6">
+      <!-- Menu Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">HQ Console</span>
+        </div>
+        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <!-- Executive Profile Card in Menu -->
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
+            HQ
+          </div>
+          <div>
+            <div class="text-sm font-bold text-slate-900 dark:text-white">National Command</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Scope: National</span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">HQ Key Active</span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
+
+      <!-- Administrative Tools List -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
+
+        <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable National Push Alerts</span>
+        </button>
+
+        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh National Data</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
+        🏠 <span>Back to Main Portal</span>
+      </a>
+      <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
+        🚪 <span>Lock Suite</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
+    
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE -->
+    <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
+      
+      <!-- Right Floating Hamburger Button -->
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
+        ☰
+      </button>
+
+      <!-- Center Logo & Branding Block Exactly Matching index.html -->
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center justify-center gap-4">
+          <div class="text-left">
+            <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
+              Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
+              (TIRZEPATIDE)
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
+            <div class="flex flex-col gap-1 w-14">
+              <span class="py-0.5 rounded bg-[#0284c7] text-white text-[10px] font-bold text-center leading-none">5mg</span>
+              <span class="py-0.5 rounded bg-[#0d9488] text-white text-[10px] font-bold text-center leading-none">10mg</span>
+              <span class="py-0.5 rounded bg-[#ea580c] text-white text-[10px] font-bold text-center leading-none">15mg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <span class="text-slate-900 dark:text-white">National Command Center</span>
+          <span class="text-[#059669]">HQ • Executive Suite</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
+    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
+        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
+        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
+        <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
+      </div>
+    </div>
+
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">National Orders</span>
+      </button>
+      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📋</span>
+        <span class="text-xs font-bold">Team Dr List</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends & KOLs</span>
+      </button>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+    </div>
+
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>🔍</span> Cascading Multi-Level Search (Region → ZSM → Rep → Keyword)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <select id="filterRegion" onchange="onRegionChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Regions (National)</option>
+            <option value="Central">Central Region</option>
+            <option value="North">North Region</option>
+            <option value="South">South Region</option>
+          </select>
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All ZSMs in Region</option>
+          </select>
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <option value="ALL">All Reps in Selection</option>
+          </select>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, Clinic..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <!-- Patient Cards Grid (Read-Only National Overview) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading national records...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: TEAM DOCTOR LIST (THREE-LEVEL FILTER: REGION -> ZSM -> KAM/REP) -->
+    <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
+        
+        <!-- Three-Level Filter & Search Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>📋</span> National Team Doctor Portfolio (Read-Only)
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Select Region, then ZSM, and then KAM/Rep to inspect doctor portfolios nationwide.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Level 1 Filter: Region -->
+            <select id="hoDoctorRegionFilter" onchange="onHoDoctorRegionChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="ALL">All Regions (Central, North, South)</option>
+              <option value="Central">Central</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+            </select>
+
+            <!-- Level 2 Filter: ZSM Manager -->
+            <select id="hoDoctorMgrFilter" onchange="onHoDoctorMgrChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="ALL">All ZSMs</option>
+            </select>
+
+            <!-- Level 3 Filter: KAM / Rep -->
+            <select id="hoDoctorRepFilter" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="ALL">All KAMs / Reps</option>
+            </select>
+
+            <input type="text" id="hoTeamDocSearch" oninput="renderHoTeamDoctorsTable()" placeholder="🔍 Search Doctor..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            
+            <!-- Sort Dropdown -->
+            <select id="hoDoctorSortSelect" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="NAME_ASC">Sort: Name (A-Z)</option>
+              <option value="GRADE_ASC">Sort: Class (A to B)</option>
+              <option value="TARGET_DESC">Sort: Target (High to Low)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- QUICK FILTER BUTTON BAR -->
+        <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+          <button onclick="setHoDoctorFilter('ALL')" id="hoFilterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all">All Doctors</button>
+          <button onclick="setHoDoctorFilter('CLASS_A')" id="hoFilterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class A</button>
+          <button onclick="setHoDoctorFilter('CLASS_B')" id="hoFilterBtn-CLASS_B" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class B</button>
+          <button onclick="setHoDoctorFilter('VISIT_YES')" id="hoFilterBtn-VISIT_YES" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit Yes</button>
+          <button onclick="setHoDoctorFilter('VISIT_NO')" id="hoFilterBtn-VISIT_NO" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit No</button>
+          <button onclick="setHoDoctorFilter('NP')" id="hoFilterBtn-NP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Non Prescriber (NP)</button>
+          <button onclick="setHoDoctorFilter('IFP')" id="hoFilterBtn-IFP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Infrequent / Trialist (IFP)</button>
+          <button onclick="setHoDoctorFilter('FP')" id="hoFilterBtn-FP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Frequent Prescriber (FP)</button>
+          <button onclick="setHoDoctorFilter('BOC')" id="hoFilterBtn-BOC" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Brand of Choice (BOC)</button>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
+                <th class="p-3">Region</th>
+                <th class="p-3">ZSM / Manager</th>
+                <th class="p-3">Territory</th>
+                <th class="p-3">KAM / Rep Name</th>
+                <th class="p-3">Doctor Code</th>
+                <th class="p-3">Doctor Name</th>
+                <th class="p-3">Speciality</th>
+                <th class="p-3">Grade</th>
+                <th class="p-3">Freq</th>
+                <th class="p-3">OPD/Day</th>
+                <th class="p-3">Target/Mth</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Visit Status</th>
+                <th class="p-3">Engagement Plan</th>
+              </tr>
+            </thead>
+            <tbody id="hoTeamDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
+              <tr>
+                <td colspan="14" class="p-8 text-center text-slate-400">Loading national team doctors...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
+        </div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> National Top Prescribing Doctors
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: Month to Date
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📋</span>
+      <span class="text-xs font-medium">Docs</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📅</span>
+      <span class="text-xs font-medium">Timeline</span>
+    </button>
+    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">⚙️</span>
+      <span class="text-xs font-medium">HQ Menu</span>
+    </button>
+  </nav>
+
+  <script>
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const MASTER_KEY = "HQ2026";
+    let allOrders = [];
+    let allManagers = [];
+    let allReps = [];
+    let teamDoctorsData = [];
+    let feedbackMap = {};
+    let activeFilteredOrders = [];
+    let chartInstance = null;
+
+    let currentHoDoctorFilter = "ALL";
+    let currentDateScope = "MTD";
+    let filterStartDate = null;
+    let filterEndDate = null;
+
+    let realtimeChannel = null;
+    let hqPollingInterval = null;
+
+    const TITRATION_MAP = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg (Maintenance)'
+    };
+
+    function normalizeDoseKey(rawDose) {
+      if (!rawDose) return '5mg';
+      const clean = rawDose.toLowerCase().replace(/\s+/g, '');
+      if (clean.includes('2.5')) return '2.5mg';
+      if (clean.includes('7.5')) return '7.5mg';
+      if (clean.includes('12.5')) return '12.5mg';
+      if (clean.includes('15')) return '15mg';
+      if (clean.includes('10')) return '10mg';
+      if (clean.includes('5')) return '5mg';
+      return '5mg';
+    }
+
+    function getEscalationDetails(createdAt, prescribedDose) {
+      const orderDate = new Date(createdAt);
+      const now = new Date();
+      const daysElapsed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+      const currentDose = prescribedDose || '5mg';
+      const doseKey = normalizeDoseKey(currentDose);
+      const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
+      return {
+        isDue: daysElapsed >= 21,
+        daysElapsed,
+        currentDose,
+        nextDose
+      };
+    }
+
+    function openSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.remove('hidden');
+      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('sideMenuOverlay').classList.add('hidden');
+      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
+      const activeContainer = document.getElementById(`view-${tabId}`);
+      if (activeContainer) activeContainer.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-launcher-btn').forEach(btn => {
+        btn.className = "tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      });
+      const activeLauncher = document.getElementById(`tabBtn-${tabId}`);
+      if (activeLauncher) {
+        activeLauncher.className = "tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all";
+      }
+
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.className = "bottom-nav-item flex flex-col items-center text-slate-400";
+        const label = item.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-medium";
+      });
+      const activeBottom = document.getElementById(`bottomNav-${tabId}`);
+      if (activeBottom) {
+        activeBottom.className = "bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400";
+        const label = activeBottom.querySelector('span:last-child');
+        if (label) label.className = "text-xs font-bold";
+      }
+
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+      if (tabId === 'teamDocs') {
+        fetchTeamDoctors();
+      }
+    }
+
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Explicit Global Attachment for notification.js and sw.js
+    window.fetchEverything = async function(silent = false) {
+      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      if (orderErr) {
+        if (!silent) console.error("Error loading orders:", orderErr.message);
+        return;
+      }
+      allOrders = orders || [];
+
+      const { data: managers } = await client.from('managers').select('*');
+      allManagers = managers || [];
+
+      const { data: reps } = await client.from('reps').select('*');
+      allReps = reps || [];
+
+      if (allOrders.length > 0) {
+        const orderIds = allOrders.map(o => o.id);
+        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
+        feedbackMap = {};
+        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
+      } else {
+        feedbackMap = {};
+      }
+
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+      fetchTeamDoctors();
+    };
+
+    async function fetchTeamDoctors() {
+      try {
+        const { data, error } = await client
+          .from('territory_doctors')
+          .select('*')
+          .order('Mrep Doctor Code', { ascending: true });
+
+        if (!error && data) {
+          teamDoctorsData = data;
+          populateHoDoctorFilters();
+          renderHoTeamDoctorsTable();
+        }
+      } catch (err) {
+        console.warn("fetchTeamDoctors error:", err);
+      }
+    }
+
+    function populateHoDoctorFilters() {
+      const regSelect = document.getElementById('hoDoctorRegionFilter');
+      const mgrSelect = document.getElementById('hoDoctorMgrFilter');
+      const repSelect = document.getElementById('hoDoctorRepFilter');
+      if (!regSelect || !mgrSelect || !repSelect) return;
+
+      const currentReg = regSelect.value;
+      const currentMgr = mgrSelect.value;
+      const currentRep = repSelect.value;
+
+      // Filter Managers based on Region
+      let filteredMgrs = allManagers;
+      if (currentReg && currentReg !== 'ALL') {
+        filteredMgrs = allManagers.filter(m => (m.region || 'Central') === currentReg);
+      }
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs</option>' +
+        filteredMgrs.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+      if (currentMgr && (currentMgr === 'ALL' || filteredMgrs.some(m => m.manager_sap_id === currentMgr))) {
+        mgrSelect.value = currentMgr;
+      }
+
+      // Filter Reps based on Manager / Region
+      let filteredReps = allReps;
+      if (currentMgr && currentMgr !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === currentMgr);
+      } else if (currentReg && currentReg !== 'ALL') {
+        const mgrSaps = filteredMgrs.map(m => m.manager_sap_id);
+        filteredReps = allReps.filter(r => mgrSaps.includes(r.manager_sap_id));
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All KAMs / Reps</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      if (currentRep && (currentRep === 'ALL' || filteredReps.some(r => r.territory_code === currentRep))) {
+        repSelect.value = currentRep;
+      }
+    }
+
+    function onHoDoctorRegionChange() {
+      populateHoDoctorFilters();
+      renderHoTeamDoctorsTable();
+    }
+
+    function onHoDoctorMgrChange() {
+      populateHoDoctorFilters();
+      renderHoTeamDoctorsTable();
+    }
+
+    function setHoDoctorFilter(filterType) {
+      currentHoDoctorFilter = filterType;
+      ['ALL', 'CLASS_A', 'CLASS_B', 'VISIT_YES', 'VISIT_NO', 'NP', 'IFP', 'FP', 'BOC'].forEach(id => {
+        const btn = document.getElementById(`hoFilterBtn-${id}`);
+        if (btn) {
+          btn.className = id === filterType 
+            ? "px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all"
+            : "px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all";
+        }
+      });
+      renderHoTeamDoctorsTable();
+    }
+
+    function renderHoTeamDoctorsTable() {
+      const tbody = document.getElementById('hoTeamDoctorsTableBody');
+      if (!tbody) return;
+
+      const regVal = document.getElementById('hoDoctorRegionFilter')?.value || 'ALL';
+      const mgrVal = document.getElementById('hoDoctorMgrFilter')?.value || 'ALL';
+      const repVal = document.getElementById('hoDoctorRepFilter')?.value || 'ALL';
+      const search = (document.getElementById('hoTeamDocSearch')?.value || '').toLowerCase().trim();
+      const sortVal = document.getElementById('hoDoctorSortSelect')?.value || 'NAME_ASC';
+
+      let targetManagerSaps = allManagers.map(m => m.manager_sap_id);
+      if (regVal !== 'ALL') {
+        targetManagerSaps = allManagers.filter(m => (m.region || 'Central') === regVal).map(m => m.manager_sap_id);
+      }
+      if (mgrVal !== 'ALL') {
+        targetManagerSaps = [mgrVal];
+      }
+
+      let validRepCodes = allReps.filter(r => targetManagerSaps.includes(r.manager_sap_id)).map(r => r.territory_code);
+      if (repVal !== 'ALL') {
+        validRepCodes = [repVal];
+      }
+
+      const filtered = teamDoctorsData.filter(doc => {
+        const territoryId = (doc['Territory ID'] || '').toUpperCase();
+        const docName = (doc['Doctor Name'] || '').toLowerCase();
+        const spec = (doc['Doctor Speciality'] || '').toLowerCase();
+        const grade = (doc['Doctor Grade MREP'] || '').toUpperCase().trim();
+        const visit = (doc['VISIT STATUS'] || '').toUpperCase().trim();
+        const status = (doc['STATUS'] || '').toUpperCase().trim();
+
+        const matchesHierarchy = validRepCodes.includes(territoryId);
+        const matchesSearch = !search || docName.includes(search) || spec.includes(search);
+
+        if (!matchesHierarchy || !matchesSearch) return false;
+
+        if (currentHoDoctorFilter === 'CLASS_A') return grade === 'A' || grade === 'CLASS A';
+        if (currentHoDoctorFilter === 'CLASS_B') return grade === 'B' || grade === 'CLASS B';
+        if (currentHoDoctorFilter === 'VISIT_YES') return visit === 'YES';
+        if (currentHoDoctorFilter === 'VISIT_NO') return visit === 'NO';
+        if (currentHoDoctorFilter === 'NP') return status.includes('NP') || status.includes('NON');
+        if (currentHoDoctorFilter === 'IFP') return status.includes('IFP') || status.includes('TRIAL');
+        if (currentHoDoctorFilter === 'FP') return status === 'FP' || status.includes('FREQUENT');
+        if (currentHoDoctorFilter === 'BOC') return status.includes('BOC') || status.includes('CHOICE');
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'NAME_ASC') {
+          return (a['Doctor Name'] || '').localeCompare(b['Doctor Name'] || '');
+        } else if (sortVal === 'GRADE_ASC') {
+          return (a['Doctor Grade MREP'] || '').localeCompare(b['Doctor Grade MREP'] || '');
+        } else if (sortVal === 'TARGET_DESC') {
+          return (Number(b['Target pat per MTH']) || 0) - (Number(a['Target pat per MTH']) || 0);
+        }
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="14" class="p-8 text-center text-slate-400">No doctor records found matching this regional filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(doc => {
+        const territory = doc['Territory ID'] || '';
+        const kam = doc['KAM / EMP Name'] || '';
+        const repObj = allReps.find(r => r.territory_code === territory);
+        const mgrObj = repObj ? allManagers.find(m => m.manager_sap_id === repObj.manager_sap_id) : null;
+        const zsmName = mgrObj ? mgrObj.full_name : 'N/A';
+        const regionName = mgrObj ? (mgrObj.region || 'Central') : 'N/A';
+
+        const docCode = doc['Mrep Doctor Code'] || '';
+        const docName = doc['Doctor Name'] || '';
+        const spec = doc['Doctor Speciality'] || '';
+        const grade = doc['Doctor Grade MREP'] || '';
+        const freq = doc['Frequency  MREP'] || '';
+        const opd = doc['Total #of OPD/DAY'] || '';
+        const target = doc['Target pat per MTH'] || '';
+        const status = doc['STATUS'] || '';
+        const visitStatus = doc['VISIT STATUS'] || '';
+        const plan = doc['Engagemnet Plan'] || '';
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition-colors">
+            <td class="p-3 font-semibold text-slate-600 dark:text-slate-400">${regionName}</td>
+            <td class="p-3 font-semibold text-slate-900 dark:text-white">${zsmName}</td>
+            <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${territory}</td>
+            <td class="p-3 font-semibold text-slate-900 dark:text-white">${kam}</td>
+            <td class="p-3 font-mono text-slate-500">${docCode}</td>
+            <td class="p-3 font-bold text-slate-900 dark:text-white">Dr. ${docName.replace(/^Dr\.?\s*/i, '')}</td>
+            <td class="p-3 text-slate-600 dark:text-slate-300">${spec}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-bold">${grade}</span></td>
+            <td class="p-3 font-mono">${freq}</td>
+            <td class="p-3 font-mono">${opd}</td>
+            <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${target}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${status}</span></td>
+            <td class="p-3 font-bold ${visitStatus === 'YES' ? 'text-emerald-600' : 'text-slate-500'}">${visitStatus}</td>
+            <td class="p-3">${plan}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function initHQRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      realtimeChannel = client
+        .channel('public:global_exec_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'managers' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'territory_doctors' },
+          () => { fetchTeamDoctors(); }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            window.fetchEverything(true);
+          }
+        });
+
+      if (hqPollingInterval) clearInterval(hqPollingInterval);
+      hqPollingInterval = setInterval(() => {
+        window.fetchEverything(true);
+      }, 5000);
+    }
+
+    function checkHoSession() {
+      if (sessionStorage.getItem('tt_ho_auth') === 'true') {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        initDates();
+        window.fetchEverything();
+        initHQRealtimeSync();
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+      }
+    }
+
+    function handleMasterPinLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('masterPinInput').value.trim();
+      if (input === MASTER_KEY || input.toLowerCase() === "macter2026") {
+        sessionStorage.setItem('tt_ho_auth', 'true');
+        checkHoSession();
+      } else {
+        document.getElementById('pinErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    function handleHeadOfficeLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (hqPollingInterval) {
+        clearInterval(hqPollingInterval);
+        hqPollingInterval = null;
+      }
+      sessionStorage.removeItem('tt_ho_auth');
+      checkHoSession();
+    }
+
+    async function registerHoMobilePush() {
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+          return;
+        }
+
+        const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
+        const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
+          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+          }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    function populateManagerDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const mgrSelect = document.getElementById('filterManager');
+      const currentVal = mgrSelect.value;
+      
+      const filteredManagers = selectedRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
+        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+
+      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
+        mgrSelect.value = currentVal;
+      }
+    }
+
+    function populateRepDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const selectedManagerSap = document.getElementById('filterManager').value;
+      const repSelect = document.getElementById('filterRep');
+      const currentVal = repSelect.value;
+
+      let filteredReps = [];
+
+      if (selectedManagerSap !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
+      } else if (selectedRegion !== 'ALL') {
+        const regionManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === selectedRegion)
+          .map(m => m.manager_sap_id);
+
+        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
+      } else {
+        filteredReps = allReps;
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+        repSelect.value = currentVal;
+      }
+    }
+
+    function onRegionChange() {
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function onManagerChange() {
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function applyAllFilters() {
+      const region = document.getElementById('filterRegion')?.value || 'ALL';
+      const managerSap = document.getElementById('filterManager')?.value || 'ALL';
+      const repCode = document.getElementById('filterRep')?.value || 'ALL';
+      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
+
+      let allowedManagerSaps = [];
+      let allowedReps = [];
+
+      if (region !== 'ALL') {
+        allowedManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === region)
+          .map(m => m.manager_sap_id);
+        allowedReps = allReps
+          .filter(r => allowedManagerSaps.includes(r.manager_sap_id))
+          .map(r => r.territory_code);
+      }
+
+      if (managerSap !== 'ALL') {
+        allowedReps = allReps
+          .filter(r => r.manager_sap_id === managerSap)
+          .map(r => r.territory_code);
+      }
+
+      const hierarchyMatchedOrders = allOrders.filter(order => {
+        let matchesRegion = true;
+        if (region !== 'ALL') {
+          matchesRegion = allowedManagerSaps.includes(order.manager_sap_id) || allowedReps.includes(order.rep_code);
+        }
+
+        let matchesManager = true;
+        if (managerSap !== 'ALL') {
+          matchesManager = order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
+        }
+
+        const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
+        const matchesSearch = !searchTerm ||
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
+
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+      });
+
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+    }
+
+    function updateMetrics() {
+      const total = activeFilteredOrders.length;
+      const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+      const inProcess = total - delivered;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statProcess').innerText = inProcess;
+      document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('filteredCount').innerText = total;
+
+      const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
+      if (ratings.length > 0) {
+        const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        document.getElementById('statRating').innerText = `${avg} ⭐`;
+      } else {
+        document.getElementById('statRating').innerText = '5.0 ⭐';
+      }
+    }
+
+    function updateDailyChart(ordersToGraph) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      (ordersToGraph || []).forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              titleColor: '#10b981',
+              bodyColor: isDark ? '#ffffff' : '#0f172a',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor, font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 11 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaries() {
+      const prescriberCount = {};
+      
+      activeFilteredOrders.forEach(o => {
+        const doc = (o.doctor_name || 'Unassigned').trim();
+        const clinic = (o.clinic_name || '').trim();
+        const uniqueKey = clinic ? `${doc} (${clinic})` : doc;
+        prescriberCount[uniqueKey] = (prescriberCount[uniqueKey] || 0) + 1;
+      });
+
+      const sortedPrescribers = Object.entries(prescriberCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+        </div>
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+
+      const doseCount = {};
+      activeFilteredOrders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+        <div class="flex items-center justify-between py-2">
+          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+        </div>
+      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('hoCardsGrid');
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = activeFilteredOrders.map(order => {
+        const fb = feedbackMap[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+        const isCancelled = order.status === 'Cancelled';
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
+            
+            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
+              </div>
+              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'))}">
+                ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
+              </span>
+            </div>
+
+            <!-- Patient Information (Read-Only) -->
+            <div class="space-y-1.5 text-sm">
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              </div>
+            </div>
+
+            <!-- Doctor & Titration Overview -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
+              </div>
+              ${order.prescription_url 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                : ''}
+
+              <!-- Read-only Cancellation Reason Patch -->
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `
+                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
+                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Feedback -->
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportFilteredCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
+      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
+      
+      activeFilteredOrders.forEach(o => {
+        const fb = feedbackMap[o.id];
+        const rating = fb ? fb.overall_rating : "Pending";
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}","${rating}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
+      a.click();
+    }
+
+    checkHoSession();
+  </script>
 </body>
 </html>
