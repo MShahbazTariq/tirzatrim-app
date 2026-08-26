@@ -307,7 +307,7 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (Added Team Dr List Tab) -->
+    <!-- 3. APP GRID LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
@@ -392,10 +392,36 @@
       </div>
     </div>
 
-    <!-- NEW TAB: TEAM DOCTOR LIST (READ-ONLY WITH KAM FILTER) -->
+    <!-- NEW TAB: TEAM DOCTOR LIST WITH ZSM CSV UPLOADER -->
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        
+        <!-- ZSM CSV UPLOADER TOOL BAR -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>📁</span> ZSM Regional CSV Uploader Tool
+              </h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Upload your territory doctor list CSV file to bulk-import or update doctor portfolios instantly.
+              </p>
+            </div>
+            <button onclick="downloadCsvTemplate()" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all">
+              📥 Download CSV Template
+            </button>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+            <input type="file" id="csvFileInput" accept=".csv" class="w-full sm:w-auto px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500">
+            <button onclick="handleZsmCsvUpload()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+              🚀 Upload & Import CSV Doctors
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>📋</span> Team Doctor Portfolio (Read-Only)
@@ -879,12 +905,11 @@
         const { data, error } = await client
           .from('territory_doctors')
           .select('*')
-          .order('Mrep Doctor Code', { ascending: true })
+          .order('Mrep Doctor Code', { ascending: true });
 
         if (!error && data) {
           teamDoctorsData = data;
           
-          // Populate KAM dropdown
           const kamSelect = document.getElementById('kamFilterSelect');
           const currentKam = kamSelect ? kamSelect.value : 'ALL';
           const uniqueKams = [...new Set(data.map(d => d['KAM / EMP Name']).filter(Boolean))];
@@ -958,6 +983,72 @@
           </tr>
         `;
       }).join('');
+    }
+
+    function downloadCsvTemplate() {
+      const csvContent = "Sr#,Territory ID,KAM / EMP Name,Mrep Doctor Code,Doctor Name,Doctor Speciality,Doctor Grade MREP,Frequency  MREP,Total #of OPD/DAY,Target pat per MTH,STATUS,VISIT STATUS,Engagemnet Plan\n1,QL2.1,Talha Saadat,204279,Mian Sajid Nisar,PHYSICIAN,A,4,30,15,FP,NO,SBP";
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "TirzaTrim_Doctor_Template.csv";
+      a.click();
+    }
+
+    function handleZsmCsvUpload() {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a CSV file first.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(l => l.trim().length > 0);
+        if (lines.length < 2) {
+          alert("The CSV file appears empty or invalid.");
+          return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+        let importedCount = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+          const row = lines[i].split(',').map(val => val.trim().replace(/^"(.*)"$/, '$1'));
+          if (row.length < headers.length) continue;
+
+          const docObj = {};
+          headers.forEach((h, idx) => {
+            docObj[h] = row[idx];
+          });
+
+          const payload = {
+            'Sr#': Number(docObj['Sr#']) || i,
+            'Territory ID': (docObj['Territory ID'] || '').toUpperCase(),
+            'KAM / EMP Name': docObj['KAM / EMP Name'] || '',
+            'Mrep Doctor Code': docObj['Mrep Doctor Code'] || '',
+            'Doctor Name': docObj['Doctor Name'] || '',
+            'Doctor Speciality': (docObj['Doctor Speciality'] || '').toUpperCase(),
+            'Doctor Grade MREP': (docObj['Doctor Grade MREP'] || '').toUpperCase(),
+            'Frequency  MREP': docObj['Frequency  MREP'] || '',
+            'Total #of OPD/DAY': Number(docObj['Total #of OPD/DAY']) || 0,
+            'Target pat per MTH': Number(docObj['Target pat per MTH']) || 0,
+            'STATUS': (docObj['STATUS'] || '').toUpperCase(),
+            'VISIT STATUS': (docObj['VISIT STATUS'] || 'NO').toUpperCase(),
+            'Engagemnet Plan': docObj['Engagemnet Plan'] || ''
+          };
+
+          const { error } = await client.from('territory_doctors').insert([payload]);
+          if (!error) importedCount++;
+        }
+
+        alert(`✅ Successfully imported ${importedCount} doctor records from CSV!`);
+        fileInput.value = '';
+        fetchTeamDoctors();
+      };
+      reader.readAsText(file);
     }
 
     function initRealtimeSync() {
