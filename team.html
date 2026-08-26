@@ -505,7 +505,7 @@
         </div>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="block font-semibold text-slate-500 mb-1">Frequency *</label>
+            <label class="block font-semibold text-slate-500 mb-1">Freq *</label>
             <input type="text" id="addDocFreq" placeholder="e.g. 4" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
           </div>
           <div>
@@ -517,11 +517,10 @@
             <input type="number" id="addDocTarget" placeholder="e.g. 15" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-500 mb-1">Status (FP, IFP, NP, BOC) *</label>
-            <input type="text" id="addDocStatus" placeholder="e.g. FP" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono uppercase">
-          </div>
+        <div>
+          <label class="block font-semibold text-slate-500 mb-1">Status (FP, IFP, NP, BOC) *</label>
+          <input type="text" id="addDocStatus" placeholder="e.g. FP" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono uppercase">
+        </div>
         <div>
           <label class="block font-semibold text-slate-500 mb-1">Engagement Plan *</label>
           <input type="text" id="addDocPlan" placeholder="e.g. SBP" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
@@ -1017,7 +1016,6 @@
       const opd = document.getElementById('addDocOpd').value.trim();
       const target = document.getElementById('addDocTarget').value.trim();
       const status = document.getElementById('addDocStatus').value.trim().toUpperCase();
-      const visitStatus = document.getElementById('addDocVisitStatus').value;
       const plan = document.getElementById('addDocPlan').value.trim();
 
       const { data: maxRow } = await client.from('territory_doctors').select('Sr#').order('Sr#', { ascending: false }).limit(1);
@@ -1035,7 +1033,7 @@
         'Total #of OPD/DAY': Number(opd) || 0,
         'Target pat per MTH': Number(target) || 0,
         'STATUS': status,
-        'VISIT STATUS': visitStatus,
+        'VISIT STATUS': 'NO', // Default to NO as requested
         'Engagemnet Plan': plan
       }]);
 
