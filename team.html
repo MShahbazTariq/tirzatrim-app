@@ -1446,6 +1446,358 @@
       }
     }
 
+    async function fetchRepOrders(silent = false) {
+      if (!currentRep || !currentRep.territory_code) return;
+
+      const tCode = (currentRep.territory_code || '').trim().toUpperCase();
+
+      const { data: orders, error } = await client
+        .from('orders')
+        .select('*')
+        .ilike('rep_code', tCode)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        if (!silent) console.error("Error loading territory records:", error.message);
+        return;
+      }
+
+      rawOrders = orders || [];
+
+      const orderIds = rawOrders.map(o => o.id);
+      if (orderIds.length > 0) {
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
+
+        cachedFeedbacks = {};
+        (feedbacks || []).forEach(f => {
+          cachedFeedbacks[f.order_id] = f;
+        });
+      } else {
+        cachedFeedbacks = {};
+      }
+
+      applyAllFilters();
+    }
+
+    async function fetchTerritoryDoctors() {
+      if (!currentRep || !currentRep.territory_code) return;
+      const tCode = (currentRep.territory_code || '').trim().toUpperCase();
+
+      const { data, error } = await client
+        .from('territory_doctors')
+        .select('*')
+        .ilike('Territory ID', tCode);
+
+      if (error) {
+        console.error("Error loading territory doctors:", error.message);
+        return;
+      }
+
+      territoryDoctorsList = data || [];
+      renderTerritoryDoctors();
+    }
+
+    function setDoctorFilter(filterType) {
+      currentDoctorFilter = filterType;
+      ['ALL', 'CLASS_A', 'CLASS_B', 'VISIT_YES', 'VISIT_NO', 'NP', 'IFP', 'FP', 'BOC'].forEach(id => {
+        const btn = document.getElementById(`filterBtn-${id}`);
+        if (btn) {
+          btn.className = id === filterType 
+            ? "px-3 py-1.5 rounded-xl font-bold bg-teal-600 text-white shadow-sm transition-all"
+            : "px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all";
+        }
+      });
+      renderTerritoryDoctors();
+    }
+
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      const btn = document.getElementById('editModeBtn');
+      const actionTh = document.getElementById('actionHeaderTh');
+      
+      if (isEditMode) {
+        isDeleteMode = false;
+        document.getElementById('deleteModeBtn').className = "px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all";
+        document.getElementById('deleteHeaderTh').classList.add('hidden');
+        btn.className = "px-3.5 py-2 bg-amber-600 text-white text-xs font-bold rounded-xl shadow transition-all";
+        btn.innerHTML = "🔓 Unlocked (Editing)";
+        if (actionTh) actionTh.classList.remove('hidden');
+      } else {
+        btn.className = "px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all";
+        btn.innerHTML = "✏️ Edit";
+        if (actionTh) actionTh.classList.add('hidden');
+      }
+      renderTerritoryDoctors();
+    }
+
+    function toggleDeleteMode() {
+      isDeleteMode = !isDeleteMode;
+      const btn = document.getElementById('deleteModeBtn');
+      const deleteTh = document.getElementById('deleteHeaderTh');
+
+      if (isDeleteMode) {
+        isEditMode = false;
+        document.getElementById('editModeBtn').className = "px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all";
+        document.getElementById('editModeBtn').innerHTML = "✏️ Edit";
+        const actionTh = document.getElementById('actionHeaderTh');
+        if (actionTh) actionTh.classList.add('hidden');
+        
+        btn.className = "px-3.5 py-2 bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition-all";
+        btn.innerHTML = "🗑️ Confirm Delete Selected";
+        btn.setAttribute("onclick", "deleteSelectedDoctors()");
+        deleteTh.classList.remove('hidden');
+      } else {
+        btn.className = "px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all";
+        btn.innerHTML = "🗑️ Delete";
+        btn.setAttribute("onclick", "toggleDeleteMode()");
+        deleteTh.classList.add('hidden');
+      }
+      renderTerritoryDoctors();
+    }
+
+    function renderTerritoryDoctors() {
+      const tbody = document.getElementById('territoryDoctorsTableBody');
+      if (!tbody) return;
+
+      const search = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
+      const sortVal = document.getElementById('doctorSortSelect')?.value || 'NAME_ASC';
+      
+      const filtered = territoryDoctorsList.filter(doc => {
+        const name = (doc['Doctor Name'] || '').toLowerCase();
+        const spec = (doc['Doctor Speciality'] || '').toLowerCase();
+        const grade = (doc['Doctor Grade MREP'] || '').toUpperCase().trim();
+        const visit = (doc['VISIT STATUS'] || '').toUpperCase().trim();
+        const status = (doc['STATUS'] || '').toUpperCase().trim();
+
+        const matchesSearch = !search || name.includes(search) || spec.includes(search);
+        if (!matchesSearch) return false;
+
+        if (currentDoctorFilter === 'CLASS_A') return grade === 'A' || grade === 'CLASS A';
+        if (currentDoctorFilter === 'CLASS_B') return grade === 'B' || grade === 'CLASS B';
+        if (currentDoctorFilter === 'VISIT_YES') return visit === 'YES';
+        if (currentDoctorFilter === 'VISIT_NO') return visit === 'NO';
+        if (currentDoctorFilter === 'NP') return status.includes('NP') || status.includes('NON');
+        if (currentDoctorFilter === 'IFP') return status.includes('IFP') || status.includes('TRIAL');
+        if (currentDoctorFilter === 'FP') return status === 'FP' || status.includes('FREQUENT');
+        if (currentDoctorFilter === 'BOC') return status.includes('BOC') || status.includes('CHOICE');
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'NAME_ASC') {
+          return (a['Doctor Name'] || '').localeCompare(b['Doctor Name'] || '');
+        } else if (sortVal === 'GRADE_ASC') {
+          return (a['Doctor Grade MREP'] || '').localeCompare(b['Doctor Grade MREP'] || '');
+        } else if (sortVal === 'TARGET_DESC') {
+          return (Number(b['Target pat per MTH']) || 0) - (Number(a['Target pat per MTH']) || 0);
+        }
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-slate-400">No doctors found matching this filter in territory ${currentRep.territory_code}.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(doc => {
+        const docCode = doc['Mrep Doctor Code'] || '';
+        const docName = doc['Doctor Name'] || '';
+        const spec = doc['Doctor Speciality'] || '';
+        const grade = doc['Doctor Grade MREP'] || '';
+        const freq = doc['Frequency  MREP'] || '';
+        const opd = doc['Total #of OPD/DAY'] || '';
+        const target = doc['Target pat per MTH'] || '';
+        const status = doc['STATUS'] || '';
+        const visitStatus = doc['VISIT STATUS'] || '';
+        const plan = doc['Engagemnet Plan'] || '';
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition-colors" data-original-code="${docCode}">
+            <td class="p-3 text-center ${isDeleteMode ? '' : 'hidden'}">
+              <input type="checkbox" class="docRowCheckbox rounded text-rose-600" value="${docCode}">
+            </td>
+            <td class="p-3 font-mono font-bold text-teal-600 dark:text-teal-400">
+              ${isEditMode ? `<input type="text" id="docCode-${docCode}" value="${docCode}" class="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-teal-600 outline-none focus:border-teal-500">` : docCode}
+            </td>
+            <td class="p-3 font-bold text-slate-900 dark:text-white">
+              ${isEditMode ? `<input type="text" id="docName-${docCode}" value="${docName}" class="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500">` : 'Dr. ' + docName.replace(/^Dr\.?\s*/i, '')}
+            </td>
+            <td class="p-3 text-slate-600 dark:text-slate-300">
+              ${isEditMode ? `<input type="text" id="spec-${docCode}" value="${spec}" class="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-700 dark:text-slate-300 outline-none focus:border-teal-500">` : spec}
+            </td>
+            <td class="p-3 font-bold">
+              ${isEditMode ? `<input type="text" id="grade-${docCode}" value="${grade}" class="w-12 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center font-bold outline-none focus:border-teal-500">` : `<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">${grade}</span>`}
+            </td>
+            <td class="p-3">
+              ${isEditMode ? `<input type="text" id="freq-${docCode}" value="${freq}" class="w-14 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center outline-none focus:border-teal-500 font-mono">` : freq}
+            </td>
+            <td class="p-3 font-mono">
+              ${isEditMode ? `<input type="number" id="opd-${docCode}" value="${opd}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center outline-none focus:border-teal-500 font-mono">` : opd}
+            </td>
+            <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              ${isEditMode ? `<input type="number" id="target-${docCode}" value="${target}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center font-bold text-emerald-600 dark:text-emerald-400 outline-none focus:border-teal-500 font-mono">` : target}
+            </td>
+            <td class="p-3">
+              ${isEditMode ? `<input type="text" id="status-${docCode}" value="${status}" class="w-24 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 outline-none focus:border-teal-500 text-center uppercase">` : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${status}</span>`}
+            </td>
+            <td class="p-3">
+              ${isEditMode ? `
+                <select id="visitStatus-${docCode}" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-semibold outline-none focus:border-teal-500">
+                  <option value="YES" ${visitStatus === 'YES' ? 'selected' : ''}>YES</option>
+                  <option value="NO" ${visitStatus === 'NO' ? 'selected' : ''}>NO</option>
+                  <option value="PLANNED" ${visitStatus === 'PLANNED' ? 'selected' : ''}>PLANNED</option>
+                </select>
+              ` : `<span class="font-bold ${visitStatus === 'YES' ? 'text-emerald-600' : 'text-slate-500'}">${visitStatus}</span>`}
+            </td>
+            <td class="p-3">
+              ${isEditMode ? `<input type="text" id="plan-${docCode}" value="${plan}" class="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs outline-none focus:border-teal-500">` : plan}
+            </td>
+            <td class="p-3 text-center ${isEditMode ? '' : 'hidden'}">
+              <button onclick="saveSingleDoctorRow('${docCode}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg shadow-sm transition-all text-[11px]">
+                Save
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function toggleSelectAllDocs(master) {
+      document.querySelectorAll('.docRowCheckbox').forEach(cb => cb.checked = master.checked);
+    }
+
+    async function saveSingleDoctorRow(origCode) {
+      const codeInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="docCode-"]`);
+      const nameInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="docName-"]`);
+      const specInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="spec-"]`);
+      const gradeInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="grade-"]`);
+      const freqInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="freq-"]`);
+      const opdInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="opd-"]`);
+      const targetInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="target-"]`);
+      const statusInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="status-"]`);
+      const visitSelect = document.querySelector(`tr[data-original-code="${origCode}"] select[id^="visitStatus-"]`);
+      const planInput = document.querySelector(`tr[data-original-code="${origCode}"] input[id^="plan-"]`);
+
+      const newCode = codeInput ? codeInput.value.trim() : origCode;
+      const newName = nameInput ? nameInput.value.trim() : '';
+      const newSpec = specInput ? specInput.value.trim() : '';
+      const newGrade = gradeInput ? gradeInput.value.trim() : '';
+      const newFreq = freqInput ? freqInput.value.trim() : '';
+      const newOpd = opdInput ? opdInput.value.trim() : 0;
+      const newTarget = targetInput ? targetInput.value.trim() : 0;
+      const newStatus = statusInput ? statusInput.value.trim() : '';
+      const newVisitStatus = visitSelect ? visitSelect.value : 'NO';
+      const newPlan = planInput ? planInput.value.trim() : '';
+
+      const { error } = await client
+        .from('territory_doctors')
+        .update({
+          'Mrep Doctor Code': newCode,
+          'Doctor Name': newName,
+          'Doctor Speciality': newSpec,
+          'Doctor Grade MREP': newGrade,
+          'Frequency  MREP': newFreq,
+          'Total #of OPD/DAY': Number(newOpd) || 0,
+          'Target pat per MTH': Number(newTarget) || 0,
+          'STATUS': newStatus,
+          'VISIT STATUS': newVisitStatus,
+          'Engagemnet Plan': newPlan
+        })
+        .ilike('Territory ID', currentRep.territory_code)
+        .eq('Mrep Doctor Code', origCode);
+
+      if (error) {
+        alert("Error updating row: " + error.message);
+      } else {
+        alert(`✅ Row updated successfully!`);
+        window.fetchTerritoryDoctors();
+      }
+    }
+
+    async function deleteSelectedDoctors() {
+      const checkedBoxes = document.querySelectorAll('.docRowCheckbox:checked');
+      if (checkedBoxes.length === 0) {
+        alert("Please select at least one doctor checkbox to delete.");
+        return;
+      }
+      const confirmDel = confirm(`Permanently delete ${checkedBoxes.length} selected doctor(s) from your territory?`);
+      if (!confirmDel) return;
+
+      for (const cb of checkedBoxes) {
+        const { error } = await client
+          .from('territory_doctors')
+          .delete()
+          .ilike('Territory ID', currentRep.territory_code)
+          .eq('Mrep Doctor Code', cb.value);
+
+        if (error) {
+          console.error("Delete error:", error.message);
+        }
+      }
+      alert("🗑️ Selected doctors deleted successfully!");
+      toggleDeleteMode();
+      window.fetchTerritoryDoctors();
+    }
+
+    function openAddDoctorModal() {
+      document.getElementById('addDoctorModal').classList.remove('hidden');
+    }
+
+    function closeAddDoctorModal() {
+      document.getElementById('addDoctorModal').classList.add('hidden');
+    }
+
+    async function submitNewDoctor(e) {
+      e.preventDefault();
+      const code = document.getElementById('addDocCode').value.trim();
+      const name = document.getElementById('addDocName').value.trim();
+      const spec = document.getElementById('addDocSpec').value.trim().toUpperCase();
+      const grade = document.getElementById('addDocGrade').value.trim().toUpperCase();
+      const freq = document.getElementById('addDocFreq').value.trim();
+      const opd = document.getElementById('addDocOpd').value.trim();
+      const target = document.getElementById('addDocTarget').value.trim();
+      const status = document.getElementById('addDocStatus').value.trim().toUpperCase();
+      const plan = document.getElementById('addDocPlan').value.trim();
+
+      const nextSr = 1000 + Math.floor(Math.random() * 90000);
+
+      const { error } = await client.from('territory_doctors').insert([{
+        'Sr#': nextSr,
+        'Territory ID': currentRep.territory_code,
+        'Mrep Doctor Code': code,
+        'KAM / EMP Name': currentRep.full_name,
+        'Doctor Name': name,
+        'Doctor Speciality': spec,
+        'Doctor Grade MREP': grade,
+        'Frequency  MREP': freq,
+        'Total #of OPD/DAY': Number(opd) || 0,
+        'Target pat per MTH': Number(target) || 0,
+        'STATUS': status,
+        'VISIT STATUS': 'NO', 
+        'Engagemnet Plan': plan
+      }]);
+
+      if (error) {
+        alert("Error adding doctor: " + error.message);
+      } else {
+        alert("✅ New doctor row added successfully!");
+        closeAddDoctorModal();
+        document.getElementById('addDocCode').value = '';
+        document.getElementById('addDocName').value = '';
+        document.getElementById('addDocSpec').value = '';
+        document.getElementById('addDocGrade').value = '';
+        document.getElementById('addDocFreq').value = '';
+        document.getElementById('addDocOpd').value = '';
+        document.getElementById('addDocTarget').value = '';
+        document.getElementById('addDocStatus').value = '';
+        document.getElementById('addDocPlan').value = '';
+        window.fetchTerritoryDoctors();
+      }
+    }
     checkSession();
     checkGlobalBroadcast('team');
   </script>
