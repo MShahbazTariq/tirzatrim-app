@@ -308,6 +308,13 @@
           <div class="flex items-center gap-2 flex-wrap">
             <input type="text" id="doctorSearchInput" oninput="renderTerritoryDoctors()" placeholder="🔍 Search Doctor..." class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
             
+            <!-- Sort Dropdown -->
+            <select id="doctorSortSelect" onchange="renderTerritoryDoctors()" class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+              <option value="NAME_ASC">Sort: Name (A-Z)</option>
+              <option value="GRADE_ASC">Sort: Class (A to B)</option>
+              <option value="TARGET_DESC">Sort: Target (High to Low)</option>
+            </select>
+
             <button onclick="toggleEditMode()" id="editModeBtn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
               ✏️ Edit
             </button>
@@ -336,13 +343,12 @@
           <button onclick="setDoctorFilter('BOC')" id="filterBtn-BOC" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Brand of Choice (BOC)</button>
         </div>
 
-        <!-- Scrollable Responsive Table for Doctors -->
+        <!-- Scrollable Responsive Table for Doctors (Sr# Hidden) -->
         <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
                 <th id="deleteHeaderTh" class="p-3 text-center hidden"><input type="checkbox" id="selectAllDocs" onclick="toggleSelectAllDocs(this)" class="rounded text-rose-600"></th>
-                <th class="p-3">Sr#</th>
                 <th class="p-3">Doctor Code</th>
                 <th class="p-3">Doctor Name</th>
                 <th class="p-3">Speciality</th>
@@ -357,7 +363,7 @@
             </thead>
             <tbody id="territoryDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
               <tr>
-                <td colspan="12" class="p-8 text-center text-slate-400">Loading territory doctors...</td>
+                <td colspan="11" class="p-8 text-center text-slate-400">Loading territory doctors...</td>
               </tr>
             </tbody>
           </table>
@@ -848,6 +854,7 @@
       if (!tbody) return;
 
       const search = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
+      const sortVal = document.getElementById('doctorSortSelect')?.value || 'NAME_ASC';
       
       const filtered = territoryDoctorsList.filter(doc => {
         const name = (doc['Doctor Name'] || '').toLowerCase();
@@ -871,13 +878,24 @@
         return true;
       });
 
+      // Sorting logic
+      filtered.sort((a, b) => {
+        if (sortVal === 'NAME_ASC') {
+          return (a['Doctor Name'] || '').localeCompare(b['Doctor Name'] || '');
+        } else if (sortVal === 'GRADE_ASC') {
+          return (a['Doctor Grade MREP'] || '').localeCompare(b['Doctor Grade MREP'] || '');
+        } else if (sortVal === 'TARGET_DESC') {
+          return (Number(b['Target pat per MTH']) || 0) - (Number(a['Target pat per MTH']) || 0);
+        }
+        return 0;
+      });
+
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-slate-400">No doctors found matching this filter in territory ${currentRep.territory_code}.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-slate-400">No doctors found matching this filter in territory ${currentRep.territory_code}.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = filtered.map(doc => {
-        const sr = doc['Sr#'] || '';
         const docCode = doc['Mrep Doctor Code'] || '';
         const docName = doc['Doctor Name'] || '';
         const spec = doc['Doctor Speciality'] || '';
@@ -894,7 +912,6 @@
             <td class="p-3 text-center ${isDeleteMode ? '' : 'hidden'}">
               <input type="checkbox" class="docRowCheckbox rounded text-rose-600" value="${docCode}">
             </td>
-            <td class="p-3 font-mono text-slate-500">${sr}</td>
             <td class="p-3 font-mono font-bold text-teal-600 dark:text-teal-400">
               ${isEditMode ? `<input type="text" id="docCode-${docCode}" value="${docCode}" class="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-teal-600 outline-none focus:border-teal-500">` : docCode}
             </td>
@@ -951,7 +968,15 @@
         if (!confirmDel) return;
 
         for (const cb of checkedBoxes) {
-          await client.from('territory_doctors').delete().eq('Territory ID', currentRep.territory_code).eq('Mrep Doctor Code', cb.value);
+          const { error } = await client
+            .from('territory_doctors')
+            .delete()
+            .ilike('Territory ID', currentRep.territory_code)
+            .eq('Mrep Doctor Code', cb.value);
+
+          if (error) {
+            console.error("Delete error:", error.message);
+          }
         }
         alert("🗑️ Selected doctors deleted successfully!");
         toggleDeleteMode();
@@ -974,7 +999,7 @@
           const newVisitStatus = document.getElementById(`visitStatus-${origCode}`).value;
           const newPlan = document.getElementById(`plan-${origCode}`).value.trim();
 
-          await client
+          const { error } = await client
             .from('territory_doctors')
             .update({
               'Mrep Doctor Code': newCode,
@@ -988,8 +1013,12 @@
               'VISIT STATUS': newVisitStatus,
               'Engagemnet Plan': newPlan
             })
-            .eq('Territory ID', currentRep.territory_code)
+            .ilike('Territory ID', currentRep.territory_code)
             .eq('Mrep Doctor Code', origCode);
+
+          if (error) {
+            console.error("Update error for code " + origCode + ":", error.message);
+          }
         }
 
         alert("✅ All territory updates successfully saved to Supabase!");
@@ -1033,7 +1062,7 @@
         'Total #of OPD/DAY': Number(opd) || 0,
         'Target pat per MTH': Number(target) || 0,
         'STATUS': status,
-        'VISIT STATUS': 'NO', // Default to NO as requested
+        'VISIT STATUS': 'NO', 
         'Engagemnet Plan': plan
       }]);
 
