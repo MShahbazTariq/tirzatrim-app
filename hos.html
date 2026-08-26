@@ -170,7 +170,7 @@
   <!-- MAIN DASHBOARD CONTENT -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- 1. IDENTICAL TIRZATRIM LOGO & HOS TITLE -->
+    <!-- 1. HEADER -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
       <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
         ☰
@@ -230,13 +230,13 @@
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">Orders</span>
       </button>
+      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📋</span>
+        <span class="text-xs font-bold">Team Dr List</span>
+      </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends & KOLs</span>
-      </button>
-      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📅</span>
-        <span class="text-xs font-bold">Timeline</span>
+        <span class="text-xs font-bold">Trends & Timeline</span>
       </button>
       <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📥</span>
@@ -279,7 +279,85 @@
       </div>
     </div>
 
-    <!-- TAB 2: ANALYTICS, TRENDS & KOLS VIEW -->
+    <!-- TAB 2: TEAM DOCTOR LIST (TWO-LEVEL FILTER: ZSM -> KAM/REP) -->
+    <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
+        
+        <!-- Two-Level Filter & Search Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>📋</span> Regional Team Doctor Portfolio (Read-Only)
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Filter by ZSM and then by KAM/Rep to inspect doctor portfolios across your region.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Level 1 Filter: ZSM Manager -->
+            <select id="hosDoctorMgrFilter" onchange="onHosDoctorMgrChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+              <option value="ALL">All ZSMs (Region)</option>
+            </select>
+
+            <!-- Level 2 Filter: KAM / Rep -->
+            <select id="hosDoctorRepFilter" onchange="renderHosTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+              <option value="ALL">All KAMs / Reps</option>
+            </select>
+
+            <input type="text" id="hosTeamDocSearch" oninput="renderHosTeamDoctorsTable()" placeholder="🔍 Search Doctor..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            
+            <!-- Sort Dropdown -->
+            <select id="hosDoctorSortSelect" onchange="renderHosTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+              <option value="NAME_ASC">Sort: Name (A-Z)</option>
+              <option value="GRADE_ASC">Sort: Class (A to B)</option>
+              <option value="TARGET_DESC">Sort: Target (High to Low)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- QUICK FILTER BUTTON BAR -->
+        <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+          <button onclick="setHosDoctorFilter('ALL')" id="hosFilterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm transition-all">All Doctors</button>
+          <button onclick="setHosDoctorFilter('CLASS_A')" id="hosFilterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class A</button>
+          <button onclick="setHosDoctorFilter('CLASS_B')" id="hosFilterBtn-CLASS_B" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class B</button>
+          <button onclick="setHosDoctorFilter('VISIT_YES')" id="hosFilterBtn-VISIT_YES" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit Yes</button>
+          <button onclick="setHosDoctorFilter('VISIT_NO')" id="hosFilterBtn-VISIT_NO" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Visit No</button>
+          <button onclick="setHosDoctorFilter('NP')" id="hosFilterBtn-NP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Non Prescriber (NP)</button>
+          <button onclick="setHosDoctorFilter('IFP')" id="hosFilterBtn-IFP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Infrequent / Trialist (IFP)</button>
+          <button onclick="setHosDoctorFilter('FP')" id="hosFilterBtn-FP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Frequent Prescriber (FP)</button>
+          <button onclick="setHosDoctorFilter('BOC')" id="hosFilterBtn-BOC" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Brand of Choice (BOC)</button>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
+                <th class="p-3">ZSM / Manager</th>
+                <th class="p-3">Territory</th>
+                <th class="p-3">KAM / Rep Name</th>
+                <th class="p-3">Doctor Code</th>
+                <th class="p-3">Doctor Name</th>
+                <th class="p-3">Speciality</th>
+                <th class="p-3">Grade</th>
+                <th class="p-3">Freq</th>
+                <th class="p-3">OPD/Day</th>
+                <th class="p-3">Target/Mth</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Visit Status</th>
+                <th class="p-3">Engagement Plan</th>
+              </tr>
+            </thead>
+            <tbody id="hosTeamDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
+              <tr>
+                <td colspan="13" class="p-8 text-center text-slate-400">Loading regional team doctors...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
@@ -314,7 +392,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: TIMELINE & DATE SCOPE VIEW -->
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
     <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
@@ -353,6 +431,10 @@
       <span class="text-lg">👥</span>
       <span class="text-xs font-bold">Orders</span>
     </button>
+    <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📋</span>
+      <span class="text-xs font-medium">Docs</span>
+    </button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📊</span>
       <span class="text-xs font-medium">Trends</span>
@@ -377,10 +459,12 @@
     let allOrders = [];
     let regionalManagers = [];
     let regionalReps = [];
+    let teamDoctorsData = [];
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
 
+    let currentHosDoctorFilter = "ALL";
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
@@ -462,6 +546,9 @@
 
       if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
         setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      }
+      if (tabId === 'teamDocs') {
+        fetchTeamDoctors();
       }
     }
 
@@ -550,7 +637,168 @@
       populateManagerDropdown();
       populateRepDropdown();
       applyAllFilters();
+      fetchTeamDoctors();
     };
+
+    async function fetchTeamDoctors() {
+      try {
+        const repCodes = regionalReps.map(r => r.territory_code);
+        if (repCodes.length === 0) return;
+
+        const { data, error } = await client
+          .from('territory_doctors')
+          .select('*')
+          .in('Territory ID', repCodes)
+          .order('Mrep Doctor Code', { ascending: true });
+
+        if (!error && data) {
+          teamDoctorsData = data;
+          populateHosDoctorFilters();
+          renderHosTeamDoctorsTable();
+        }
+      } catch (err) {
+        console.warn("fetchTeamDoctors error:", err);
+      }
+    }
+
+    function populateHosDoctorFilters() {
+      const mgrSelect = document.getElementById('hosDoctorMgrFilter');
+      const repSelect = document.getElementById('hosDoctorRepFilter');
+      if (!mgrSelect || !repSelect) return;
+
+      const currentMgr = mgrSelect.value;
+      const currentRep = repSelect.value;
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs (Region)</option>' +
+        regionalManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+      if (currentMgr && (currentMgr === 'ALL' || regionalManagers.some(m => m.manager_sap_id === currentMgr))) {
+        mgrSelect.value = currentMgr;
+      }
+
+      let filteredReps = regionalReps;
+      if (currentMgr && currentMgr !== 'ALL') {
+        filteredReps = regionalReps.filter(r => r.manager_sap_id === currentMgr);
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All KAMs / Reps</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      if (currentRep && (currentRep === 'ALL' || filteredReps.some(r => r.territory_code === currentRep))) {
+        repSelect.value = currentRep;
+      }
+    }
+
+    function onHosDoctorMgrChange() {
+      populateHosDoctorFilters();
+      renderHosTeamDoctorsTable();
+    }
+
+    function setHosDoctorFilter(filterType) {
+      currentHosDoctorFilter = filterType;
+      ['ALL', 'CLASS_A', 'CLASS_B', 'VISIT_YES', 'VISIT_NO', 'NP', 'IFP', 'FP', 'BOC'].forEach(id => {
+        const btn = document.getElementById(`hosFilterBtn-${id}`);
+        if (btn) {
+          btn.className = id === filterType 
+            ? "px-3 py-1.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm transition-all"
+            : "px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all";
+        }
+      });
+      renderHosTeamDoctorsTable();
+    }
+
+    function renderHosTeamDoctorsTable() {
+      const tbody = document.getElementById('hosTeamDoctorsTableBody');
+      if (!tbody) return;
+
+      const mgrVal = document.getElementById('hosDoctorMgrFilter')?.value || 'ALL';
+      const repVal = document.getElementById('hosDoctorRepFilter')?.value || 'ALL';
+      const search = (document.getElementById('hosTeamDocSearch')?.value || '').toLowerCase().trim();
+      const sortVal = document.getElementById('hosDoctorSortSelect')?.value || 'NAME_ASC';
+
+      let allowedRepCodes = regionalReps.map(r => r.territory_code);
+      if (mgrVal !== 'ALL') {
+        const matchedMgrReps = regionalReps.filter(r => r.manager_sap_id === mgrVal);
+        allowedRepCodes = matchedMgrReps.map(r => r.territory_code);
+      }
+
+      const filtered = teamDoctorsData.filter(doc => {
+        const territoryId = (doc['Territory ID'] || '').toUpperCase();
+        const docName = (doc['Doctor Name'] || '').toLowerCase();
+        const spec = (doc['Doctor Speciality'] || '').toLowerCase();
+        const grade = (doc['Doctor Grade MREP'] || '').toUpperCase().trim();
+        const visit = (doc['VISIT STATUS'] || '').toUpperCase().trim();
+        const status = (doc['STATUS'] || '').toUpperCase().trim();
+
+        const matchesMgr = allowedRepCodes.includes(territoryId);
+        const matchesRep = repVal === 'ALL' || territoryId === repVal;
+        const matchesSearch = !search || docName.includes(search) || spec.includes(search);
+
+        if (!matchesMgr || !matchesRep || !matchesSearch) return false;
+
+        if (currentHosDoctorFilter === 'CLASS_A') return grade === 'A' || grade === 'CLASS A';
+        if (currentHosDoctorFilter === 'CLASS_B') return grade === 'B' || grade === 'CLASS B';
+        if (currentHosDoctorFilter === 'VISIT_YES') return visit === 'YES';
+        if (currentHosDoctorFilter === 'VISIT_NO') return visit === 'NO';
+        if (currentHosDoctorFilter === 'NP') return status.includes('NP') || status.includes('NON');
+        if (currentHosDoctorFilter === 'IFP') return status.includes('IFP') || status.includes('TRIAL');
+        if (currentHosDoctorFilter === 'FP') return status === 'FP' || status.includes('FREQUENT');
+        if (currentHosDoctorFilter === 'BOC') return status.includes('BOC') || status.includes('CHOICE');
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'NAME_ASC') {
+          return (a['Doctor Name'] || '').localeCompare(b['Doctor Name'] || '');
+        } else if (sortVal === 'GRADE_ASC') {
+          return (a['Doctor Grade MREP'] || '').localeCompare(b['Doctor Grade MREP'] || '');
+        } else if (sortVal === 'TARGET_DESC') {
+          return (Number(b['Target pat per MTH']) || 0) - (Number(a['Target pat per MTH']) || 0);
+        }
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" class="p-8 text-center text-slate-400">No doctor records found matching this selection.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(doc => {
+        const territory = doc['Territory ID'] || '';
+        const kam = doc['KAM / EMP Name'] || '';
+        const repObj = regionalReps.find(r => r.territory_code === territory);
+        const mgrObj = repObj ? regionalManagers.find(m => m.manager_sap_id === repObj.manager_sap_id) : null;
+        const zsmName = mgrObj ? mgrObj.full_name : 'N/A';
+
+        const docCode = doc['Mrep Doctor Code'] || '';
+        const docName = doc['Doctor Name'] || '';
+        const spec = doc['Doctor Speciality'] || '';
+        const grade = doc['Doctor Grade MREP'] || '';
+        const freq = doc['Frequency  MREP'] || '';
+        const opd = doc['Total #of OPD/DAY'] || '';
+        const target = doc['Target pat per MTH'] || '';
+        const status = doc['STATUS'] || '';
+        const visitStatus = doc['VISIT STATUS'] || '';
+        const plan = doc['Engagemnet Plan'] || '';
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition-colors">
+            <td class="p-3 font-semibold text-slate-900 dark:text-white">${zsmName}</td>
+            <td class="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">${territory}</td>
+            <td class="p-3 font-semibold text-slate-900 dark:text-white">${kam}</td>
+            <td class="p-3 font-mono text-slate-500">${docCode}</td>
+            <td class="p-3 font-bold text-slate-900 dark:text-white">Dr. ${docName.replace(/^Dr\.?\s*/i, '')}</td>
+            <td class="p-3 text-slate-600 dark:text-slate-300">${spec}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-bold">${grade}</span></td>
+            <td class="p-3 font-mono">${freq}</td>
+            <td class="p-3 font-mono">${opd}</td>
+            <td class="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">${target}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${status}</span></td>
+            <td class="p-3 font-bold ${visitStatus === 'YES' ? 'text-emerald-600' : 'text-slate-500'}">${visitStatus}</td>
+            <td class="p-3">${plan}</td>
+          </tr>
+        `;
+      }).join('');
+    }
 
     function initHOSRealtimeSync() {
       if (realtimeChannel) {
@@ -563,30 +811,27 @@
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          (payload) => {
-            window.fetchEverything(true);
-          }
+          () => { window.fetchEverything(true); }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'feedback' },
-          () => {
-            window.fetchEverything(true);
-          }
+          () => { window.fetchEverything(true); }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'reps' },
-          () => {
-            window.fetchEverything(true);
-          }
+          () => { window.fetchEverything(true); }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'managers' },
-          () => {
-            window.fetchEverything(true);
-          }
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'territory_doctors' },
+          () => { fetchTeamDoctors(); }
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -808,11 +1053,6 @@
       }
     }
 
-    function renderStars(rating) {
-      if (!rating) return '';
-      return '⭐'.repeat(rating);
-    }
-
     function populateManagerDropdown() {
       const mgrSelect = document.getElementById('filterManager');
       const currentVal = mgrSelect.value;
@@ -856,22 +1096,22 @@
         allowedReps = regionalReps.filter(r => r.manager_sap_id === managerSap).map(r => r.territory_code);
       }
 
-      const hierarchyMatchedOrders = allOrders.filter(o => {
+      const hierarchyMatchedOrders = allOrders.filter(order => {
         let matchesManager = true;
         if (managerSap !== 'ALL') {
-          matchesManager = (o.manager_sap_id === managerSap) || allowedReps.includes(o.rep_code);
+          matchesManager = (order.manager_sap_id === managerSap) || allowedReps.includes(order.rep_code);
         }
 
-        const matchesRep = repCode === 'ALL' || o.rep_code === repCode;
+        const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
         const matchesSearch = !searchTerm ||
-          (o.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (o.mobile || '').includes(searchTerm) ||
-          (o.order_id || '').toLowerCase().includes(searchTerm) ||
-          (o.rep_code || '').toLowerCase().includes(searchTerm) ||
-          (o.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (o.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (o.city || '').toLowerCase().includes(searchTerm) ||
-          (o.delivery_address || '').toLowerCase().includes(searchTerm);
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
         return matchesManager && matchesRep && matchesSearch;
       });
@@ -899,7 +1139,8 @@
       document.getElementById('statTotal').innerText = total;
       document.getElementById('statProcess').innerText = inProcess;
       document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('filteredCount').innerText = total;
+      filteredCount = document.getElementById('filteredCount');
+      if (filteredCount) filteredCount.innerText = total;
 
       const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
       if (ratings.length > 0) {
@@ -1022,6 +1263,7 @@
 
     function renderCards() {
       const grid = document.getElementById('hosCardsGrid');
+      if (!grid) return;
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selection.</div>';
         return;
@@ -1037,7 +1279,6 @@
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
-            <!-- Card Header -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
@@ -1052,7 +1293,6 @@
               </span>
             </div>
 
-            <!-- Patient Information -->
             <div class="space-y-1.5 text-sm">
               <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
@@ -1061,7 +1301,6 @@
               </div>
             </div>
 
-            <!-- Doctor & Titration Overview -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
@@ -1091,7 +1330,6 @@
               ` : ''}
             </div>
 
-            <!-- Feedback -->
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
