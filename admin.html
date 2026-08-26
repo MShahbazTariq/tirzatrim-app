@@ -879,7 +879,7 @@
         const { data, error } = await client
           .from('territory_doctors')
           .select('*')
-          .order('Sr#', { ascending: true });
+          .order('Mrep Doctor Code', { ascending: true })
 
         if (!error && data) {
           teamDoctorsData = data;
