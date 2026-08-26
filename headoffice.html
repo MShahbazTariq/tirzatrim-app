@@ -191,15 +191,11 @@
       </button>
       <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📋</span>
-        <span class="text-xs font-bold">Team Dr List</span>
+        <span class="text-xs font-bold">Drs List</span>
       </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
         <span class="text-xs font-bold">Trends & KOLs</span>
-      </button>
-      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📅</span>
-        <span class="text-xs font-bold">Timeline</span>
       </button>
     </div>
 
@@ -252,10 +248,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>📋</span> National Team Doctor Portfolio (Read-Only)
+              <span>📋</span> Regional Team Doctor Portfolio (Read-Only)
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Select Region, then ZSM, and then KAM/Rep to inspect doctor portfolios nationwide.
+              Select Region, then ZSM, and then KAM/Rep to inspect doctor portfolios across your region.
             </p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -333,6 +329,37 @@
 
     <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      <!-- MERGED TIMELINE / DATE WINDOW -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+            <span>📅</span> Timeline / Date Window
+          </div>
+          <span id="dateScopeBadge" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+            Showing: Month to Date
+          </span>
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-1 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+      </div>
+
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -366,36 +393,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window
-        </div>
 
-        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
-        </div>
-      </div>
-    </div>
 
   </div>
 
@@ -407,15 +405,11 @@
     </button>
     <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📋</span>
-      <span class="text-xs font-medium">Docs</span>
+      <span class="text-xs font-medium">Drs</span>
     </button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📊</span>
       <span class="text-xs font-medium">Trends</span>
-    </button>
-    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📅</span>
-      <span class="text-xs font-medium">Timeline</span>
     </button>
     <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">⚙️</span>
@@ -518,7 +512,7 @@
         if (label) label.className = "text-xs font-bold";
       }
 
-      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+      if (tabId === 'analytics') {
         setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
       }
       if (tabId === 'teamDocs') {
@@ -565,19 +559,33 @@
     };
 
     async function fetchTeamDoctors() {
+      const tbody = document.getElementById('hoTeamDoctorsTableBody');
       try {
         const { data, error } = await client
           .from('territory_doctors')
           .select('*')
           .order('Mrep Doctor Code', { ascending: true });
 
-        if (!error && data) {
-          teamDoctorsData = data;
-          populateHoDoctorFilters();
-          renderHoTeamDoctorsTable();
+        if (error) {
+          console.error("fetchTeamDoctors error:", error.message);
+          if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="14" class="p-8 text-center text-rose-500 font-semibold">
+              Unable to load doctor list. Please check Supabase access to the territory_doctors table.
+            </td></tr>`;
+          }
+          return;
         }
+
+        teamDoctorsData = data || [];
+        populateHoDoctorFilters();
+        renderHoTeamDoctorsTable();
       } catch (err) {
         console.warn("fetchTeamDoctors error:", err);
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="14" class="p-8 text-center text-rose-500 font-semibold">
+            Unable to load doctor list.
+          </td></tr>`;
+        }
       }
     }
 
@@ -979,7 +987,7 @@
       });
 
       updateMetrics();
-      updateDailyChart(hierarchyMatchedOrders);
+      updateDailyChart(activeFilteredOrders);
       updateSummaries();
       renderCards();
     }
