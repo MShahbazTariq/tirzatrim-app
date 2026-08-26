@@ -307,16 +307,15 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (Added Change Requests Tab) -->
+    <!-- 3. APP GRID LAUNCHPAD (Added Team Dr List Tab) -->
     <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">Orders</span>
       </button>
-      <button onclick="switchTab('requests')" id="tabBtn-requests" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all relative">
-        <span class="text-xl">🔔</span>
-        <span class="text-xs font-bold">Requests</span>
-        <span id="requestsBadge" class="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold hidden">0</span>
+      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📋</span>
+        <span class="text-xs font-bold">Team Dr List</span>
       </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
@@ -393,37 +392,50 @@
       </div>
     </div>
 
-    <!-- NEW TAB: CHANGE REQUESTS & APPROVALS -->
-    <div id="view-requests" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+    <!-- NEW TAB: TEAM DOCTOR LIST (READ-ONLY WITH KAM FILTER) -->
+    <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>🔔</span> Field Force Change Requests & Approvals
+              <span>📋</span> Team Doctor Portfolio (Read-Only)
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Review and approve or reject doctor additions, deletions, and target/frequency updates submitted by reps.
+              Monitor active doctor lists across all territory reps in your zone.
             </p>
           </div>
-          <button onclick="fetchChangeRequests()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
-            🔄 Refresh Requests
-          </button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="kamFilterSelect" onchange="renderTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="ALL">All KAMs / Reps</option>
+            </select>
+            <input type="text" id="teamDocSearch" oninput="renderTeamDoctorsTable()" placeholder="🔍 Search Doctor Name..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <button onclick="fetchTeamDoctors()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+              🔄 Refresh List
+            </button>
+          </div>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300 border-collapse">
-            <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[11px] border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th class="p-3">Territory / Rep</th>
-                <th class="p-3">Request Type</th>
-                <th class="p-3">Doctor Details</th>
-                <th class="p-3">Proposed Changes / Reason</th>
-                <th class="p-3 text-center">Action</th>
+        <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
+                <th class="p-3">Territory</th>
+                <th class="p-3">KAM / Rep Name</th>
+                <th class="p-3">Doctor Code</th>
+                <th class="p-3">Doctor Name</th>
+                <th class="p-3">Speciality</th>
+                <th class="p-3">Grade</th>
+                <th class="p-3">Freq</th>
+                <th class="p-3">OPD/Day</th>
+                <th class="p-3">Target/Mth</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Visit Status</th>
+                <th class="p-3">Engagement Plan</th>
               </tr>
             </thead>
-            <tbody id="changeRequestsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+            <tbody id="teamDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
               <tr>
-                <td colspan="5" class="p-8 text-center text-slate-400">Loading pending requests...</td>
+                <td colspan="12" class="p-8 text-center text-slate-400">Loading team doctors...</td>
               </tr>
             </tbody>
           </table>
@@ -591,10 +603,9 @@
       <span class="text-lg">👥</span>
       <span class="text-xs font-bold">Orders</span>
     </button>
-    <button onclick="switchTab('requests')" id="bottomNav-requests" class="bottom-nav-item flex flex-col items-center text-slate-400 relative">
-      <span class="text-lg">🔔</span>
-      <span class="text-xs font-medium">Requests</span>
-      <span id="requestsBadgeMobile" class="absolute top-0 right-2 px-1 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-bold hidden">0</span>
+    <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📋</span>
+      <span class="text-xs font-medium">Docs</span>
     </button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📊</span>
@@ -619,11 +630,11 @@
     let currentManager = JSON.parse(localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
     let registeredReps = [];
+    let teamDoctorsData = [];
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
     let publishedBroadcasts = [];
-    let pendingRequestsList = [];
 
     let currentDateScope = "ALL";
     let filterStartDate = null;
@@ -707,8 +718,8 @@
       if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
         setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
       }
-      if (tabId === 'requests') {
-        fetchChangeRequests();
+      if (tabId === 'teamDocs') {
+        fetchTeamDoctors();
       }
     }
 
@@ -857,136 +868,96 @@
         }
 
         applyAllFilters();
-        fetchChangeRequests();
+        fetchTeamDoctors();
       } catch (err) {
         console.error("fetchManagerOrders error:", err);
       }
     };
 
-    async function fetchChangeRequests() {
+    async function fetchTeamDoctors() {
       try {
         const { data, error } = await client
-          .from('territory_change_requests')
+          .from('territory_doctors')
           .select('*')
-          .eq('status', 'PENDING')
-          .order('created_at', { ascending: false });
+          .order('Sr#', { ascending: true });
 
         if (!error && data) {
-          pendingRequestsList = data;
-          renderChangeRequestsTable();
+          teamDoctorsData = data;
+          
+          // Populate KAM dropdown
+          const kamSelect = document.getElementById('kamFilterSelect');
+          const currentKam = kamSelect ? kamSelect.value : 'ALL';
+          const uniqueKams = [...new Set(data.map(d => d['KAM / EMP Name']).filter(Boolean))];
+
+          if (kamSelect) {
+            kamSelect.innerHTML = '<option value="ALL">All KAMs / Reps</option>' +
+              uniqueKams.map(k => `<option value="${k}">${k}</option>`).join('');
+            if (currentKam && (currentKam === 'ALL' || uniqueKams.includes(currentKam))) {
+              kamSelect.value = currentKam;
+            }
+          }
+
+          renderTeamDoctorsTable();
         }
       } catch (err) {
-        console.warn("fetchChangeRequests skipped:", err);
+        console.warn("fetchTeamDoctors error:", err);
       }
     }
 
-    function renderChangeRequestsTable() {
-      const tbody = document.getElementById('changeRequestsTableBody');
-      const badge1 = document.getElementById('requestsBadge');
-      const badge2 = document.getElementById('requestsBadgeMobile');
-
-      const count = pendingRequestsList.length;
-      if (count > 0) {
-        if (badge1) { badge1.innerText = count; badge1.classList.remove('hidden'); }
-        if (badge2) { badge2.innerText = count; badge2.classList.remove('hidden'); }
-      } else {
-        if (badge1) badge1.classList.add('hidden');
-        if (badge2) badge2.classList.add('hidden');
-      }
-
+    function renderTeamDoctorsTable() {
+      const tbody = document.getElementById('teamDoctorsTableBody');
       if (!tbody) return;
-      if (count === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">No pending change requests from reps.</td></tr>';
+
+      const kamVal = document.getElementById('kamFilterSelect')?.value || 'ALL';
+      const search = (document.getElementById('teamDocSearch')?.value || '').toLowerCase().trim();
+
+      const filtered = teamDoctorsData.filter(doc => {
+        const kamName = doc['KAM / EMP Name'] || '';
+        const docName = (doc['Doctor Name'] || '').toLowerCase();
+        const spec = (doc['Doctor Speciality'] || '').toLowerCase();
+
+        const matchesKam = kamVal === 'ALL' || kamName === kamVal;
+        const matchesSearch = !search || docName.includes(search) || spec.includes(search);
+
+        return matchesKam && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="p-8 text-center text-slate-400">No doctor records found.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = pendingRequestsList.map(req => {
-        let typeLabel = req.request_type;
-        let details = '';
-        if (req.request_type === 'ADD_DOCTOR') {
-          typeLabel = '➕ Add Doctor';
-          details = `<strong>Name:</strong> Dr. ${req.doctor_name}<br><strong>Speciality:</strong> ${req.payload.speciality}<br><strong>Target:</strong> ${req.payload.target}/mth<br><strong>Reason:</strong> ${req.payload.reason}`;
-        } else if (req.request_type === 'DELETE_DOCTOR') {
-          typeLabel = '🗑️ Delete Doctor';
-          details = `<strong>Doctor:</strong> Dr. ${req.doctor_name} (${req.doctor_code})<br><strong>Reason:</strong> ${req.payload.reason}`;
-        } else if (req.request_type === 'UPDATE_TARGET_FREQ') {
-          typeLabel = '🔄 Target/Freq Update';
-          details = `<strong>Doctor:</strong> Dr. ${req.doctor_name} (${req.doctor_code})<br><strong>New Freq:</strong> ${req.payload.frequency} | <strong>New Target:</strong> ${req.payload.target}`;
-        }
+      tbody.innerHTML = filtered.map(doc => {
+        const territory = doc['Territory ID'] || '';
+        const kam = doc['KAM / EMP Name'] || '';
+        const docCode = doc['Mrep Doctor Code'] || '';
+        const docName = doc['Doctor Name'] || '';
+        const spec = doc['Doctor Speciality'] || '';
+        const grade = doc['Doctor Grade MREP'] || '';
+        const freq = doc['Frequency  MREP'] || '';
+        const opd = doc['Total #of OPD/DAY'] || '';
+        const target = doc['Target pat per MTH'] || '';
+        const status = doc['STATUS'] || '';
+        const visitStatus = doc['VISIT STATUS'] || '';
+        const plan = doc['Engagemnet Plan'] || '';
 
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition-colors">
-            <td class="p-3 font-semibold text-slate-900 dark:text-white">
-              <div>${req.rep_name}</div>
-              <div class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">Territory: ${req.territory_id}</div>
-            </td>
-            <td class="p-3 font-bold">${typeLabel}</td>
-            <td class="p-3 font-mono text-xs">${req.doctor_code ? 'Code: ' + req.doctor_code : 'New Entry'}</td>
-            <td class="p-3 text-slate-700 dark:text-slate-300 leading-relaxed">${details}</td>
-            <td class="p-3 text-center space-x-1">
-              <button onclick="approveRequest('${req.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-sm transition-all text-[11px]">
-                Approve
-              </button>
-              <button onclick="rejectRequest('${req.id}')" class="px-3 py-1 bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 font-bold rounded-lg transition-all text-[11px]">
-                Reject
-              </button>
-            </td>
+            <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${territory}</td>
+            <td class="p-3 font-semibold text-slate-900 dark:text-white">${kam}</td>
+            <td class="p-3 font-mono text-slate-500">${docCode}</td>
+            <td class="p-3 font-bold text-slate-900 dark:text-white">Dr. ${docName.replace(/^Dr\.?\s*/i, '')}</td>
+            <td class="p-3 text-slate-600 dark:text-slate-300">${spec}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-bold">${grade}</span></td>
+            <td class="p-3 font-mono">${freq}</td>
+            <td class="p-3 font-mono">${opd}</td>
+            <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">${target}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${status}</span></td>
+            <td class="p-3 font-bold ${visitStatus === 'YES' ? 'text-emerald-600' : 'text-slate-500'}">${visitStatus}</td>
+            <td class="p-3">${plan}</td>
           </tr>
         `;
       }).join('');
-    }
-
-    async function approveRequest(reqId) {
-      const req = pendingRequestsList.find(r => r.id === reqId);
-      if (!req) return;
-
-      try {
-        if (req.request_type === 'ADD_DOCTOR') {
-          // Fetch max Sr# to increment
-          const { data: maxRow } = await client.from('territory_doctors').select('Sr#').order('Sr#', { ascending: false }).limit(1);
-          const nextSr = maxRow && maxRow.length > 0 ? (maxRow[0]['Sr#'] || 0) + 1 : 402;
-          const dummyCode = 'DR-' + Math.floor(10000 + Math.random() * 90000);
-
-          await client.from('territory_doctors').insert([{
-            'Sr#': nextSr,
-            'Territory ID': req.territory_id,
-            'Mrep Doctor Code': dummyCode,
-            'KAM / EMP Name': req.rep_name,
-            'Doctor Name': req.doctor_name,
-            'Doctor Speciality': req.payload.speciality,
-            'Target pat per MTH': Number(req.payload.target) || 0,
-            'VISIT STATUS': 'YES',
-            'STATUS': 'ACTIVE'
-          }]);
-        } else if (req.request_type === 'DELETE_DOCTOR') {
-          await client.from('territory_doctors').delete().eq('Territory ID', req.territory_id).eq('Mrep Doctor Code', req.doctor_code);
-        } else if (req.request_type === 'UPDATE_TARGET_FREQ') {
-          await client.from('territory_doctors').update({
-            'Frequency  MREP': req.payload.frequency,
-            'Target pat per MTH': Number(req.payload.target) || 0
-          }).eq('Territory ID', req.territory_id).eq('Mrep Doctor Code', req.doctor_code);
-        }
-
-        // Mark request as APPROVED
-        await client.from('territory_change_requests').update({ status: 'APPROVED' }).eq('id', reqId);
-        alert("✅ Request approved successfully!");
-        fetchChangeRequests();
-      } catch (err) {
-        alert("Error processing approval: " + err.message);
-      }
-    }
-
-    async function rejectRequest(reqId) {
-      const reason = prompt("Reason for rejection:");
-      if (reason === null) return;
-
-      const { error } = await client.from('territory_change_requests').update({ status: 'REJECTED' }).eq('id', reqId);
-      if (error) {
-        alert("Error rejecting request: " + error.message);
-      } else {
-        alert("❌ Request rejected.");
-        fetchChangeRequests();
-      }
     }
 
     function initRealtimeSync() {
@@ -1019,8 +990,8 @@
         )
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'territory_change_requests' },
-          () => { fetchChangeRequests(); }
+          { event: '*', schema: 'public', table: 'territory_doctors' },
+          () => { fetchTeamDoctors(); }
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -1056,7 +1027,7 @@
         initDates();
         window.fetchManagerOrders();
         fetchBroadcasts();
-        fetchChangeRequests();
+        fetchTeamDoctors();
         fetchAdminMdsProviders();
         initRealtimeSync();
       } else {
