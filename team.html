@@ -300,7 +300,7 @@
               <span>🩺</span> Territory Doctor Tracker & Visit Planner
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Update visits & engagement instantly. Additions, deletions, and target/frequency edits require admin approval.
+              Update any field instantly and click Save. Additions, deletions, and target/frequency edits require admin approval.
             </p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -455,25 +455,63 @@
 
   <!-- REQUEST NEW DOCTOR MODAL -->
   <div id="addDoctorModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-left relative">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-left relative">
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white">Request New Doctor Addition</h3>
         <button onclick="closeAddDoctorModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold">✕</button>
       </div>
       <form onsubmit="submitNewDoctorRequest(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-500 mb-1">Doctor Name *</label>
-          <input type="text" id="reqDocName" placeholder="e.g. Dr. Ahmed Khan" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Doctor Code *</label>
+            <input type="text" id="reqDocCode" placeholder="e.g. 204279" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Doctor Name *</label>
+            <input type="text" id="reqDocName" placeholder="e.g. Dr. Ahmed Khan" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block font-semibold text-slate-500 mb-1">Speciality *</label>
-            <input type="text" id="reqDocSpec" placeholder="e.g. DIABETOLOGIST" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
+            <input type="text" id="reqDocSpec" placeholder="e.g. PHYSICIAN" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
           </div>
           <div>
-            <label class="block font-semibold text-slate-500 mb-1">Target / Month *</label>
-            <input type="number" id="reqDocTarget" placeholder="e.g. 10" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
+            <label class="block font-semibold text-slate-500 mb-1">Grade *</label>
+            <input type="text" id="reqDocGrade" placeholder="e.g. A" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
           </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Freq *</label>
+            <input type="text" id="reqDocFreq" placeholder="e.g. 4" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">OPD/Day *</label>
+            <input type="number" id="reqDocOpd" placeholder="e.g. 30" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Target/Mth *</label>
+            <input type="number" id="reqDocTarget" placeholder="e.g. 15" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Status *</label>
+            <input type="text" id="reqDocStatus" placeholder="e.g. FP" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-500 mb-1">Visit Status *</label>
+            <select id="reqDocVisitStatus" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none font-semibold">
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+              <option value="PLANNED">PLANNED</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-500 mb-1">Engagement Plan *</label>
+          <input type="text" id="reqDocPlan" placeholder="e.g. SPB" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white outline-none">
         </div>
         <div>
           <label class="block font-semibold text-slate-500 mb-1">Reason / Justification for Addition *</label>
@@ -767,18 +805,30 @@
         return `
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition-colors">
             <td class="p-3 font-mono text-slate-500">${sr}</td>
-            <td class="p-3 font-mono font-bold text-teal-600 dark:text-teal-400">${docCode}</td>
-            <td class="p-3 font-bold text-slate-900 dark:text-white">Dr. ${docName.replace(/^Dr\.?\s*/i, '')}</td>
-            <td class="p-3 text-slate-600 dark:text-slate-300">${spec}</td>
-            <td class="p-3 font-bold"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">${grade}</span></td>
             <td class="p-3">
-              <input type="text" id="freq-${docCode}" value="${freq}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs outline-none focus:border-teal-500 font-mono">
+              <input type="text" id="docCode-${docCode}" value="${docCode}" class="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-teal-600 dark:text-teal-400 outline-none focus:border-teal-500">
             </td>
-            <td class="p-3 font-mono">${opd}</td>
             <td class="p-3">
-              <input type="number" id="target-${docCode}" value="${target}" class="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 outline-none focus:border-teal-500 font-mono">
+              <input type="text" id="docName-${docCode}" value="${docName}" class="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500">
             </td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${status}</span></td>
+            <td class="p-3">
+              <input type="text" id="spec-${docCode}" value="${spec}" class="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-700 dark:text-slate-300 outline-none focus:border-teal-500">
+            </td>
+            <td class="p-3">
+              <input type="text" id="grade-${docCode}" value="${grade}" class="w-12 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center font-bold outline-none focus:border-teal-500">
+            </td>
+            <td class="p-3">
+              <input type="text" id="freq-${docCode}" value="${freq}" class="w-14 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center outline-none focus:border-teal-500 font-mono">
+            </td>
+            <td class="p-3">
+              <input type="number" id="opd-${docCode}" value="${opd}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center outline-none focus:border-teal-500 font-mono">
+            </td>
+            <td class="p-3">
+              <input type="number" id="target-${docCode}" value="${target}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-center font-bold text-emerald-600 dark:text-emerald-400 outline-none focus:border-teal-500 font-mono">
+            </td>
+            <td class="p-3">
+              <input type="text" id="status-${docCode}" value="${status}" class="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 outline-none focus:border-teal-500 text-center uppercase">
+            </td>
             <td class="p-3">
               <select id="visitStatus-${docCode}" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs font-semibold outline-none focus:border-teal-500">
                 <option value="YES" ${visitStatus === 'YES' ? 'selected' : ''}>YES</option>
@@ -790,7 +840,7 @@
               <input type="text" id="plan-${docCode}" value="${plan}" class="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs outline-none focus:border-teal-500">
             </td>
             <td class="p-3 text-center space-x-1">
-              <button onclick="saveDoctorChanges('${docCode}', '${docName}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg shadow-sm transition-all text-[11px]">
+              <button onclick="saveDoctorChanges('${docCode}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg shadow-sm transition-all text-[11px]">
                 Save
               </button>
               <button onclick="requestDeleteDoctor('${docCode}', '${docName}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold rounded-lg transition-all text-[11px]" title="Request Deletion">
@@ -802,21 +852,30 @@
       }).join('');
     }
 
-    async function saveDoctorChanges(docCode, docName) {
-      const visitStatusEl = document.getElementById(`visitStatus-${docCode}`);
-      const planEl = document.getElementById(`plan-${docCode}`);
-      const freqEl = document.getElementById(`freq-${docCode}`);
-      const targetEl = document.getElementById(`target-${docCode}`);
+    async function saveDoctorChanges(docCode) {
+      const newCode = document.getElementById(`docCode-${docCode}`).value.trim();
+      const newName = document.getElementById(`docName-${docCode}`).value.trim();
+      const newSpec = document.getElementById(`spec-${docCode}`).value.trim();
+      const newGrade = document.getElementById(`grade-${docCode}`).value.trim();
+      const newFreq = document.getElementById(`freq-${docCode}`).value.trim();
+      const newOpd = document.getElementById(`opd-${docCode}`).value.trim();
+      const newTarget = document.getElementById(`target-${docCode}`).value.trim();
+      const newStatus = document.getElementById(`status-${docCode}`).value.trim();
+      const newVisitStatus = document.getElementById(`visitStatus-${docCode}`).value;
+      const newPlan = document.getElementById(`plan-${docCode}`).value.trim();
 
-      const newVisitStatus = visitStatusEl ? visitStatusEl.value : '';
-      const newPlan = planEl ? planEl.value : '';
-      const newFreq = freqEl ? freqEl.value : '';
-      const newTarget = targetEl ? targetEl.value : '';
-
-      // 1. Visit Status & Engagement Plan update directly
+      // 1. Update operational fields instantly in Supabase
       const { error } = await client
         .from('territory_doctors')
         .update({
+          'Mrep Doctor Code': newCode,
+          'Doctor Name': newName,
+          'Doctor Speciality': newSpec,
+          'Doctor Grade MREP': newGrade,
+          'Frequency  MREP': newFreq,
+          'Total #of OPD/DAY': Number(newOpd) || 0,
+          'Target pat per MTH': Number(newTarget) || 0,
+          'STATUS': newStatus,
           'VISIT STATUS': newVisitStatus,
           'Engagemnet Plan': newPlan
         })
@@ -824,25 +883,25 @@
         .eq('Mrep Doctor Code', docCode);
 
       if (error) {
-        alert("Error saving visit/plan: " + error.message);
+        alert("Error saving doctor changes: " + error.message);
         return;
       }
 
-      // 2. If Freq or Target changed, submit an approval request to admin
+      // 2. If profile / target / code changed significantly, log an approval update for admin audit log
       const original = territoryDoctorsList.find(d => d['Mrep Doctor Code'] == docCode);
-      if (original && (original['Frequency  MREP'] != newFreq || original['Target pat per MTH'] != newTarget)) {
+      if (original && (original['Doctor Name'] != newName || original['Target pat per MTH'] != newTarget || original['Frequency  MREP'] != newFreq)) {
         await client.from('territory_change_requests').insert([{
           territory_id: currentRep.territory_code,
           rep_name: currentRep.full_name,
           request_type: 'UPDATE_TARGET_FREQ',
-          doctor_code: docCode,
-          doctor_name: docName,
-          payload: { frequency: newFreq, target: newTarget },
+          doctor_code: newCode,
+          doctor_name: newName,
+          payload: { frequency: newFreq, target: newTarget, speciality: newSpec },
           status: 'PENDING'
         }]);
-        alert(`✅ Visit status updated! Target/Frequency change submitted to Manager for approval.`);
+        alert(`✅ Changes saved! Core target/profile edits submitted to Manager for audit notification.`);
       } else {
-        alert(`✅ Doctor Code ${docCode} successfully updated!`);
+        alert(`✅ Doctor records successfully updated!`);
       }
 
       window.fetchTerritoryDoctors();
@@ -858,17 +917,25 @@
 
     async function submitNewDoctorRequest(e) {
       e.preventDefault();
+      const code = document.getElementById('reqDocCode').value.trim();
       const name = document.getElementById('reqDocName').value.trim();
       const spec = document.getElementById('reqDocSpec').value.trim().toUpperCase();
+      const grade = document.getElementById('reqDocGrade').value.trim().toUpperCase();
+      const freq = document.getElementById('reqDocFreq').value.trim();
+      const opd = document.getElementById('reqDocOpd').value.trim();
       const target = document.getElementById('reqDocTarget').value.trim();
+      const status = document.getElementById('reqDocStatus').value.trim().toUpperCase();
+      const visitStatus = document.getElementById('reqDocVisitStatus').value;
+      const plan = document.getElementById('reqDocPlan').value.trim();
       const reason = document.getElementById('reqDocReason').value.trim();
 
       const { error } = await client.from('territory_change_requests').insert([{
         territory_id: currentRep.territory_code,
         rep_name: currentRep.full_name,
         request_type: 'ADD_DOCTOR',
+        doctor_code: code,
         doctor_name: name,
-        payload: { speciality: spec, target: target, reason: reason },
+        payload: { speciality: spec, grade: grade, frequency: freq, opd: opd, target: target, status: status, visitStatus: visitStatus, plan: plan, reason: reason },
         status: 'PENDING'
       }]);
 
@@ -877,9 +944,15 @@
       } else {
         alert("✅ New doctor addition request sent to Manager for approval!");
         closeAddDoctorModal();
+        document.getElementById('reqDocCode').value = '';
         document.getElementById('reqDocName').value = '';
         document.getElementById('reqDocSpec').value = '';
+        document.getElementById('reqDocGrade').value = '';
+        document.getElementById('reqDocFreq').value = '';
+        document.getElementById('reqDocOpd').value = '';
         document.getElementById('reqDocTarget').value = '';
+        document.getElementById('reqDocStatus').value = '';
+        document.getElementById('reqDocPlan').value = '';
         document.getElementById('reqDocReason').value = '';
       }
     }
