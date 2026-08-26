@@ -529,48 +529,132 @@
     }
 
     // Explicit Global Attachment for notification.js and sw.js
+    // IMPORTANT: Load orders through the same hierarchy-aware path as the
+    // working HOS dashboard. This avoids RLS returning zero rows when a
+    // direct unfiltered orders.select(*) is used from the HQ page.
     window.fetchEverything = async function(silent = false) {
-      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
-      if (orderErr) {
-        if (!silent) console.error("Error loading orders:", orderErr.message);
-        return;
+      try {
+        const { data: managers, error: managerErr } = await client
+          .from('managers')
+          .select('*');
+
+        if (managerErr) {
+          if (!silent) console.error("Error loading managers:", managerErr.message);
+        }
+        allManagers = managers || [];
+
+        const { data: reps, error: repErr } = await client
+          .from('reps')
+          .select('*');
+
+        if (repErr) {
+          if (!silent) console.error("Error loading reps:", repErr.message);
+        }
+        allReps = reps || [];
+
+        const managerSaps = allManagers
+          .map(m => m.manager_sap_id)
+          .filter(Boolean);
+
+        const repCodes = allReps
+          .map(r => r.territory_code)
+          .filter(Boolean);
+
+        // Query by hierarchy keys instead of relying on an unfiltered
+        // orders query. Merge both paths and remove duplicates.
+        const orderMap = new Map();
+
+        if (repCodes.length > 0) {
+          const { data: repOrders, error: repOrderErr } = await client
+            .from('orders')
+            .select('*')
+            .in('rep_code', repCodes)
+            .order('created_at', { ascending: false });
+
+          if (repOrderErr) {
+            if (!silent) console.error("Error loading orders by rep:", repOrderErr.message);
+          } else {
+            (repOrders || []).forEach(o => orderMap.set(o.id, o));
+          }
+        }
+
+        if (managerSaps.length > 0) {
+          const { data: managerOrders, error: managerOrderErr } = await client
+            .from('orders')
+            .select('*')
+            .in('manager_sap_id', managerSaps)
+            .order('created_at', { ascending: false });
+
+          if (managerOrderErr) {
+            if (!silent) console.error("Error loading orders by manager:", managerOrderErr.message);
+          } else {
+            (managerOrders || []).forEach(o => orderMap.set(o.id, o));
+          }
+        }
+
+        allOrders = Array.from(orderMap.values())
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (allOrders.length > 0) {
+          const orderIds = allOrders.map(o => o.id);
+          const { data: feedbacks, error: feedbackErr } = await client
+            .from('feedback')
+            .select('*')
+            .in('order_id', orderIds);
+
+          if (feedbackErr) {
+            if (!silent) console.error("Error loading feedback:", feedbackErr.message);
+          }
+
+          feedbackMap = {};
+          (feedbacks || []).forEach(f => {
+            feedbackMap[f.order_id] = f;
+          });
+        } else {
+          feedbackMap = {};
+        }
+
+        console.log(`HQ data loaded: ${allOrders.length} orders, ${allReps.length} reps, ${allManagers.length} managers`);
+
+        populateManagerDropdown();
+        populateRepDropdown();
+        applyAllFilters();
+        fetchTeamDoctors();
+
+      } catch (err) {
+        console.error("HQ fetchEverything error:", err);
+        if (!silent) alert("Unable to load dashboard data: " + err.message);
       }
-      allOrders = orders || [];
-
-      const { data: managers } = await client.from('managers').select('*');
-      allManagers = managers || [];
-
-      const { data: reps } = await client.from('reps').select('*');
-      allReps = reps || [];
-
-      if (allOrders.length > 0) {
-        const orderIds = allOrders.map(o => o.id);
-        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
-        feedbackMap = {};
-        (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
-      } else {
-        feedbackMap = {};
-      }
-
-      populateManagerDropdown();
-      populateRepDropdown();
-      applyAllFilters();
-      fetchTeamDoctors();
     };
 
     async function fetchTeamDoctors() {
       const tbody = document.getElementById('hoTeamDoctorsTableBody');
+
       try {
+        // Use the rep hierarchy so doctor rows are returned under the same
+        // access pattern as the working field/HOS dashboard.
+        const repCodes = allReps
+          .map(r => r.territory_code)
+          .filter(Boolean);
+
+        if (repCodes.length === 0) {
+          teamDoctorsData = [];
+          populateHoDoctorFilters();
+          renderHoTeamDoctorsTable();
+          return;
+        }
+
         const { data, error } = await client
           .from('territory_doctors')
           .select('*')
+          .in('Territory ID', repCodes)
           .order('Mrep Doctor Code', { ascending: true });
 
         if (error) {
           console.error("fetchTeamDoctors error:", error.message);
           if (tbody) {
             tbody.innerHTML = `<tr><td colspan="14" class="p-8 text-center text-rose-500 font-semibold">
-              Unable to load doctor list. Please check Supabase access to the territory_doctors table.
+              Unable to load doctor list: ${error.message}
             </td></tr>`;
           }
           return;
@@ -579,11 +663,13 @@
         teamDoctorsData = data || [];
         populateHoDoctorFilters();
         renderHoTeamDoctorsTable();
+
+        console.log(`Doctor list loaded: ${teamDoctorsData.length} doctors`);
       } catch (err) {
         console.warn("fetchTeamDoctors error:", err);
         if (tbody) {
           tbody.innerHTML = `<tr><td colspan="14" class="p-8 text-center text-rose-500 font-semibold">
-            Unable to load doctor list.
+            Unable to load doctor list: ${err.message}
           </td></tr>`;
         }
       }
