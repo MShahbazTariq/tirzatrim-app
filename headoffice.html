@@ -11,7 +11,6 @@
   <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
-  <script src="/broadcast.js"></script>
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -73,6 +72,7 @@
   <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
   <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
     <div class="space-y-6">
+      <!-- Menu Header -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
         <div class="flex items-center gap-2">
           <span class="text-xl">⚙️</span>
@@ -81,6 +81,7 @@
         <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
       </div>
 
+      <!-- Executive Profile Card in Menu -->
       <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
@@ -100,6 +101,7 @@
         </div>
       </div>
 
+      <!-- Administrative Tools List -->
       <div class="space-y-2">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
 
@@ -108,7 +110,7 @@
         </button>
 
         <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="text-base">🔄</span> <span>Manual Refresh National Data</span>
+          <span class="text-base">🔄</span> <span>Refresh National Data</span>
         </button>
 
         <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
@@ -117,6 +119,7 @@
       </div>
     </div>
 
+    <!-- Bottom Actions -->
     <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
       <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
         🏠 <span>Back to Main Portal</span>
@@ -130,12 +133,15 @@
   <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- 1. HEADER -->
+    <!-- 1. IDENTICAL TIRZATRIM LOGO & HQ TITLE -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
+      
+      <!-- Right Floating Hamburger Button -->
       <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
         ☰
       </button>
 
+      <!-- Center Logo & Branding Block Exactly Matching index.html -->
       <div class="flex flex-col items-center justify-center">
         <div class="flex items-center justify-center gap-4">
           <div class="text-left">
@@ -184,7 +190,7 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (4 Clean Tabs) -->
+    <!-- 3. APP GRID LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
@@ -195,12 +201,12 @@
         <span class="text-xs font-bold">Team Dr List</span>
       </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📈</span>
-        <span class="text-xs font-bold">Doctor Analytics & Trends</span>
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Trends & KOLs</span>
       </button>
-      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">National CSV</span>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
       </button>
     </div>
 
@@ -229,13 +235,13 @@
         </div>
       </div>
 
-      <!-- Patient Cards Grid -->
+      <!-- Patient Cards Grid (Read-Only National Overview) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
           </h3>
-          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">All Time</span>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
         </div>
         <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
@@ -249,6 +255,7 @@
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
         
+        <!-- Three-Level Filter & Search Toolbar -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -259,23 +266,27 @@
             </p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
+            <!-- Level 1 Filter: Region -->
             <select id="hoDoctorRegionFilter" onchange="onHoDoctorRegionChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              <option value="ALL">All Regions</option>
+              <option value="ALL">All Regions (Central, North, South)</option>
               <option value="Central">Central</option>
               <option value="North">North</option>
               <option value="South">South</option>
             </select>
 
+            <!-- Level 2 Filter: ZSM Manager -->
             <select id="hoDoctorMgrFilter" onchange="onHoDoctorMgrChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="ALL">All ZSMs</option>
             </select>
 
+            <!-- Level 3 Filter: KAM / Rep -->
             <select id="hoDoctorRepFilter" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="ALL">All KAMs / Reps</option>
             </select>
 
             <input type="text" id="hoTeamDocSearch" oninput="renderHoTeamDoctorsTable()" placeholder="🔍 Search Doctor..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
             
+            <!-- Sort Dropdown -->
             <select id="hoDoctorSortSelect" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="NAME_ASC">Sort: Name (A-Z)</option>
               <option value="GRADE_ASC">Sort: Class (A to B)</option>
@@ -284,6 +295,7 @@
           </div>
         </div>
 
+        <!-- QUICK FILTER BUTTON BAR -->
         <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
           <button onclick="setHoDoctorFilter('ALL')" id="hoFilterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all">All Doctors</button>
           <button onclick="setHoDoctorFilter('CLASS_A')" id="hoFilterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class A</button>
@@ -317,20 +329,55 @@
               </tr>
             </thead>
             <tbody id="hoTeamDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
-              <tr><td colspan="14" class="p-8 text-center text-slate-400">Loading national team doctors...</td></tr>
+              <tr>
+                <td colspan="14" class="p-8 text-center text-slate-400">Loading national team doctors...</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: MERGED "Doctor Analytics & Trends" (Includes Timeline Date Window, Chart, Prescribers & Summary Directory) -->
+    <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      
-      <!-- Date Window Configurator Bar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
+        </div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> National Top Prescribing Doctors
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window & Analytics Scope
+          <span>📅</span> Configure Date Window
         </div>
 
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
@@ -355,131 +402,27 @@
           Showing: Month to Date
         </div>
       </div>
-
-      <!-- Chart & Breakdown -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
-          </h3>
-          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
-        </div>
-        <div class="h-64 w-full pt-2">
-          <canvas id="dailyEnrollmentChart"></canvas>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>🩺</span> National Top Prescribing Doctors
-          </h3>
-          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60 max-h-72 overflow-y-auto pr-1">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
-          </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Breakdown
-          </h3>
-          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Prescriber Summary Directory Table -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex items-center gap-2">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">🩺</div>
-            <div>
-              <h3 class="text-lg font-black text-slate-900 dark:text-white">Doctor Summary Directory</h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Prescriber-wise national breakdown with filter scope</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-              Doctors: <span id="doctorTotalCount">0</span>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
-              Patients: <span id="doctorPatientTotal">0</span>
-            </span>
-          </div>
-        </div>
-
-        <div class="relative">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
-          <input id="doctorSearchInput" type="text" oninput="renderDoctorList()" placeholder="Search Doctor, Clinic, Rep or Patient..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
-            <div id="doctorSummaryCount" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-          </div>
-          <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Total Patients</div>
-            <div id="doctorSummaryPatients" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">0</div>
-          </div>
-          <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Avg Patients / Dr</div>
-            <div id="doctorSummaryAverage" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
-          </div>
-          <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Top Prescriber</div>
-            <div id="doctorSummaryTop" class="text-sm font-black text-amber-600 dark:text-amber-400 mt-2 truncate">—</div>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
-          <table class="w-full min-w-[850px] text-xs">
-            <thead class="bg-slate-100 dark:bg-slate-950 text-slate-500">
-              <tr class="text-left uppercase tracking-wider">
-                <th class="px-5 py-3 font-bold">#</th>
-                <th class="px-5 py-3 font-bold">Doctor</th>
-                <th class="px-5 py-3 font-bold">Clinic / Hospital</th>
-                <th class="px-5 py-3 font-bold text-center">Patients</th>
-                <th class="px-5 py-3 font-bold">Dose Mix</th>
-                <th class="px-5 py-3 font-bold">Rep</th>
-                <th class="px-5 py-3 font-bold">Latest Order</th>
-              </tr>
-            </thead>
-            <tbody id="doctorListBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-              <tr><td colspan="7" class="px-5 py-12 text-center text-slate-400 text-sm">Loading doctor list...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="doctorPatientPanel" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div>
-            <div class="text-xs uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400">Selected Prescriber</div>
-            <h3 id="selectedDoctorTitle" class="text-lg font-black text-slate-900 dark:text-white mt-1">—</h3>
-          </div>
-          <button onclick="closeDoctorPatientPanel()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
-        </div>
-        <div id="doctorPatientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5"></div>
-      </div>
     </div>
 
   </div>
 
   <!-- 5. FIXED BOTTOM NAVIGATION -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 flex items-center justify-around md:hidden">
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
     <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
       <span class="text-lg">👥</span>
       <span class="text-xs font-bold">Orders</span>
     </button>
     <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📋</span>
-      <span class="text-xs font-medium">Team Docs</span>
+      <span class="text-xs font-medium">Docs</span>
     </button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📈</span>
-      <span class="text-xs font-medium">Analytics</span>
+      <span class="text-lg">📊</span>
+      <span class="text-xs font-medium">Trends</span>
+    </button>
+    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📅</span>
+      <span class="text-xs font-medium">Timeline</span>
     </button>
     <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">⚙️</span>
@@ -503,7 +446,7 @@
     let chartInstance = null;
 
     let currentHoDoctorFilter = "ALL";
-    let currentDateScope = "ALL";
+    let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
 
@@ -582,11 +525,8 @@
         if (label) label.className = "text-xs font-bold";
       }
 
-      if (tabId === 'analytics') {
-        setTimeout(() => {
-          if (activeFilteredOrders.length > 0) updateDailyChart(activeFilteredOrders);
-          renderDoctorList();
-        }, 100);
+      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
+        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
       }
       if (tabId === 'teamDocs') {
         fetchTeamDoctors();
@@ -601,82 +541,7 @@
       return `${year}-${month}-${day}`;
     }
 
-    function initDates() {
-      setDatePreset('ALL');
-    }
-
-    function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
-
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      });
-
-      if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = getLocalDateKey(today);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Today";
-      } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-        filterStartDate = getLocalDateKey(y);
-        filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-      } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const last7 = new Date();
-        last7.setDate(last7.getDate() - 6);
-        filterStartDate = getLocalDateKey(last7);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-      } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = getLocalDateKey(firstDay);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-      } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-        filterStartDate = null;
-        filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
-        document.getElementById('activeDateScopeTag').innerText = "All Time";
-      }
-
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
-
-      applyAllFilters();
-    }
-
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        });
-
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        applyAllFilters();
-      }
-    }
-
+    // Explicit Global Attachment for notification.js and sw.js
     window.fetchEverything = async function(silent = false) {
       const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
       if (orderErr) {
@@ -733,6 +598,7 @@
       const currentMgr = mgrSelect.value;
       const currentRep = repSelect.value;
 
+      // Filter Managers based on Region
       let filteredMgrs = allManagers;
       if (currentReg && currentReg !== 'ALL') {
         filteredMgrs = allManagers.filter(m => (m.region || 'Central') === currentReg);
@@ -744,6 +610,7 @@
         mgrSelect.value = currentMgr;
       }
 
+      // Filter Reps based on Manager / Region
       let filteredReps = allReps;
       if (currentMgr && currentMgr !== 'ALL') {
         filteredReps = allReps.filter(r => r.manager_sap_id === currentMgr);
@@ -886,12 +753,58 @@
       }).join('');
     }
 
+    function initHQRealtimeSync() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+
+      realtimeChannel = client
+        .channel('public:global_exec_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'feedback' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'managers' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reps' },
+          () => { window.fetchEverything(true); }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'territory_doctors' },
+          () => { fetchTeamDoctors(); }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            window.fetchEverything(true);
+          }
+        });
+
+      if (hqPollingInterval) clearInterval(hqPollingInterval);
+      hqPollingInterval = setInterval(() => {
+        window.fetchEverything(true);
+      }, 5000);
+    }
+
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         initDates();
         window.fetchEverything();
+        initHQRealtimeSync();
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -910,6 +823,14 @@
     }
 
     function handleHeadOfficeLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (hqPollingInterval) {
+        clearInterval(hqPollingInterval);
+        hqPollingInterval = null;
+      }
       sessionStorage.removeItem('tt_ho_auth');
       checkHoSession();
     }
@@ -1068,7 +989,6 @@
       updateDailyChart(hierarchyMatchedOrders);
       updateSummaries();
       renderCards();
-      renderDoctorList();
     }
 
     function updateMetrics() {
@@ -1202,7 +1122,6 @@
 
     function renderCards() {
       const grid = document.getElementById('hoCardsGrid');
-      if (!grid) return;
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
@@ -1218,6 +1137,7 @@
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
             
+            <!-- Card Header: ID, Date, Rep & Read-Only Status -->
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
@@ -1232,6 +1152,7 @@
               </span>
             </div>
 
+            <!-- Patient Information (Read-Only) -->
             <div class="space-y-1.5 text-sm">
               <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
@@ -1240,6 +1161,7 @@
               </div>
             </div>
 
+            <!-- Doctor & Titration Overview -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Doctor</span>
@@ -1257,8 +1179,11 @@
                 <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
                 <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
-              ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` : ''}
+              ${order.prescription_url 
+                ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` 
+                : ''}
 
+              <!-- Read-only Cancellation Reason Patch -->
               ${order.status === 'Cancelled' && order.cancellation_reason ? `
                 <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
                   <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
@@ -1266,6 +1191,7 @@
               ` : ''}
             </div>
 
+            <!-- Feedback -->
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
               <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
@@ -1273,150 +1199,6 @@
           </div>
         `;
       }).join('');
-    }
-
-    function buildDoctorData() {
-      const doctorMap = {};
-      activeFilteredOrders.forEach(order => {
-        const rawDoctor = (order.doctor_name || '').trim();
-        const doctorName = rawDoctor || 'Unassigned';
-        const cleanDoctor = doctorName.replace(/^(dr\.?|doctor)\s*/i, '').trim();
-        const clinic = (order.clinic_name || 'Clinic / Hospital Not Specified').trim();
-        const key = `${cleanDoctor.toLowerCase()}|||${clinic.toLowerCase()}`;
-
-        if (!doctorMap[key]) {
-          doctorMap[key] = {
-            doctor: cleanDoctor || 'Unassigned',
-            clinic,
-            orders: [],
-            reps: {},
-            doses: {},
-            latestOrder: null
-          };
-        }
-
-        const record = doctorMap[key];
-        record.orders.push(order);
-
-        const rep = order.rep_code || 'Direct';
-        record.reps[rep] = (record.reps[rep] || 0) + 1;
-
-        const dose = order.prescribed_dose || 'Unspecified';
-        record.doses[dose] = (record.doses[dose] || 0) + 1;
-
-        if (!record.latestOrder || new Date(order.created_at) > new Date(record.latestOrder.created_at)) {
-          record.latestOrder = order;
-        }
-      });
-
-      return Object.values(doctorMap).sort((a, b) => b.orders.length - a.orders.length);
-    }
-
-    function renderDoctorList() {
-      const body = document.getElementById('doctorListBody');
-      if (!body) return;
-
-      const search = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
-      const doctors = buildDoctorData();
-      const filteredDoctors = !search ? doctors : doctors.filter(d => {
-        const patientText = d.orders.map(o => [o.patient_name, o.mobile, o.city, o.rep_code].filter(Boolean).join(' ')).join(' ');
-        const repText = Object.keys(d.reps).join(' ');
-        return d.doctor.toLowerCase().includes(search) || d.clinic.toLowerCase().includes(search) || repText.toLowerCase().includes(search) || patientText.toLowerCase().includes(search);
-      });
-
-      const totalDoctors = doctors.length;
-      const totalPatients = activeFilteredOrders.length;
-      const average = totalDoctors > 0 ? (totalPatients / totalDoctors).toFixed(1) : '0';
-      const topDoctor = doctors.length > 0 ? doctors[0] : null;
-
-      document.getElementById('doctorTotalCount').innerText = totalDoctors;
-      document.getElementById('doctorPatientTotal').innerText = totalPatients;
-      document.getElementById('doctorSummaryCount').innerText = totalDoctors;
-      document.getElementById('doctorSummaryPatients').innerText = totalPatients;
-      document.getElementById('doctorSummaryAverage').innerText = average;
-      document.getElementById('doctorSummaryTop').innerText = topDoctor ? `Dr. ${topDoctor.doctor}` : '—';
-      document.getElementById('doctorShowingLabel').innerText = `Showing ${filteredDoctors.length} of ${totalDoctors}`;
-
-      if (filteredDoctors.length === 0) {
-        body.innerHTML = `<tr><td colspan="7" class="px-5 py-14 text-center"><div class="text-4xl mb-3">🩺</div><div class="text-sm font-bold text-slate-700 dark:text-slate-300">No doctors found</div><div class="text-xs text-slate-400 mt-1">Try changing the date range or search keyword.</div></td></tr>`;
-        return;
-      }
-
-      body.innerHTML = filteredDoctors.map((doctor, index) => {
-        const doseMix = Object.entries(doctor.doses).sort((a, b) => b[1] - a[1]).map(([dose, count]) => `${dose} × ${count}`).join(', ');
-        const reps = Object.entries(doctor.reps).sort((a, b) => b[1] - a[1]).map(([rep, count]) => `${rep}${count > 1 ? ` (${count})` : ''}`).join(', ');
-        const latestDate = doctor.latestOrder ? new Date(doctor.latestOrder.created_at).toLocaleDateString() : '—';
-
-        return `
-          <tr class="doctor-row hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer" onclick="showDoctorPatients(${index})">
-            <td class="px-5 py-4 text-xs font-bold text-slate-400">${index + 1}</td>
-            <td class="px-5 py-4">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-xs">${index + 1}</div>
-                <div>
-                  <div class="font-bold text-sm text-slate-900 dark:text-white">Dr. ${escapeHtml(doctor.doctor)}</div>
-                  <div class="text-[11px] text-slate-400 mt-0.5">${doctor.orders.length} patient record${doctor.orders.length > 1 ? 's' : ''}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-5 py-4"><div class="text-sm font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(doctor.clinic)}</div></td>
-            <td class="px-5 py-4 text-center"><span class="inline-flex min-w-[42px] justify-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-xs">${doctor.orders.length}</span></td>
-            <td class="px-5 py-4"><div class="text-xs font-semibold text-slate-600 dark:text-slate-300">${escapeHtml(doseMix)}</div></td>
-            <td class="px-5 py-4"><div class="text-xs font-bold text-blue-600 dark:text-blue-400">${escapeHtml(reps)}</div></td>
-            <td class="px-5 py-4">
-              <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">${latestDate}</div>
-              <div class="text-[10px] font-mono text-slate-400 mt-1">${doctor.latestOrder?.order_id || ''}</div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      window.currentDoctorList = filteredDoctors;
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function showDoctorPatients(index) {
-      const doctors = window.currentDoctorList || [];
-      const doctor = doctors[index];
-      if (!doctor) return;
-
-      const panel = document.getElementById('doctorPatientPanel');
-      const title = document.getElementById('selectedDoctorTitle');
-      const list = document.getElementById('doctorPatientList');
-
-      title.innerText = `Dr. ${doctor.doctor} • ${doctor.clinic}`;
-      list.innerHTML = doctor.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(order => {
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
-        return `
-          <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50 dark:bg-slate-950">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${escapeHtml(order.patient_name || 'Unnamed')} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <div class="text-xs text-slate-400 font-mono mt-1">${escapeHtml(order.mobile || '')}</div>
-              </div>
-              <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}">
-                ${isDelivered ? 'Delivered' : (order.status || 'New')}
-              </span>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
-              <div><span class="text-slate-400">Order</span><div class="font-mono font-bold text-slate-700 dark:text-slate-300">${escapeHtml(order.order_id || 'N/A')}</div></div>
-              <div><span class="text-slate-400">Date</span><div class="font-semibold text-slate-700 dark:text-slate-300">${new Date(order.created_at).toLocaleDateString()}</div></div>
-              <div><span class="text-slate-400">Dose</span><div class="font-bold text-emerald-600 dark:text-emerald-400">${escapeHtml(order.prescribed_dose || 'N/A')}</div></div>
-              <div><span class="text-slate-400">Rep</span><div class="font-bold text-blue-600 dark:text-blue-400">${escapeHtml(order.rep_code || 'Direct')}</div></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      panel.classList.remove('hidden');
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function closeDoctorPatientPanel() {
-      document.getElementById('doctorPatientPanel').classList.add('hidden');
     }
 
     function exportFilteredCSV() {
@@ -1437,9 +1219,6 @@
     }
 
     checkHoSession();
-    if (typeof checkGlobalBroadcast === 'function') {
-      checkGlobalBroadcast('headoffice');
-    }
   </script>
 </body>
 </html>
