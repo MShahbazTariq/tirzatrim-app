@@ -11,6 +11,7 @@
   <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
+  <script src="/broadcast.js"></script>
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -183,7 +184,7 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (3 Main Tabs + Export) -->
+    <!-- 3. APP GRID LAUNCHPAD (4 Clean Tabs) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
@@ -228,6 +229,7 @@
         </div>
       </div>
 
+      <!-- Patient Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -322,7 +324,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: MERGED "Doctor Analytics & Trends" (Includes Timeline, Chart, Prescribers & Summary Directory) -->
+    <!-- TAB 3: MERGED "Doctor Analytics & Trends" (Includes Timeline Date Window, Chart, Prescribers & Summary Directory) -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
       
       <!-- Date Window Configurator Bar -->
@@ -501,9 +503,12 @@
     let chartInstance = null;
 
     let currentHoDoctorFilter = "ALL";
-    let currentDateScope = "MTD";
+    let currentDateScope = "ALL";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    let realtimeChannel = null;
+    let hqPollingInterval = null;
 
     const TITRATION_MAP = {
       '2.5mg': '5mg',
@@ -597,7 +602,7 @@
     }
 
     function initDates() {
-      setDatePreset('MTD');
+      setDatePreset('ALL');
     }
 
     function setDatePreset(type) {
@@ -925,11 +930,20 @@
           return;
         }
 
+        const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
+        const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
+
         if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush('HQ_DIRECT', 'headoffice', 'NATIONAL');
-          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)`);
-          if (pill) pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
-          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
+          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+          }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
         }
       } catch (err) {
         alert("Error: " + err.message);
@@ -1423,6 +1437,9 @@
     }
 
     checkHoSession();
+    if (typeof checkGlobalBroadcast === 'function') {
+      checkGlobalBroadcast('headoffice');
+    }
   </script>
 </body>
 </html>
