@@ -93,21 +93,14 @@
         <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
           <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Scope: National</span>
           <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">HQ Key Active</span>
-          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
-          </span>
         </div>
       </div>
 
       <div class="space-y-2">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
 
-        <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
-          <span class="text-base">🔔</span> <span>Enable National Push Alerts</span>
-        </button>
-
-        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
-          <span class="text-base">🔄</span> <span>Refresh National Data</span>
+        <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔄</span> <span>Manual Refresh National Data</span>
         </button>
 
         <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
@@ -183,8 +176,8 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (Merged to 4 Clean Tabs) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+    <!-- 3. APP GRID LAUNCHPAD (4 Clean Tabs + Manual Refresh Button) -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">National Orders</span>
@@ -193,13 +186,17 @@
         <span class="text-xl">📋</span>
         <span class="text-xs font-bold">Team Dr List</span>
       </button>
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1">
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📈</span>
-        <span class="text-xs font-bold">Doctor Analytics & Trends</span>
+        <span class="text-xs font-bold">Analytics & Trends</span>
       </button>
-      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">National CSV</span>
+      <button onclick="switchTab('datescope')" id="tabBtn-datescope" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📅</span>
+        <span class="text-xs font-bold">Timeline</span>
+      </button>
+      <button onclick="window.fetchEverything()" class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1 font-bold">
+        <span class="text-xl">🔄</span>
+        <span class="text-xs">Refresh Data</span>
       </button>
     </div>
 
@@ -228,7 +225,7 @@
         </div>
       </div>
 
-      <!-- Patient Cards Grid (Read-Only National Overview) -->
+      <!-- Patient Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -326,39 +323,8 @@
       </div>
     </div>
 
-    <!-- TAB 3: MERGED "DOCTOR ANALYTICS & TRENDS" (Combined Trends, Dr Summary, & Timeline) -->
+    <!-- TAB 3: MERGED "DOCTOR ANALYTICS & TRENDS" -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      
-      <!-- Date Window Configurator Bar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-          <span>📅</span> Configure Date Window & Analytics Scope
-        </div>
-
-        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
-          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
-          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
-          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
-          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
-          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
-            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
-            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
-          </div>
-        </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
-        </div>
-      </div>
-
-      <!-- Graphical Trend Chart -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -371,7 +337,6 @@
         </div>
       </div>
 
-      <!-- Doctor Breakdown & Prescribers List -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -419,7 +384,6 @@
           <input id="doctorSearchInput" type="text" oninput="renderDoctorList()" placeholder="Search Doctor, Clinic, Rep or Patient..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500">
         </div>
 
-        <!-- Doctor Summary Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
             <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
@@ -459,7 +423,6 @@
         </div>
       </div>
 
-      <!-- Selected Doctor Patient Details Panel -->
       <div id="doctorPatientPanel" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
@@ -472,10 +435,41 @@
       </div>
     </div>
 
+    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+          <span>📅</span> Configure Date Window
+        </div>
+
+        <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
+          <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="btnDateYesterday" onclick="setDatePreset('YESTERDAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
+            <input type="date" id="calendarFromDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">To:</span>
+            <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
+          Showing: Month to Date
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- 5. FIXED BOTTOM NAVIGATION (4 clean navigation items) -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-4 py-2.5 flex items-center justify-around md:hidden">
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 flex items-center justify-around md:hidden">
     <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
       <span class="text-lg">👥</span>
       <span class="text-xs font-bold">Orders</span>
@@ -513,9 +507,6 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
-
-    let realtimeChannel = null;
-    let hqPollingInterval = null;
 
     const TITRATION_MAP = {
       '2.5mg': '5mg',
@@ -606,6 +597,82 @@
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    }
+
+    function initDates() {
+      setDatePreset('MTD');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        applyAllFilters();
+      }
     }
 
     window.fetchEverything = async function(silent = false) {
@@ -817,61 +884,15 @@
       }).join('');
     }
 
-    function initHQRealtimeSync() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-
-      realtimeChannel = client
-        .channel('public:global_exec_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload) => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'feedback' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'managers' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reps' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'territory_doctors' },
-          () => { fetchTeamDoctors(); }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            window.fetchEverything(true);
-          }
-        });
-
-      if (hqPollingInterval) clearInterval(hqPollingInterval);
-      hqPollingInterval = setInterval(() => {
-        window.fetchEverything(true);
-      }, 5000);
-    }
-
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         initDates();
         window.fetchEverything();
-        initHQRealtimeSync();
       } else {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden'); // Fallback or prompt
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
       }
     }
 
@@ -887,14 +908,6 @@
     }
 
     function handleHeadOfficeLogout() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-      if (hqPollingInterval) {
-        clearInterval(hqPollingInterval);
-        hqPollingInterval = null;
-      }
       sessionStorage.removeItem('tt_ho_auth');
       checkHoSession();
     }
@@ -915,20 +928,11 @@
           return;
         }
 
-        const currentHo = JSON.parse(sessionStorage.getItem('tt_current_ho') || 'null');
-        const sapId = currentHo ? currentHo.sap_id : 'HQ_DIRECT';
-
         if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
-          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)\n\nYou will receive nationwide order alerts.`);
-          if (pill) {
-            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
-          }
-          if (btn) {
-            btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
-          }
-        } else {
-          alert("Notification script initializing. Please refresh and try again.");
+          await window.subscribeDeviceToPush('HQ_DIRECT', 'headoffice', 'NATIONAL');
+          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)`);
+          if (pill) pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
         }
       } catch (err) {
         alert("Error: " + err.message);
