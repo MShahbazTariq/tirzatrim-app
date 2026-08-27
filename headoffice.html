@@ -10,13 +10,10 @@
   
   <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/theme.js"></script>
-  <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Smooth Scrollbarless Containers */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -26,6 +23,91 @@
     .doctor-row:hover {
       transform: translateY(-1px);
     }
+
+    /* Analytics Tab Specific Styles */
+    .analytics-section {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+    .dark .analytics-section {
+      background: #0f172a;
+      border-color: #1e293b;
+    }
+    .analytics-section:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .dark .analytics-section:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .kpi-card {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .dark .kpi-card {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .timeline-item {
+      border-left: 3px solid #10b981;
+      padding-left: 1rem;
+      padding-bottom: 1rem;
+    }
+    .timeline-item:last-child {
+      border-left-color: transparent;
+      padding-bottom: 0;
+    }
+    .timeline-item::before {
+      content: '';
+      position: relative;
+      left: -1.1rem;
+      top: 0.25rem;
+      display: inline-block;
+      width: 0.75rem;
+      height: 0.75rem;
+      background: #10b981;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+    .dark .timeline-item::before {
+      border-color: #0f172a;
+    }
+
+    .filter-pill {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    .filter-pill.active {
+      background: #10b981;
+      color: white;
+    }
+    .filter-pill.inactive {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .dark .filter-pill.inactive {
+      background: #1e293b;
+      color: #94a3b8;
+    }
+    .filter-pill.inactive:hover {
+      background: #e2e8f0;
+    }
+    .dark .filter-pill.inactive:hover {
+      background: #334155;
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
@@ -33,25 +115,15 @@
   <!-- PIN AUTH MODAL -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 text-center relative">
-      
       <div class="flex items-center justify-between">
-        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
-          🏠 Home
-        </a>
-        <button 
-          onclick="toggleTheme()" 
-          type="button" 
-          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" 
-          title="Toggle Theme"
-        >
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">🏠 Home</a>
+        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" title="Toggle Theme">
           <span class="theme-icon">🌙</span>
         </button>
       </div>
 
       <div class="space-y-2 pt-2">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-          🏛️
-        </div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">🏛️</div>
         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Head Office Suite</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400">CEO • CCO • Director Sales & Marketing • GM</p>
       </div>
@@ -68,7 +140,7 @@
     </div>
   </div>
 
-  <!-- EXECUTIVE SLIDE-OVER DRAWER (HQ Profile & Administration Tools) -->
+  <!-- SIDE MENU -->
   <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
   <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
     <div class="space-y-6">
@@ -82,9 +154,7 @@
 
       <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">
-            HQ
-          </div>
+          <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">HQ</div>
           <div>
             <div class="text-sm font-bold text-slate-900 dark:text-white">National Command</div>
             <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
@@ -101,15 +171,12 @@
 
       <div class="space-y-2">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">HQ Utilities</div>
-
         <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
           <span class="text-base">🔔</span> <span>Enable National Push Alerts</span>
         </button>
-
         <button onclick="window.fetchEverything(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="text-base">🔄</span> <span>Refresh National Data</span>
         </button>
-
         <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span>
         </button>
@@ -117,23 +184,17 @@
     </div>
 
     <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">
-        🏠 <span>Back to Main Portal</span>
-      </a>
-      <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">
-        🚪 <span>Lock Suite</span>
-      </button>
+      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">🏠 <span>Back to Main Portal</span></a>
+      <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">🚪 <span>Lock Suite</span></button>
     </div>
   </aside>
 
-  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
+  <!-- MAIN DASHBOARD -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- 1. HEADER -->
+    <!-- HEADER -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
-      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
-        ☰
-      </button>
+      <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">☰</button>
 
       <div class="flex flex-col items-center justify-center">
         <div class="flex items-center justify-center gap-4">
@@ -141,11 +202,8 @@
             <h1 class="text-4xl sm:text-5xl font-black italic tracking-tight text-[#0284c7] leading-none">
               Tirza<span class="text-slate-900 dark:text-white font-black not-italic ml-0.5">Trim</span>
             </h1>
-            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">
-              (TIRZEPATIDE)
-            </p>
+            <p class="text-[11px] sm:text-xs font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase mt-1.5">(TIRZEPATIDE)</p>
           </div>
-
           <div class="flex flex-col items-center gap-1">
             <span class="text-[10px] sm:text-xs italic text-slate-400 font-medium leading-none">Multi-Dose Pen</span>
             <div class="flex flex-col gap-1 w-14">
@@ -155,7 +213,6 @@
             </div>
           </div>
         </div>
-
         <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-2xl sm:text-3xl font-black tracking-tight leading-tight">
           <span class="text-slate-900 dark:text-white">National Command Center</span>
           <span class="text-[#059669]">HQ • Executive Suite</span>
@@ -163,7 +220,7 @@
       </div>
     </header>
 
-    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
+    <!-- QUICK KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
@@ -183,9 +240,9 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (5 Tabs) -->
+    <!-- APP LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
-      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">National Orders</span>
       </button>
@@ -193,9 +250,9 @@
         <span class="text-xl">📋</span>
         <span class="text-xs font-bold">Team Dr List</span>
       </button>
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends & KOLs</span>
+        <span class="text-xs font-bold">Analytics</span>
       </button>
       <button onclick="switchTab('doctors')" id="tabBtn-doctors" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">🩺</span>
@@ -207,9 +264,7 @@
       </button>
     </div>
 
-    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
-    
-    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
+    <!-- TAB 1: NATIONAL ORDERS -->
     <div id="view-orders" class="tab-view-container space-y-4">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
@@ -232,7 +287,6 @@
         </div>
       </div>
 
-      <!-- Patient Cards Grid (Read-Only National Overview) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -241,17 +295,14 @@
           <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
         </div>
         <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-            Loading national records...
-          </div>
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">Loading national records...</div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: TEAM DOCTOR LIST (THREE-LEVEL FILTER: REGION -> ZSM -> KAM/REP) -->
+    <!-- TAB 2: TEAM DOCTOR LIST -->
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
-        
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -268,17 +319,13 @@
               <option value="North">North</option>
               <option value="South">South</option>
             </select>
-
             <select id="hoDoctorMgrFilter" onchange="onHoDoctorMgrChange()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="ALL">All ZSMs</option>
             </select>
-
             <select id="hoDoctorRepFilter" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="ALL">All KAMs / Reps</option>
             </select>
-
             <input type="text" id="hoTeamDocSearch" oninput="renderHoTeamDoctorsTable()" placeholder="🔍 Search Doctor..." class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            
             <select id="hoDoctorSortSelect" onchange="renderHoTeamDoctorsTable()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
               <option value="NAME_ASC">Sort: Name (A-Z)</option>
               <option value="GRADE_ASC">Sort: Class (A to B)</option>
@@ -287,7 +334,6 @@
           </div>
         </div>
 
-        <!-- QUICK FILTER BUTTON BAR -->
         <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
           <button onclick="setHoDoctorFilter('ALL')" id="hoFilterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-emerald-600 text-white shadow-sm transition-all">All Doctors</button>
           <button onclick="setHoDoctorFilter('CLASS_A')" id="hoFilterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Class A</button>
@@ -321,59 +367,156 @@
               </tr>
             </thead>
             <tbody id="hoTeamDoctorsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-800 dark:text-slate-200">
-              <tr>
-                <td colspan="14" class="p-8 text-center text-slate-400">Loading national team doctors...</td>
-              </tr>
+              <tr><td colspan="14" class="p-8 text-center text-slate-400">Loading national team doctors...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
-    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
-          </h3>
-          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
+    <!-- TAB 3: MERGED ANALYTICS TAB (Trends & KOLs + Dr Summary + Timeline) -->
+    <div id="view-analytics" class="tab-view-container space-y-4">
+      
+      <!-- Date Scope Controls (from Timeline tab) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">📅 Date Window</span>
+            <span id="dateScopeBadgeAnalytics" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Month to Date</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="exportAnalyticsCSV()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1">
+              📥 Export
+            </button>
+          </div>
         </div>
-        <div class="h-64 w-full pt-2">
-          <canvas id="dailyEnrollmentChart"></canvas>
+
+        <div class="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
+          <button id="analyticsBtnMTD" onclick="setAnalyticsDatePreset('MTD')" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
+          <button id="analyticsBtnToday" onclick="setAnalyticsDatePreset('TODAY')" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
+          <button id="analyticsBtnYesterday" onclick="setAnalyticsDatePreset('YESTERDAY')" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Yesterday</button>
+          <button id="analyticsBtn7Days" onclick="setAnalyticsDatePreset('LAST7')" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
+          <button id="analyticsBtnAll" onclick="setAnalyticsDatePreset('ALL')" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
+          <div class="flex-1"></div>
+          <div class="flex items-center gap-1.5">
+            <input type="date" id="analyticsFromDate" onchange="onAnalyticsCustomDate()" class="px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <span class="text-slate-400">→</span>
+            <input type="date" id="analyticsToDate" onchange="onAnalyticsCustomDate()" class="px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>🩺</span> National Top Prescribing Doctors
-          </h3>
-          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+      <!-- KPI Row (from Dr Summary) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="analytics-section">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
+          <div id="analyticsDoctorCount" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="analytics-section">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Total Patients</div>
+          <div id="analyticsPatientCount" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">0</div>
+        </div>
+        <div class="analytics-section">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Avg Patients / Dr</div>
+          <div id="analyticsAvgPatients" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
+        </div>
+        <div class="analytics-section">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Top Prescriber</div>
+          <div id="analyticsTopPrescriber" class="text-sm font-black text-amber-600 dark:text-amber-400 mt-2 truncate">—</div>
+        </div>
+      </div>
+
+      <!-- Trend Chart & Top Doctors Side by Side (from Trends & KOLs) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Chart -->
+        <div class="analytics-section lg:col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>📈</span> Patient Enrollment Trend
+            </h3>
+            <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Last 14 Days</span>
+          </div>
+          <div class="h-48 w-full">
+            <canvas id="analyticsChart"></canvas>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Breakdown
+        <!-- Top Prescribing Doctors (from Trends & KOLs) -->
+        <div class="analytics-section">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+            <span>🏆</span> Top Prescribing Doctors
           </h3>
-          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          <div id="analyticsTopDoctors" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60 max-h-48 overflow-y-auto pr-1 no-scrollbar">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">Loading prescribers...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Dosage Breakdown & Timeline Side by Side -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Dosage Distribution (from Trends & KOLs) -->
+        <div class="analytics-section">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+            <span>💉</span> Dosage Breakdown
+          </h3>
+          <div id="analyticsDoseDistribution" class="space-y-1.5 text-sm">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">Loading dosage share...</div>
+          </div>
+        </div>
+
+        <!-- Timeline View (from Timeline tab) -->
+        <div class="analytics-section">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+            <span>⏳</span> Recent Activity Timeline
+          </h3>
+          <div id="analyticsTimeline" class="space-y-1 max-h-56 overflow-y-auto pr-1 no-scrollbar">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">Loading timeline...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Summary Table (from Dr Summary) -->
+      <div class="analytics-section">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>🩺</span> Prescriber Directory
+            </h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Sorted by patient count</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="analyticsDoctorSearch" oninput="renderAnalyticsDoctorTable()" placeholder="🔍 Search doctor..." class="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500 w-40 sm:w-56">
+            <span id="analyticsDoctorShowing" class="text-[10px] font-bold text-slate-400">Showing 0</span>
+          </div>
+        </div>
+        <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                <th class="p-2.5">#</th>
+                <th class="p-2.5">Doctor</th>
+                <th class="p-2.5">Clinic</th>
+                <th class="p-2.5 text-center">Patients</th>
+                <th class="p-2.5">Dose Mix</th>
+                <th class="p-2.5">Reps</th>
+                <th class="p-2.5">Latest Order</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsDoctorBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+              <tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">Loading doctor list...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 4: DOCTOR SUMMARY DIRECTORY VIEW -->
+    <!-- TAB 4: DOCTOR SUMMARY (Legacy - kept for compatibility) -->
     <div id="view-doctors" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
-              <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
-                🩺
-              </div>
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">🩺</div>
               <div>
                 <h3 class="text-lg font-black text-slate-900 dark:text-white">Doctor Summary List</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Prescriber-wise national overview from filtered orders</p>
@@ -381,12 +524,8 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-              Doctors: <span id="doctorTotalCount">0</span>
-            </span>
-            <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
-              Patients: <span id="doctorPatientTotal">0</span>
-            </span>
+            <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Doctors: <span id="doctorTotalCount">0</span></span>
+            <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">Patients: <span id="doctorPatientTotal">0</span></span>
           </div>
         </div>
         <div class="mt-5">
@@ -397,7 +536,6 @@
         </div>
       </div>
 
-      <!-- Doctor Summary Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
@@ -417,7 +555,6 @@
         </div>
       </div>
 
-      <!-- Doctor Table -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
@@ -446,7 +583,6 @@
         </div>
       </div>
 
-      <!-- Selected Doctor Patient Details Panel -->
       <div id="doctorPatientPanel" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
@@ -459,13 +595,12 @@
       </div>
     </div>
 
-    <!-- TAB 5: TIMELINE & DATE SCOPE VIEW -->
+    <!-- TAB 5: TIMELINE (Legacy) -->
     <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
           <span>📅</span> Configure Date Window
         </div>
-
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
           <button id="btnDateMTD" onclick="setDatePreset('MTD')" class="px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all">This Month</button>
           <button id="btnDateToday" onclick="setDatePreset('TODAY')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Today</button>
@@ -473,7 +608,6 @@
           <button id="btnDate7Days" onclick="setDatePreset('LAST7')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Last 7 Days</button>
           <button id="btnDateAll" onclick="setDatePreset('ALL')" class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">All Time</button>
         </div>
-
         <div class="flex flex-wrap items-center gap-4 pt-2 text-sm">
           <div class="flex items-center gap-2">
             <span class="text-slate-500 dark:text-slate-400 font-medium">From:</span>
@@ -484,27 +618,25 @@
             <input type="date" id="calendarToDate" onchange="onCustomDateSelected()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white font-mono outline-none focus:border-emerald-500">
           </div>
         </div>
-        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">
-          Showing: Month to Date
-        </div>
+        <div id="dateScopeBadge" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 inline-block">Showing: Month to Date</div>
       </div>
     </div>
 
   </div>
 
-  <!-- 5. FIXED BOTTOM NAVIGATION -->
+  <!-- BOTTOM NAV -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 flex items-center justify-around md:hidden">
-    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">👥</span>
-      <span class="text-xs font-bold">Orders</span>
+      <span class="text-xs font-medium">Orders</span>
     </button>
     <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📋</span>
       <span class="text-xs font-medium">Team Docs</span>
     </button>
-    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
       <span class="text-lg">📊</span>
-      <span class="text-xs font-medium">Trends</span>
+      <span class="text-xs font-bold">Analytics</span>
     </button>
     <button onclick="switchTab('doctors')" id="bottomNav-doctors" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">🩺</span>
@@ -530,11 +662,18 @@
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let analyticsChartInstance = null;
 
     let currentHoDoctorFilter = "ALL";
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
+
+    // Analytics-specific date state
+    let analyticsStartDate = null;
+    let analyticsEndDate = null;
+    let analyticsDateScope = "MTD";
+    let analyticsFilteredOrders = [];
 
     let realtimeChannel = null;
     let hqPollingInterval = null;
@@ -548,6 +687,7 @@
       '15mg': '15mg (Maintenance)'
     };
 
+    // ==================== HELPER FUNCTIONS ====================
     function normalizeDoseKey(rawDose) {
       if (!rawDose) return '5mg';
       const clean = rawDose.toLowerCase().replace(/\s+/g, '');
@@ -567,15 +707,40 @@
       const currentDose = prescribedDose || '5mg';
       const doseKey = normalizeDoseKey(currentDose);
       const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
-
-      return {
-        isDue: daysElapsed >= 21,
-        daysElapsed,
-        currentDose,
-        nextDose
-      };
+      return { isDue: daysElapsed >= 21, daysElapsed, currentDose, nextDose };
     }
 
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function renderStars(rating) {
+      const full = Math.floor(rating || 0);
+      const half = (rating || 0) % 1 >= 0.5 ? 1 : 0;
+      let stars = '';
+      for (let i = 0; i < full; i++) stars += '★';
+      if (half) stars += '½';
+      for (let i = stars.length; i < 5; i++) stars += '☆';
+      return stars;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function isOrderInDateRange(order, startDate, endDate) {
+      const orderDate = getLocalDateKey(order.created_at);
+      if (startDate && endDate) {
+        return orderDate >= startDate && orderDate <= endDate;
+      }
+      return true;
+    }
+
+    // ==================== SIDE MENU ====================
     function openSideMenu() {
       document.getElementById('sideMenuOverlay').classList.remove('hidden');
       document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
@@ -586,6 +751,7 @@
       document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
     }
 
+    // ==================== TAB SWITCHING ====================
     function switchTab(tabId) {
       document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
       const activeContainer = document.getElementById(`view-${tabId}`);
@@ -611,8 +777,8 @@
         if (label) label.className = "text-xs font-bold";
       }
 
-      if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
-        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+      if (tabId === 'analytics') {
+        setTimeout(() => renderAnalytics(), 100);
       }
       if (tabId === 'doctors') {
         setTimeout(() => renderDoctorList(), 50);
@@ -622,14 +788,7 @@
       }
     }
 
-    function getLocalDateKey(dateInput) {
-      const d = dateInput ? new Date(dateInput) : new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
+    // ==================== DATE PRESETS (Main) ====================
     function initDates() {
       setDatePreset('MTD');
     }
@@ -689,23 +848,85 @@
     function onCustomDateSelected() {
       const from = document.getElementById('calendarFromDate').value;
       const to = document.getElementById('calendarToDate').value;
-
       if (from && to) {
         filterStartDate = from;
         filterEndDate = to;
         currentDateScope = "CUSTOM";
-        
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
           if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
-
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
         document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
       }
     }
 
+    // ==================== ANALYTICS DATE PRESETS ====================
+    function setAnalyticsDatePreset(type) {
+      analyticsDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`analyticsBtn${id}`);
+        if (el) el.className = "px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('analyticsBtnToday').className = "px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        analyticsStartDate = getLocalDateKey(today);
+        analyticsEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadgeAnalytics').innerText = "Today";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('analyticsBtnYesterday').className = "px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        analyticsStartDate = getLocalDateKey(y);
+        analyticsEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadgeAnalytics').innerText = "Yesterday";
+      } else if (type === 'LAST7') {
+        document.getElementById('analyticsBtn7Days').className = "px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        analyticsStartDate = getLocalDateKey(last7);
+        analyticsEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadgeAnalytics').innerText = "Last 7 Days";
+      } else if (type === 'MTD') {
+        document.getElementById('analyticsBtnMTD').className = "px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        analyticsStartDate = getLocalDateKey(firstDay);
+        analyticsEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadgeAnalytics').innerText = "Month to Date";
+      } else if (type === 'ALL') {
+        document.getElementById('analyticsBtnAll').className = "px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        analyticsStartDate = null;
+        analyticsEndDate = null;
+        document.getElementById('dateScopeBadgeAnalytics').innerText = "All Time";
+      }
+
+      document.getElementById('analyticsFromDate').value = analyticsStartDate || '';
+      document.getElementById('analyticsToDate').value = analyticsEndDate || '';
+
+      renderAnalytics();
+    }
+
+    function onAnalyticsCustomDate() {
+      const from = document.getElementById('analyticsFromDate').value;
+      const to = document.getElementById('analyticsToDate').value;
+      if (from && to) {
+        analyticsStartDate = from;
+        analyticsEndDate = to;
+        analyticsDateScope = "CUSTOM";
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`analyticsBtn${id}`);
+          if (el) el.className = "px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        document.getElementById('dateScopeBadgeAnalytics').innerText = `Custom (${from} → ${to})`;
+        renderAnalytics();
+      }
+    }
+
+    // ==================== DATA FETCHING ====================
     window.fetchEverything = async function(silent = false) {
       const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
       if (orderErr) {
@@ -733,6 +954,7 @@
       populateRepDropdown();
       applyAllFilters();
       fetchTeamDoctors();
+      renderAnalytics();
     };
 
     async function fetchTeamDoctors() {
@@ -750,6 +972,62 @@
       } catch (err) {
         console.warn("fetchTeamDoctors error:", err);
       }
+    }
+
+    // ==================== FILTER DROPDOWNS ====================
+    function populateManagerDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const mgrSelect = document.getElementById('filterManager');
+      const currentVal = mgrSelect.value;
+      
+      const filteredManagers = selectedRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
+        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+
+      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
+        mgrSelect.value = currentVal;
+      }
+    }
+
+    function populateRepDropdown() {
+      const selectedRegion = document.getElementById('filterRegion').value;
+      const selectedManagerSap = document.getElementById('filterManager').value;
+      const repSelect = document.getElementById('filterRep');
+      const currentVal = repSelect.value;
+
+      let filteredReps = [];
+
+      if (selectedManagerSap !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
+      } else if (selectedRegion !== 'ALL') {
+        const regionManagerSaps = allManagers
+          .filter(m => (m.region || 'Central') === selectedRegion)
+          .map(m => m.manager_sap_id);
+        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
+      } else {
+        filteredReps = allReps;
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+        repSelect.value = currentVal;
+      }
+    }
+
+    function onRegionChange() {
+      populateManagerDropdown();
+      populateRepDropdown();
+      applyAllFilters();
+    }
+
+    function onManagerChange() {
+      populateRepDropdown();
+      applyAllFilters();
     }
 
     function populateHoDoctorFilters() {
@@ -915,6 +1193,7 @@
       }).join('');
     }
 
+    // ==================== REALTIME SYNC ====================
     function initHQRealtimeSync() {
       if (realtimeChannel) {
         client.removeChannel(realtimeChannel);
@@ -923,31 +1202,11 @@
 
       realtimeChannel = client
         .channel('public:global_exec_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload) => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'feedback' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'managers' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reps' },
-          () => { window.fetchEverything(true); }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'territory_doctors' },
-          () => { fetchTeamDoctors(); }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => { window.fetchEverything(true); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => { window.fetchEverything(true); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'managers' }, () => { window.fetchEverything(true); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reps' }, () => { window.fetchEverything(true); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'territory_doctors' }, () => { fetchTeamDoctors(); })
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             window.fetchEverything(true);
@@ -960,11 +1219,13 @@
       }, 5000);
     }
 
+    // ==================== AUTH ====================
     function checkHoSession() {
       if (sessionStorage.getItem('tt_ho_auth') === 'true') {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
         initDates();
+        setAnalyticsDatePreset('MTD');
         window.fetchEverything();
         initHQRealtimeSync();
       } else {
@@ -997,6 +1258,7 @@
       checkHoSession();
     }
 
+    // ==================== PUSH NOTIFICATIONS ====================
     async function registerHoMobilePush() {
       const btn = document.getElementById('menuPushBtn');
       const pill = document.getElementById('menuPushStatusPill');
@@ -1033,62 +1295,7 @@
       }
     }
 
-    function populateManagerDropdown() {
-      const selectedRegion = document.getElementById('filterRegion').value;
-      const mgrSelect = document.getElementById('filterManager');
-      const currentVal = mgrSelect.value;
-      
-      const filteredManagers = selectedRegion === 'ALL'
-        ? allManagers
-        : allManagers.filter(m => (m.region || 'Central') === selectedRegion);
-
-      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
-        filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
-
-      if (currentVal && filteredManagers.some(m => m.manager_sap_id === currentVal)) {
-        mgrSelect.value = currentVal;
-      }
-    }
-
-    function populateRepDropdown() {
-      const selectedRegion = document.getElementById('filterRegion').value;
-      const selectedManagerSap = document.getElementById('filterManager').value;
-      const repSelect = document.getElementById('filterRep');
-      const currentVal = repSelect.value;
-
-      let filteredReps = [];
-
-      if (selectedManagerSap !== 'ALL') {
-        filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
-      } else if (selectedRegion !== 'ALL') {
-        const regionManagerSaps = allManagers
-          .filter(m => (m.region || 'Central') === selectedRegion)
-          .map(m => m.manager_sap_id);
-
-        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
-      } else {
-        filteredReps = allReps;
-      }
-
-      repSelect.innerHTML = '<option value="ALL">All Reps in Selection</option>' +
-        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-
-      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
-        repSelect.value = currentVal;
-      }
-    }
-
-    function onRegionChange() {
-      populateManagerDropdown();
-      populateRepDropdown();
-      applyAllFilters();
-    }
-
-    function onManagerChange() {
-      populateRepDropdown();
-      applyAllFilters();
-    }
-
+    // ==================== MAIN FILTER LOGIC ====================
     function applyAllFilters() {
       const region = document.getElementById('filterRegion')?.value || 'ALL';
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
@@ -1139,12 +1346,7 @@
       });
 
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-        return matchesDate;
+        return isOrderInDateRange(o, filterStartDate, filterEndDate);
       });
 
       updateMetrics();
@@ -1152,8 +1354,10 @@
       updateSummaries();
       renderCards();
       renderDoctorList();
+      renderAnalytics();
     }
 
+    // ==================== METRICS & CARDS ====================
     function updateMetrics() {
       const total = activeFilteredOrders.length;
       const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
@@ -1300,7 +1504,6 @@
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
-            
             <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
@@ -1341,7 +1544,6 @@
                 <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
               ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` : ''}
-
               ${order.status === 'Cancelled' && order.cancellation_reason ? `
                 <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
                   <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
@@ -1358,6 +1560,7 @@
       }).join('');
     }
 
+    // ==================== DOCTOR SUMMARY (Legacy) ====================
     function buildDoctorData() {
       const doctorMap = {};
       activeFilteredOrders.forEach(order => {
@@ -1457,10 +1660,6 @@
       window.currentDoctorList = filteredDoctors;
     }
 
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
     function showDoctorPatients(index) {
       const doctors = window.currentDoctorList || [];
       const doctor = doctors[index];
@@ -1502,11 +1701,294 @@
       document.getElementById('doctorPatientPanel').classList.add('hidden');
     }
 
-    function exportFilteredCSV() {
-      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
+    // ==================== MERGED ANALYTICS TAB RENDERER ====================
+    function renderAnalytics() {
+      // Get orders filtered by analytics date range
+      analyticsFilteredOrders = allOrders.filter(o => {
+        return isOrderInDateRange(o, analyticsStartDate, analyticsEndDate);
+      });
+
+      // Build doctor data from analytics-filtered orders
+      const doctorMap = {};
+      analyticsFilteredOrders.forEach(order => {
+        const rawDoctor = (order.doctor_name || '').trim();
+        const doctorName = rawDoctor || 'Unassigned';
+        const cleanDoctor = doctorName.replace(/^(dr\.?|doctor)\s*/i, '').trim();
+        const clinic = (order.clinic_name || 'Clinic / Hospital Not Specified').trim();
+        const key = `${cleanDoctor.toLowerCase()}|||${clinic.toLowerCase()}`;
+
+        if (!doctorMap[key]) {
+          doctorMap[key] = {
+            doctor: cleanDoctor || 'Unassigned',
+            clinic,
+            orders: [],
+            reps: {},
+            doses: {},
+            latestOrder: null
+          };
+        }
+
+        const record = doctorMap[key];
+        record.orders.push(order);
+
+        const rep = order.rep_code || 'Direct';
+        record.reps[rep] = (record.reps[rep] || 0) + 1;
+
+        const dose = order.prescribed_dose || 'Unspecified';
+        record.doses[dose] = (record.doses[dose] || 0) + 1;
+
+        if (!record.latestOrder || new Date(order.created_at) > new Date(record.latestOrder.created_at)) {
+          record.latestOrder = order;
+        }
+      });
+
+      const doctors = Object.values(doctorMap).sort((a, b) => b.orders.length - a.orders.length);
+
+      // Update KPI cards
+      const totalPatients = analyticsFilteredOrders.length;
+      const totalDoctors = doctors.length;
+      const avgPatients = totalDoctors > 0 ? (totalPatients / totalDoctors).toFixed(1) : '0';
+      const topDoctor = doctors.length > 0 ? doctors[0] : null;
+
+      document.getElementById('analyticsDoctorCount').innerText = totalDoctors;
+      document.getElementById('analyticsPatientCount').innerText = totalPatients;
+      document.getElementById('analyticsAvgPatients').innerText = avgPatients;
+      document.getElementById('analyticsTopPrescriber').innerText = topDoctor ? `Dr. ${topDoctor.doctor}` : '—';
+
+      // Render chart
+      renderAnalyticsChart(analyticsFilteredOrders);
+
+      // Render top doctors
+      renderAnalyticsTopDoctors(doctors);
+
+      // Render dose distribution
+      renderAnalyticsDoseDistribution(analyticsFilteredOrders);
+
+      // Render timeline
+      renderAnalyticsTimeline(analyticsFilteredOrders);
+
+      // Render doctor table
+      renderAnalyticsDoctorTable(doctors);
+    }
+
+    function renderAnalyticsChart(orders) {
+      const daysCount = {};
+      const datesList = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateKey(d);
+        daysCount[key] = 0;
+        datesList.push(key);
+      }
+
+      (orders || []).forEach(o => {
+        const orderDate = getLocalDateKey(o.created_at);
+        if (daysCount[orderDate] !== undefined) {
+          daysCount[orderDate]++;
+        }
+      });
+
+      const labels = datesList.map(dateStr => {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}`;
+      });
+      const dataPoints = datesList.map(d => daysCount[d]);
+
+      const chartCanvas = document.getElementById('analyticsChart');
+      if (!chartCanvas) return;
+      const ctx = chartCanvas.getContext('2d');
+      if (analyticsChartInstance) analyticsChartInstance.destroy();
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
+
+      analyticsChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Patients Enrolled',
+            data: dataPoints,
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              titleColor: '#10b981',
+              bodyColor: isDark ? '#ffffff' : '#0f172a',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
+              borderWidth: 1,
+              padding: 8,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor, font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 10 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderAnalyticsTopDoctors(doctors) {
+      const container = document.getElementById('analyticsTopDoctors');
+      if (!container) return;
+
+      const topDocs = doctors.slice(0, 5);
+      if (topDocs.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No prescribing data in this window.</div>';
+        return;
+      }
+
+      container.innerHTML = topDocs.map((doc, idx) => `
+        <div class="flex items-center justify-between py-1.5">
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">#${idx + 1} Dr. ${escapeHtml(doc.doctor)}</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px]">${doc.orders.length} pts</span>
+        </div>
+      `).join('');
+    }
+
+    function renderAnalyticsDoseDistribution(orders) {
+      const container = document.getElementById('analyticsDoseDistribution');
+      if (!container) return;
+
+      const doseCount = {};
+      orders.forEach(o => {
+        const dose = o.prescribed_dose || 'Unspecified';
+        doseCount[dose] = (doseCount[dose] || 0) + 1;
+      });
+
+      const sorted = Object.entries(doseCount).sort((a, b) => b[1] - a[1]);
+      if (sorted.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records.</div>';
+        return;
+      }
+
+      const maxCount = sorted[0]?.[1] || 1;
+      container.innerHTML = sorted.map(([dose, count]) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs min-w-[60px]">TirzaTrim ${dose}</span>
+            <div class="flex-1 h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full" style="width: ${Math.max(pct, 3)}%"></div>
+            </div>
+            <span class="font-bold text-slate-600 dark:text-slate-400 text-[10px] min-w-[30px] text-right">${count}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAnalyticsTimeline(orders) {
+      const container = document.getElementById('analyticsTimeline');
+      if (!container) return;
+
+      const sortedOrders = [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+
+      if (sortedOrders.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No recent activity.</div>';
+        return;
+      }
+
+      container.innerHTML = sortedOrders.map(order => {
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const date = new Date(order.created_at).toLocaleDateString();
+        return `
+          <div class="timeline-item pb-2 last:pb-0">
+            <div class="flex items-start justify-between text-xs">
+              <div>
+                <span class="font-bold text-slate-900 dark:text-white">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '').slice(0, 20)}</span>
+                <span class="text-slate-400 ml-1">• ${order.patient_name || 'Patient'}</span>
+              </div>
+              <span class="text-[10px] font-medium text-slate-400">${date} ${time}</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isDelivered ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}">${isDelivered ? '✅ Delivered' : (order.status || 'New')}</span>
+              <span class="text-[10px] text-slate-500">${order.prescribed_dose || ''}</span>
+              <span class="text-[10px] font-mono text-slate-400">${order.order_id || ''}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAnalyticsDoctorTable(doctors) {
+      const body = document.getElementById('analyticsDoctorBody');
+      if (!body) return;
+
+      const search = (document.getElementById('analyticsDoctorSearch')?.value || '').toLowerCase().trim();
+      const filteredDoctors = !search ? doctors : doctors.filter(d => {
+        const patientText = d.orders.map(o => [o.patient_name, o.mobile, o.city, o.rep_code].filter(Boolean).join(' ')).join(' ');
+        const repText = Object.keys(d.reps).join(' ');
+        return d.doctor.toLowerCase().includes(search) || d.clinic.toLowerCase().includes(search) || repText.toLowerCase().includes(search) || patientText.toLowerCase().includes(search);
+      });
+
+      document.getElementById('analyticsDoctorShowing').innerText = `Showing ${filteredDoctors.length}`;
+
+      if (filteredDoctors.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">No doctors found.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = filteredDoctors.map((doctor, index) => {
+        const doseMix = Object.entries(doctor.doses).sort((a, b) => b[1] - a[1]).map(([dose, count]) => `${dose} × ${count}`).join(', ');
+        const reps = Object.entries(doctor.reps).sort((a, b) => b[1] - a[1]).map(([rep, count]) => `${rep}${count > 1 ? ` (${count})` : ''}`).join(', ');
+        const latestDate = doctor.latestOrder ? new Date(doctor.latestOrder.created_at).toLocaleDateString() : '—';
+
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+            <td class="p-2.5 text-xs font-bold text-slate-400">${index + 1}</td>
+            <td class="p-2.5">
+              <div class="font-bold text-xs text-slate-900 dark:text-white">Dr. ${escapeHtml(doctor.doctor)}</div>
+            </td>
+            <td class="p-2.5">
+              <div class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(doctor.clinic)}</div>
+            </td>
+            <td class="p-2.5 text-center">
+              <span class="inline-flex justify-center px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-xs">${doctor.orders.length}</span>
+            </td>
+            <td class="p-2.5">
+              <div class="text-[10px] font-semibold text-slate-600 dark:text-slate-300">${escapeHtml(doseMix)}</div>
+            </td>
+            <td class="p-2.5">
+              <div class="text-[10px] font-bold text-blue-600 dark:text-blue-400">${escapeHtml(reps)}</div>
+            </td>
+            <td class="p-2.5">
+              <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400">${latestDate}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==================== EXPORT ====================
+    function exportAnalyticsCSV() {
+      if (!analyticsFilteredOrders || analyticsFilteredOrders.length === 0) {
+        alert("No records to export in this date window.");
+        return;
+      }
+      
       let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
       
-      activeFilteredOrders.forEach(o => {
+      analyticsFilteredOrders.forEach(o => {
         const fb = feedbackMap[o.id];
         const rating = fb ? fb.overall_rating : "Pending";
         csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}","${rating}"\n`;
@@ -1515,10 +1997,23 @@
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
+      a.download = `TirzaTrim_Analytics_${analyticsDateScope}_Export.csv`;
       a.click();
     }
 
+    // ==================== THEME TOGGLE ====================
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const icon = document.querySelector('.theme-icon');
+      if (icon) icon.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+      // Re-render charts with new theme colors
+      setTimeout(() => {
+        renderAnalytics();
+        updateDailyChart(activeFilteredOrders);
+      }, 100);
+    }
+
+    // ==================== BOOTSTRAP ====================
     checkHoSession();
   </script>
 </body>
