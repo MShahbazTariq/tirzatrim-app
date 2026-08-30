@@ -2103,45 +2103,6 @@
 
     checkSession();
     checkGlobalBroadcast('team');
-    // ============================================================
-// TEST: Create a test notification
-// ============================================================
-window.testNotification = async function() {
-    if (!currentRep || !currentRep.sap_id) {
-        alert('Please login first');
-        return;
-    }
-
-    try {
-        const { error } = await client
-            .from('notifications')
-            .insert([{
-                user_id: currentRep.sap_id,
-                user_role: 'rep',
-                title: '🧪 Test Notification',
-                message: 'This is a test notification from your system!',
-                type: 'system',
-                priority: 'medium',
-                is_read: false,
-                created_at: new Date().toISOString()
-            }]);
-
-        if (error) {
-            alert('❌ Error: ' + error.message);
-        } else {
-            alert('✅ Test notification sent! Check your bell icon.');
-            // Refresh notifications
-            if (window.notificationCenter) {
-                window.notificationCenter.fetchNotifications();
-            }
-        }
-    } catch (err) {
-        alert('❌ Error: ' + err.message);
-    }
-};
-
-// Add to console for testing
-console.log('🔔 Run testNotification() to send a test notification');
   </script>
  
 </body>
