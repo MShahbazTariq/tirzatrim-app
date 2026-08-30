@@ -656,6 +656,9 @@
 
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
+    // ============================================================
+    // ✅ FIXED: applyAllFilters function - removed malformed variable
+    // ============================================================
     function applyAllFilters() {
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
