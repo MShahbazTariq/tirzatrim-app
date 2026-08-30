@@ -309,33 +309,67 @@
           prescribed_dose: order.prescribed_dose || '5mg'
         };
 
+        // Direct insert into notifications table
+        const createNotification = async (userId, userRole, title, message, type, priority, link) => {
+          if (!userId) return;
+          try {
+            const { error: notifError } = await client
+              .from('notifications')
+              .insert([{
+                user_id: userId,
+                user_role: userRole,
+                title: title,
+                message: message,
+                type: type || 'order',
+                priority: priority || 'high',
+                link: link || '/team.html',
+                is_read: false,
+                created_at: new Date().toISOString()
+              }]);
+
+            if (notifError) {
+              console.warn('Notification insert error:', notifError);
+            } else {
+              console.log('✅ Notification sent to:', userId, userRole);
+            }
+          } catch (e) {
+            console.warn('Notification error:', e);
+          }
+        };
+
         // Notify the rep
-        if (rep.sap_id && window.notifyNewOrder) {
-          await window.notifyNewOrder(
-            notificationData,
+        if (rep.sap_id) {
+          await createNotification(
             rep.sap_id,
-            'rep'
+            'rep',
+            `📦 New Order: ${notificationData.order_id}`,
+            `Patient ${notificationData.patient_name} has submitted a new order for ${notificationData.prescribed_dose}`,
+            'order',
+            'high',
+            '/team.html'
           );
-          console.log('✅ Rep notified:', rep.full_name);
         }
 
-        // Also notify the manager (ZSM)
-        if (rep.manager_sap_id && window.notifyNewOrder) {
-          await window.notifyNewOrder(
-            notificationData,
+        // Notify the manager (ZSM)
+        if (rep.manager_sap_id) {
+          await createNotification(
             rep.manager_sap_id,
-            'zsm'
+            'zsm',
+            `📦 New Order: ${notificationData.order_id}`,
+            `Patient ${notificationData.patient_name} (${repCode}) ordered ${notificationData.prescribed_dose}`,
+            'order',
+            'high',
+            '/admin.html'
           );
-          console.log('✅ Manager notified');
         }
 
-        // Also trigger global push notification for all listening portals
+        // Also trigger push notification for real-time alerts
         if (window.triggerPushNotification) {
           window.triggerPushNotification(
             `📦 New Order: ${order.order_id}`,
             `Patient ${order.patient_name} submitted an order for ${order.prescribed_dose || '5mg'} (Territory: ${repCode})`,
             '/',
-            'orders'
+            'order'
           );
         }
 
@@ -344,96 +378,56 @@
       }
     }
 
+    // ============================================================
+    // SUBMIT ORDER FUNCTION - FIXED
+    // ============================================================
     async function submitPatientOrder(e) {
-    e.preventDefault();
-    const statusMsg = document.getElementById('submissionStatus');
-    const submitBtn = document.getElementById('submitBtn');
+      e.preventDefault();
+      const statusMsg = document.getElementById('submissionStatus');
+      const submitBtn = document.getElementById('submitBtn');
 
-    statusMsg.className = "text-xs text-center font-medium text-amber-500 dark:text-amber-400";
-    statusMsg.innerText = "Submitting order details...";
-    statusMsg.classList.remove('hidden');
-    submitBtn.disabled = true;
+      statusMsg.className = "text-xs text-center font-medium text-amber-500 dark:text-amber-400";
+      statusMsg.innerText = "Submitting order details...";
+      statusMsg.classList.remove('hidden');
+      submitBtn.disabled = true;
 
-    const patient_name = document.getElementById('patientName').value.trim();
-    const age = parseInt(document.getElementById('patientAge').value) || null;
-    const mobile = document.getElementById('patientMobile').value.trim();
-    const city = document.getElementById('patientCity').value.trim();
-    const delivery_address = document.getElementById('patientAddress').value.trim();
-    const doctor_name = document.getElementById('doctorName').value.trim();
-    const clinic_name = document.getElementById('clinicName').value.trim();
-    const indication = document.getElementById('patientIndication').value;
-    const prescribed_dose = document.getElementById('prescribedDose').value;
-    const device = document.getElementById('deviceType').value;
-    
-    const rawRepCode = document.getElementById('territoryRepCode').value || 'DIRECT';
-    const rep_code = rawRepCode.trim().toUpperCase();
+      const patient_name = document.getElementById('patientName').value.trim();
+      const age = parseInt(document.getElementById('patientAge').value) || null;
+      const mobile = document.getElementById('patientMobile').value.trim();
+      const city = document.getElementById('patientCity').value.trim();
+      const delivery_address = document.getElementById('patientAddress').value.trim();
+      const doctor_name = document.getElementById('doctorName').value.trim();
+      const clinic_name = document.getElementById('clinicName').value.trim();
+      const indication = document.getElementById('patientIndication').value;
+      const prescribed_dose = document.getElementById('prescribedDose').value;
+      const device = document.getElementById('deviceType').value;
+      
+      const rawRepCode = document.getElementById('territoryRepCode').value || 'DIRECT';
+      const rep_code = rawRepCode.trim().toUpperCase();
 
-    const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
+      const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    let prescription_url = null;
-    const fileInput = document.getElementById('prescriptionFile');
+      let prescription_url = null;
+      const fileInput = document.getElementById('prescriptionFile');
 
-    try {
+      try {
         if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${order_id}-${Date.now()}.${fileExt}`;
-            
-            const { data: uploadData, error: uploadErr } = await client.storage
-                .from('prescriptions')
-                .upload(fileName, file);
+          const file = fileInput.files[0];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${order_id}-${Date.now()}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadErr } = await client.storage
+            .from('prescriptions')
+            .upload(fileName, file);
 
-            if (!uploadErr && uploadData) {
-                const { data: publicUrlData } = client.storage
-                    .from('prescriptions')
-                    .getPublicUrl(fileName);
-                prescription_url = publicUrlData?.publicUrl || null;
-            }
+          if (!uploadErr && uploadData) {
+            const { data: publicUrlData } = client.storage
+              .from('prescriptions')
+              .getPublicUrl(fileName);
+            prescription_url = publicUrlData?.publicUrl || null;
+          }
         }
 
-        const orderData = {
-            order_id,
-            patient_name,
-            age,
-            mobile,
-            city,
-            delivery_address,
-            doctor_name,
-            clinic_name,
-            indication,
-            prescribed_dose,
-            device,
-            rep_code,
-            prescription_url,
-            status: 'New Patient'
-        };
-
-        const { data: insertedOrder, error: insertErr } = await client
-            .from('orders')
-            .insert([orderData])
-            .select()
-            .single();
-
-        if (insertErr) throw insertErr;
-
-        // ============================================================
-        // ✅ SEND NOTIFICATIONS - Updated to use direct insert
-        // ============================================================
-        const order = insertedOrder || orderData;
-        await sendOrderNotifications(order, rep_code);
-
-        document.getElementById('patientOrderForm').classList.add('hidden');
-        document.getElementById('generatedOrderId').innerText = order_id;
-        document.getElementById('successView').classList.remove('hidden');
-
-    } catch (err) {
-        statusMsg.className = "text-xs text-center font-medium text-rose-500";
-        statusMsg.innerText = "Failed to submit order: " + err.message;
-        submitBtn.disabled = false;
-    }
-}
-
-        // Insert order into database
         const orderData = {
           order_id,
           patient_name,
@@ -460,7 +454,7 @@
         if (insertErr) throw insertErr;
 
         // ============================================================
-        // SEND NOTIFICATIONS - NEW CODE ADDED HERE
+        // ✅ SEND NOTIFICATIONS
         // ============================================================
         const order = insertedOrder || orderData;
         await sendOrderNotifications(order, rep_code);
