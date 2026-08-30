@@ -314,7 +314,7 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
-    let hosUserRegion = "Central"; // Default region
+    let hosUserRegion = "Central";
 
     let realtimeChannel = null;
     let hqPollingInterval = null;
@@ -618,7 +618,6 @@
       const mgrSelect = document.getElementById('filterManager');
       const currentVal = mgrSelect.value;
       
-      // Filter managers by HOS region
       const filteredManagers = hosUserRegion === 'ALL' 
         ? allManagers 
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
@@ -641,7 +640,6 @@
       if (selectedManagerSap !== 'ALL') {
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
       } else {
-        // Filter reps by HOS region via their managers
         const regionManagers = hosUserRegion === 'ALL' 
           ? allManagers.map(m => m.manager_sap_id)
           : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
@@ -663,7 +661,6 @@
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-      // First filter by HOS region
       const regionManagers = hosUserRegion === 'ALL' 
         ? allManagers.map(m => m.manager_sap_id)
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
@@ -1061,7 +1058,6 @@
           return;
         }
 
-        // Store session
         sessionStorage.setItem('tt_hos_auth', 'true');
         sessionStorage.setItem('tt_hos_data', JSON.stringify(data));
         hosUserRegion = data.region || 'Central';
@@ -1160,22 +1156,19 @@
         document.getElementById('menuSapDisplay').innerText = data.sap_id || 'N/A';
         document.getElementById('menuAvatarBadge').innerText = getInitials(data.full_name);
 
-        // Set region filter in doctor list to match HOS region
         const regionFilter = document.getElementById('hosDoctorRegionFilter');
         if (regionFilter && data.region) {
-            regionFilter.value = data.region;
+          regionFilter.value = data.region;
         }
 
-        // ============================================================
-        // ✅ INITIALIZE NOTIFICATION CENTER FOR HOS
-        // ============================================================
+        // ✅ NOTIFICATION CENTER INITIALIZATION
         if (typeof NotificationCenter !== 'undefined') {
-            console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
-            window.notificationCenter = new NotificationCenter({
-                userId: data.sap_id,
-                userRole: 'hos',
-                pollInterval: 30000
-            });
+          console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
+          window.notificationCenter = new NotificationCenter({
+            userId: data.sap_id,
+            userRole: 'hos',
+            pollInterval: 30000
+          });
         }
 
         initDates();
