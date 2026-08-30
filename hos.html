@@ -314,7 +314,7 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
-    let hosUserRegion = "Central";
+    let hosUserRegion = "Central"; // Default region
 
     let realtimeChannel = null;
     let hqPollingInterval = null;
@@ -658,20 +658,16 @@
 
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
-    // ============================================================
-    // SIMPLIFIED: Show ALL orders in the region (no complex filtering)
-    // ============================================================
     function applyAllFilters() {
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-      // Get managers in this region
+      // First filter by HOS region
       const regionManagers = hosUserRegion === 'ALL' 
         ? allManagers.map(m => m.manager_sap_id)
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
 
-      // Get reps under these managers
       let allowedReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id)).map(r => r.territory_code);
 
       if (managerSap !== 'ALL') {
@@ -682,44 +678,23 @@
         allowedReps = allowedReps.filter(code => code === repCode);
       }
 
-      // If no allowedReps, show ALL orders (so HOS can see everything)
-      let hierarchyMatchedOrders = allOrders;
-      
-      // Only filter if we have specific reps to filter by
-      if (allowedReps.length > 0) {
-        hierarchyMatchedOrders = allOrders.filter(order => {
-          const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
-          const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
-          const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
-          const matchesSearch = !searchTerm ||
-            (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-            (order.mobile || '').includes(searchTerm) ||
-            (order.order_id || '').toLowerCase().includes(searchTerm) ||
-            (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-            (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-            (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-            (order.city || '').toLowerCase().includes(searchTerm) ||
-            (order.delivery_address || '').toLowerCase().includes(searchTerm);
+      const hierarchyMatchedOrders = allOrders.filter(order => {
+        const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
+        const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
+        const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
+        const matchesSearch = !searchTerm ||
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-          return matchesRegion && matchesManager && matchesRep && matchesSearch;
-        });
-      } else if (searchTerm) {
-        // If no reps but search term exists, filter by search
-        hierarchyMatchedOrders = allOrders.filter(order => {
-          const matchesSearch = !searchTerm ||
-            (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-            (order.mobile || '').includes(searchTerm) ||
-            (order.order_id || '').toLowerCase().includes(searchTerm) ||
-            (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-            (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-            (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-            (order.city || '').toLowerCase().includes(searchTerm) ||
-            (order.delivery_address || '').toLowerCase().includes(searchTerm);
-          return matchesSearch;
-        });
-      }
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+      });
 
-      // Apply date filter
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
@@ -727,16 +702,6 @@
           matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
         }
         return matchesDate;
-      });
-
-      // Debug log
-      console.log('🔍 HOS Orders:', {
-        total: allOrders.length,
-        matched: hierarchyMatchedOrders.length,
-        final: activeFilteredOrders.length,
-        region: hosUserRegion,
-        managerSap: managerSap,
-        repCode: repCode
       });
 
       updateMetrics();
@@ -1096,6 +1061,7 @@
           return;
         }
 
+        // Store session
         sessionStorage.setItem('tt_hos_auth', 'true');
         sessionStorage.setItem('tt_hos_data', JSON.stringify(data));
         hosUserRegion = data.region || 'Central';
@@ -1194,19 +1160,22 @@
         document.getElementById('menuSapDisplay').innerText = data.sap_id || 'N/A';
         document.getElementById('menuAvatarBadge').innerText = getInitials(data.full_name);
 
+        // Set region filter in doctor list to match HOS region
         const regionFilter = document.getElementById('hosDoctorRegionFilter');
         if (regionFilter && data.region) {
-          regionFilter.value = data.region;
+            regionFilter.value = data.region;
         }
 
-        // ✅ NOTIFICATION CENTER INITIALIZATION
+        // ============================================================
+        // ✅ INITIALIZE NOTIFICATION CENTER FOR HOS
+        // ============================================================
         if (typeof NotificationCenter !== 'undefined') {
-          console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
-          window.notificationCenter = new NotificationCenter({
-            userId: data.sap_id,
-            userRole: 'hos',
-            pollInterval: 30000
-          });
+            console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
+            window.notificationCenter = new NotificationCenter({
+                userId: data.sap_id,
+                userRole: 'hos',
+                pollInterval: 30000
+            });
         }
 
         initDates();
