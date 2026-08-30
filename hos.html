@@ -827,69 +827,6 @@
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
     }
 
-    function renderCards() {
-      const grid = document.getElementById('hosCardsGrid');
-      if (activeFilteredOrders.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found in your region for the selected filters.</div>';
-        return;
-      }
-
-      grid.innerHTML = activeFilteredOrders.map(order => {
-        const fb = feedbackMap[order.id];
-        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
-        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
-        const isDispatched = order.status === 'Dispatched';
-        const isCancelled = order.status === 'Cancelled';
-
-        return `<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
-          <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
-                ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
-              </div>
-              <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
-            </div>
-            <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'))}">
-              ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
-            </span>
-          </div>
-          <div class="space-y-1.5 text-sm">
-            <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-            <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
-            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
-              📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
-            </div>
-          </div>
-          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500 dark:text-slate-400">Doctor</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
-            </div>
-            <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-              <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
-              <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
-            </div>
-            <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-              <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
-            </div>
-            <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
-              <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
-            </div>
-            ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` : ''}
-            ${order.status === 'Cancelled' && order.cancellation_reason ? `<div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2"><strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}</div>` : ''}
-          </div>
-          <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
-            <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
     function renderStars(rating) {
       const full = Math.floor(rating);
       const half = rating % 1 >= 0.5 ? 1 : 0;
@@ -1207,10 +1144,10 @@
     }
 
     function checkHosSession() {
-    const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
-    const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
+      const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
+      const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
 
-    if (auth && data.sap_id) {
+      if (auth && data.sap_id) {
         hosUserRegion = data.region || 'Central';
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
@@ -1230,7 +1167,7 @@
         }
 
         // ============================================================
-        // ✅ ADD NOTIFICATION CENTER HERE
+        // ✅ INITIALIZE NOTIFICATION CENTER FOR HOS
         // ============================================================
         if (typeof NotificationCenter !== 'undefined') {
             console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
@@ -1245,7 +1182,7 @@
         window.fetchEverything();
         initHQRealtimeSync();
         switchTab('orders');
-    } else {
+      } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
         document.getElementById('loginForm').classList.remove('hidden');
@@ -1253,8 +1190,8 @@
         document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         document.getElementById('authErrorMsg').classList.add('hidden');
+      }
     }
-}
 
     // Make functions globally accessible
     window.switchTab = switchTab;
@@ -1281,17 +1218,5 @@
     // Start
     checkHosSession();
   </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const hosData = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
-        if (hosData && hosData.sap_id) {
-            window.notificationCenter = new NotificationCenter({
-                userId: hosData.sap_id,
-                userRole: 'hos',
-                pollInterval: 30000
-            });
-        }
-    });
-</script>
 </body>
 </html>
