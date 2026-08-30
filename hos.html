@@ -657,17 +657,19 @@
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
     // ============================================================
-    // ✅ FIXED: applyAllFilters function - removed malformed variable
+    // FIXED: applyAllFilters with proper region mapping
     // ============================================================
     function applyAllFilters() {
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
       const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
+      // Get managers in this region
       const regionManagers = hosUserRegion === 'ALL' 
         ? allManagers.map(m => m.manager_sap_id)
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
 
+      // Get reps under these managers
       let allowedReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id)).map(r => r.territory_code);
 
       if (managerSap !== 'ALL') {
@@ -678,6 +680,7 @@
         allowedReps = allowedReps.filter(code => code === repCode);
       }
 
+      // Filter orders: either rep_code matches allowed reps OR manager matches
       const hierarchyMatchedOrders = allOrders.filter(order => {
         const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
         const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
@@ -695,6 +698,7 @@
         return matchesRegion && matchesManager && matchesRep && matchesSearch;
       });
 
+      // Apply date filter
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDateStr = getLocalDateKey(o.created_at);
         let matchesDate = true;
@@ -703,6 +707,13 @@
         }
         return matchesDate;
       });
+
+      // Log for debugging
+      console.log('🔍 HOS Filter Debug:');
+      console.log('  - Region:', hosUserRegion);
+      console.log('  - Total orders in DB:', allOrders.length);
+      console.log('  - Matched orders:', hierarchyMatchedOrders.length);
+      console.log('  - After date filter:', activeFilteredOrders.length);
 
       updateMetrics();
       updateDailyChart(hierarchyMatchedOrders);
