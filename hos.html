@@ -19,6 +19,13 @@
     /* Smooth Scrollbarless Containers */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .doctor-row {
+      transition: all 0.15s ease;
+    }
+    .doctor-row:hover {
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 sm:p-6 pb-24 md:pb-8 transition-colors duration-200">
@@ -224,8 +231,8 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+    <!-- 3. APP GRID LAUNCHPAD (3 Tabs: Orders, Team Dr List, Analytics) -->
+    <div class="grid grid-cols-3 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-indigo-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold">Orders</span>
@@ -236,11 +243,7 @@
       </button>
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Trends & Timeline</span>
-      </button>
-      <button onclick="exportFilteredCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">Regional CSV</span>
+        <span class="text-xs font-bold">Analytics</span>
       </button>
     </div>
 
@@ -366,12 +369,14 @@
       </div>
     </div>
 
-    <!-- TAB 3: ANALYTICS, TRENDS & KOLS VIEW -->
+    <!-- TAB 3: ANALYTICS (Combined: Trends & KOLs + Dr Summary + Timeline) -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      
+      <!-- TRENDS & KOLs SECTION -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> Daily Patient Enrollment Trend (Last 14 Days)
+            <span>📊</span> Regional Patient Enrollment Trend (Last 14 Days)
           </h3>
           <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">Regional Trend</span>
         </div>
@@ -399,10 +404,100 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TAB 4: TIMELINE & DATE SCOPE VIEW -->
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+      <!-- DOCTOR SUMMARY SECTION -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl">
+                🩺
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Doctor Summary List</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Prescriber-wise regional overview from filtered orders</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+              Doctors: <span id="doctorTotalCount">0</span>
+            </span>
+            <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
+              Patients: <span id="doctorPatientTotal">0</span>
+            </span>
+          </div>
+        </div>
+        <div class="mt-5">
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+            <input id="doctorSearchInput" type="text" oninput="renderDoctorList()" placeholder="Search Doctor, Clinic, Rep or Patient..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Summary Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
+          <div id="doctorSummaryCount" class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Total Patients</div>
+          <div id="doctorSummaryPatients" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Avg Patients / Dr</div>
+          <div id="doctorSummaryAverage" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Top Prescriber</div>
+          <div id="doctorSummaryTop" class="text-sm font-black text-amber-600 dark:text-amber-400 mt-2 truncate">—</div>
+        </div>
+      </div>
+
+      <!-- Doctor Table -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 dark:text-white">Prescriber Directory</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Sorted by patient count</p>
+          </div>
+          <span id="doctorShowingLabel" class="text-xs font-bold text-slate-400">Showing 0</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[850px]">
+            <thead class="bg-slate-50 dark:bg-slate-950">
+              <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400">
+                <th class="px-5 py-3 font-bold">#</th>
+                <th class="px-5 py-3 font-bold">Doctor</th>
+                <th class="px-5 py-3 font-bold">Clinic / Hospital</th>
+                <th class="px-5 py-3 font-bold text-center">Patients</th>
+                <th class="px-5 py-3 font-bold">Dose Mix</th>
+                <th class="px-5 py-3 font-bold">Rep</th>
+                <th class="px-5 py-3 font-bold">Latest Order</th>
+              </tr>
+            </thead>
+            <tbody id="doctorListBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+              <tr><td colspan="7" class="px-5 py-12 text-center text-slate-400 text-sm">Loading doctor list...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Selected Doctor Patient Details Panel -->
+      <div id="doctorPatientPanel" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="text-xs uppercase tracking-wider font-bold text-indigo-600 dark:text-indigo-400">Selected Prescriber</div>
+            <h3 id="selectedDoctorTitle" class="text-lg font-black text-slate-900 dark:text-white mt-1">—</h3>
+          </div>
+          <button onclick="closeDoctorPatientPanel()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
+        </div>
+        <div id="doctorPatientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5"></div>
+      </div>
+
+      <!-- TIMELINE SECTION -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
           <span>📅</span> Configure Date Window
@@ -430,6 +525,7 @@
           Showing: Month to Date
         </div>
       </div>
+
     </div>
 
   </div>
@@ -446,11 +542,7 @@
     </button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📊</span>
-      <span class="text-xs font-medium">Trends</span>
-    </button>
-    <button onclick="switchTab('datescope')" id="bottomNav-datescope" class="bottom-nav-item flex flex-col items-center text-slate-400">
-      <span class="text-lg">📅</span>
-      <span class="text-xs font-medium">Timeline</span>
+      <span class="text-xs font-medium">Analytics</span>
     </button>
     <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">⚙️</span>
@@ -554,7 +646,10 @@
       }
 
       if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
-        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
+        setTimeout(() => {
+          updateDailyChart(activeFilteredOrders);
+          renderDoctorList();
+        }, 100);
       }
       if (tabId === 'teamDocs') {
         fetchTeamDoctors();
@@ -862,6 +957,8 @@
         initDates();
         window.fetchEverything();
         initHQRealtimeSync();
+        // Default to orders tab on load
+        switchTab('orders');
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -1046,6 +1143,7 @@
       updateDailyChart(hierarchyMatchedOrders);
       updateSummaries();
       renderCards();
+      renderDoctorList();
     }
 
     function updateMetrics() {
@@ -1160,7 +1258,7 @@
       document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
         <div class="flex items-center justify-between py-2">
           <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          <span class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
 
@@ -1178,7 +1276,7 @@
     }
 
     function renderCards() {
-      const grid = document.getElementById('hoCardsGrid');
+      const grid = document.getElementById('hosCardsGrid');
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
         return;
@@ -1258,6 +1356,233 @@
       }).join('');
     }
 
+    function renderStars(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5 ? 1 : 0;
+      const empty = 5 - full - half;
+      return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+    }
+
+    function buildDoctorData() {
+      const doctorMap = {};
+      activeFilteredOrders.forEach(order => {
+        const rawDoctor = (order.doctor_name || '').trim();
+        const doctorName = rawDoctor || 'Unassigned';
+        const cleanDoctor = doctorName.replace(/^(dr\.?|doctor)\s*/i, '').trim();
+        const clinic = (order.clinic_name || 'Clinic / Hospital Not Specified').trim();
+        const key = `${cleanDoctor.toLowerCase()}|||${clinic.toLowerCase()}`;
+
+        if (!doctorMap[key]) {
+          doctorMap[key] = {
+            doctor: cleanDoctor || 'Unassigned',
+            clinic,
+            orders: [],
+            reps: {},
+            doses: {},
+            latestOrder: null
+          };
+        }
+
+        const record = doctorMap[key];
+        record.orders.push(order);
+
+        const rep = order.rep_code || 'Direct';
+        record.reps[rep] = (record.reps[rep] || 0) + 1;
+
+        const dose = order.prescribed_dose || 'Unspecified';
+        record.doses[dose] = (record.doses[dose] || 0) + 1;
+
+        if (!record.latestOrder || new Date(order.created_at) > new Date(record.latestOrder.created_at)) {
+          record.latestOrder = order;
+        }
+      });
+
+      return Object.values(doctorMap).sort((a, b) => b.orders.length - a.orders.length);
+    }
+
+    function renderDoctorList() {
+      const body = document.getElementById('doctorListBody');
+      if (!body) return;
+
+      const search = (document.getElementById('doctorSearchInput')?.value || '').toLowerCase().trim();
+      const doctors = buildDoctorData();
+      const filteredDoctors = !search ? doctors : doctors.filter(d => {
+        const patientText = d.orders.map(o => [o.patient_name, o.mobile, o.city, o.rep_code].filter(Boolean).join(' ')).join(' ');
+        const repText = Object.keys(d.reps).join(' ');
+        return d.doctor.toLowerCase().includes(search) || d.clinic.toLowerCase().includes(search) || repText.toLowerCase().includes(search) || patientText.toLowerCase().includes(search);
+      });
+
+      const totalDoctors = doctors.length;
+      const totalPatients = activeFilteredOrders.length;
+      const average = totalDoctors > 0 ? (totalPatients / totalDoctors).toFixed(1) : '0';
+      const topDoctor = doctors.length > 0 ? doctors[0] : null;
+
+      document.getElementById('doctorTotalCount').innerText = totalDoctors;
+      document.getElementById('doctorPatientTotal').innerText = totalPatients;
+      document.getElementById('doctorSummaryCount').innerText = totalDoctors;
+      document.getElementById('doctorSummaryPatients').innerText = totalPatients;
+      document.getElementById('doctorSummaryAverage').innerText = average;
+      document.getElementById('doctorSummaryTop').innerText = topDoctor ? `Dr. ${topDoctor.doctor}` : '—';
+      document.getElementById('doctorShowingLabel').innerText = `Showing ${filteredDoctors.length} of ${totalDoctors}`;
+
+      if (filteredDoctors.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="px-5 py-14 text-center"><div class="text-4xl mb-3">🩺</div><div class="text-sm font-bold text-slate-700 dark:text-slate-300">No doctors found</div><div class="text-xs text-slate-400 mt-1">Try changing the date range or search keyword.</div></td></tr>`;
+        return;
+      }
+
+      body.innerHTML = filteredDoctors.map((doctor, index) => {
+        const doseMix = Object.entries(doctor.doses).sort((a, b) => b[1] - a[1]).map(([dose, count]) => `${dose} × ${count}`).join(', ');
+        const reps = Object.entries(doctor.reps).sort((a, b) => b[1] - a[1]).map(([rep, count]) => `${rep}${count > 1 ? ` (${count})` : ''}`).join(', ');
+        const latestDate = doctor.latestOrder ? new Date(doctor.latestOrder.created_at).toLocaleDateString() : '—';
+
+        return `
+          <tr class="doctor-row hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer" onclick="showDoctorPatients(${index})">
+            <td class="px-5 py-4 text-xs font-bold text-slate-400">${index + 1}</td>
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs">${index + 1}</div>
+                <div>
+                  <div class="font-bold text-sm text-slate-900 dark:text-white">Dr. ${escapeHtml(doctor.doctor)}</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">${doctor.orders.length} patient record${doctor.orders.length > 1 ? 's' : ''}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4"><div class="text-sm font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(doctor.clinic)}</div></td>
+            <td class="px-5 py-4 text-center"><span class="inline-flex min-w-[42px] justify-center px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-xs">${doctor.orders.length}</span></td>
+            <td class="px-5 py-4"><div class="text-xs font-semibold text-slate-600 dark:text-slate-300">${escapeHtml(doseMix)}</div></td>
+            <td class="px-5 py-4"><div class="text-xs font-bold text-blue-600 dark:text-blue-400">${escapeHtml(reps)}</div></td>
+            <td class="px-5 py-4">
+              <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">${latestDate}</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-1">${doctor.latestOrder?.order_id || ''}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      window.currentDoctorList = filteredDoctors;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function showDoctorPatients(index) {
+      const doctors = window.currentDoctorList || [];
+      const doctor = doctors[index];
+      if (!doctor) return;
+
+      const panel = document.getElementById('doctorPatientPanel');
+      const title = document.getElementById('selectedDoctorTitle');
+      const list = document.getElementById('doctorPatientList');
+
+      title.innerText = `Dr. ${doctor.doctor} • ${doctor.clinic}`;
+      list.innerHTML = doctor.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(order => {
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        return `
+          <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50 dark:bg-slate-950">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${escapeHtml(order.patient_name || 'Unnamed')} ${order.age ? `(${order.age} yrs)` : ''}</div>
+                <div class="text-xs text-slate-400 font-mono mt-1">${escapeHtml(order.mobile || '')}</div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}">
+                ${isDelivered ? 'Delivered' : (order.status || 'New')}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+              <div><span class="text-slate-400">Order</span><div class="font-mono font-bold text-slate-700 dark:text-slate-300">${escapeHtml(order.order_id || 'N/A')}</div></div>
+              <div><span class="text-slate-400">Date</span><div class="font-semibold text-slate-700 dark:text-slate-300">${new Date(order.created_at).toLocaleDateString()}</div></div>
+              <div><span class="text-slate-400">Dose</span><div class="font-bold text-emerald-600 dark:text-emerald-400">${escapeHtml(order.prescribed_dose || 'N/A')}</div></div>
+              <div><span class="text-slate-400">Rep</span><div class="font-bold text-blue-600 dark:text-blue-400">${escapeHtml(order.rep_code || 'Direct')}</div></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeDoctorPatientPanel() {
+      document.getElementById('doctorPatientPanel').classList.add('hidden');
+    }
+
+    function initDates() {
+      setDatePreset('MTD');
+    }
+
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
+    }
+
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        applyAllFilters();
+      }
+    }
+
     function exportFilteredCSV() {
       if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
       let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
@@ -1271,11 +1596,212 @@
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
+      a.download = `TirzaTrim_HOS_${currentDateScope}_Export.csv`;
       a.click();
     }
 
-    checkHoSession();
+    // Login / Signup Handlers
+    async function handleHosLogin(e) {
+      e.preventDefault();
+      const sap = document.getElementById('loginSap').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      
+      if (!sap || !password) {
+        document.getElementById('authErrorMsg').innerText = "Please enter SAP ID and password.";
+        document.getElementById('authErrorMsg').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const { data, error } = await client
+          .from('hos_users')
+          .select('*')
+          .eq('sap_id', sap)
+          .single();
+
+        if (error || !data) {
+          document.getElementById('authErrorMsg').innerText = "Invalid SAP ID. Please check and try again.";
+          document.getElementById('authErrorMsg').classList.remove('hidden');
+          return;
+        }
+
+        if (data.password_hash !== password) {
+          document.getElementById('authErrorMsg').innerText = "Incorrect password. Please try again.";
+          document.getElementById('authErrorMsg').classList.remove('hidden');
+          return;
+        }
+
+        // Login successful
+        sessionStorage.setItem('tt_hos_auth', 'true');
+        sessionStorage.setItem('tt_hos_data', JSON.stringify(data));
+        checkHosSession();
+      } catch (err) {
+        document.getElementById('authErrorMsg').innerText = "Login error: " + err.message;
+        document.getElementById('authErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    async function handleHosSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const region = document.getElementById('regRegion').value;
+      const team = document.getElementById('regTeam').value.trim().toUpperCase();
+      const sap = document.getElementById('regSap').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+
+      if (!name || !sap || !password || !team) {
+        document.getElementById('authErrorMsg').innerText = "All fields are required.";
+        document.getElementById('authErrorMsg').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const { data, error } = await client
+          .from('hos_users')
+          .insert([{
+            full_name: name,
+            region: region,
+            team_name: team,
+            sap_id: sap,
+            password_hash: password
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          if (error.code === '23505') {
+            document.getElementById('authErrorMsg').innerText = "SAP ID already registered. Please login.";
+          } else {
+            document.getElementById('authErrorMsg').innerText = "Registration error: " + error.message;
+          }
+          document.getElementById('authErrorMsg').classList.remove('hidden');
+          return;
+        }
+
+        alert("✅ HOS Account created successfully! Please login.");
+        showAuthTab('login');
+        document.getElementById('loginSap').value = sap;
+        document.getElementById('loginPassword').value = '';
+      } catch (err) {
+        document.getElementById('authErrorMsg').innerText = "Registration error: " + err.message;
+        document.getElementById('authErrorMsg').classList.remove('hidden');
+      }
+    }
+
+    async function registerHosMobilePush() {
+      const btn = document.getElementById('menuPushBtn');
+      const pill = document.getElementById('menuPushStatusPill');
+
+      try {
+        if (!('Notification' in window)) {
+          alert("Push notifications are not supported on this browser.");
+          return;
+        }
+
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
+          return;
+        }
+
+        const hosData = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
+        const sapId = hosData.sap_id || 'HOS_DIRECT';
+
+        if (window.subscribeDeviceToPush) {
+          await window.subscribeDeviceToPush(sapId, 'hos', hosData.region || 'NATIONAL');
+          alert(`✅ Phone Linked!\n\nRole: Head of Sales (${hosData.region || 'Regional'})\nScope: ${hosData.team_name || 'Team'} (${hosData.region || 'Region'})\n\nYou will receive regional order alerts.`);
+          if (pill) {
+            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          }
+          if (btn) {
+            btn.innerHTML = `<span class="text-base">✅</span> <span>Regional Push Active</span>`;
+          }
+        } else {
+          alert("Notification script initializing. Please refresh and try again.");
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    function handleHosLogout() {
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (hqPollingInterval) {
+        clearInterval(hqPollingInterval);
+        hqPollingInterval = null;
+      }
+      sessionStorage.removeItem('tt_hos_auth');
+      sessionStorage.removeItem('tt_hos_data');
+      checkHosSession();
+    }
+
+    function checkHosSession() {
+      const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
+      const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
+
+      if (auth && data.sap_id) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        
+        // Update UI with user data
+        document.getElementById('hosNameDisplay').innerText = data.full_name || 'HOS';
+        document.getElementById('hosRegionDisplay').innerText = data.region || 'Central';
+        document.getElementById('hosTeamDisplay').innerText = data.team_name || 'Team';
+        document.getElementById('menuUserName').innerText = data.full_name || 'HOS User';
+        document.getElementById('menuRegionDisplay').innerText = data.region || 'Central';
+        document.getElementById('menuSapDisplay').innerText = data.sap_id || 'N/A';
+        document.getElementById('menuAvatarBadge').innerText = getInitials(data.full_name);
+
+        // Set region filter to match HOS region
+        const regionFilter = document.getElementById('filterRegion');
+        if (regionFilter && data.region) {
+          regionFilter.value = data.region;
+        }
+
+        initDates();
+        window.fetchEverything();
+        initHQRealtimeSync();
+        // Default to orders tab
+        switchTab('orders');
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+        // Reset forms
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        document.getElementById('authErrorMsg').classList.add('hidden');
+      }
+    }
+
+    // Make functions globally accessible
+    window.switchTab = switchTab;
+    window.setDatePreset = setDatePreset;
+    window.onCustomDateSelected = onCustomDateSelected;
+    window.exportFilteredCSV = exportFilteredCSV;
+    window.openSideMenu = openSideMenu;
+    window.closeSideMenu = closeSideMenu;
+    window.showAuthTab = showAuthTab;
+    window.handleHosLogin = handleHosLogin;
+    window.handleHosSignup = handleHosSignup;
+    window.handleHosLogout = handleHosLogout;
+    window.registerHosMobilePush = registerHosMobilePush;
+    window.onManagerChange = onManagerChange;
+    window.onHosDoctorRegionChange = onHosDoctorRegionChange;
+    window.onHosDoctorMgrChange = onHosDoctorMgrChange;
+    window.setHosDoctorFilter = setHosDoctorFilter;
+    window.renderHosTeamDoctorsTable = renderHosTeamDoctorsTable;
+    window.renderDoctorList = renderDoctorList;
+    window.closeDoctorPatientPanel = closeDoctorPatientPanel;
+    window.showDoctorPatients = showDoctorPatients;
+    window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
+
+    // Start the app
+    checkHosSession();
   </script>
 </body>
 </html>
