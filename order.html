@@ -287,92 +287,145 @@
     updateClinicSuggestions();
 
     // ============================================================
-    // SEND NOTIFICATIONS FUNCTION
-    // ============================================================
-    async function sendOrderNotifications(order, repCode) {
-      try {
+// SEND NOTIFICATIONS TO ALL LEVELS (Rep → Manager → HOS → HO)
+// ============================================================
+async function sendOrderNotifications(order, repCode) {
+    try {
+        console.log('📤 Sending notifications for order:', order.order_id);
+        
+        // Get rep details
         const { data: rep, error } = await client
-          .from('reps')
-          .select('sap_id, manager_sap_id, full_name')
-          .eq('territory_code', repCode)
-          .single();
+            .from('reps')
+            .select('sap_id, manager_sap_id, full_name, team_name')
+            .eq('territory_code', repCode)
+            .single();
 
         if (error) {
-          console.warn('Could not find rep for notifications:', error.message);
-          return;
+            console.warn('Could not find rep:', error.message);
+            return;
         }
 
-        const notificationData = {
-          order_id: order.order_id || order.id,
-          patient_name: order.patient_name,
-          prescribed_dose: order.prescribed_dose || '5mg'
-        };
+        console.log('✅ Rep found:', rep.full_name);
 
+        // Function to create notification
         const createNotification = async (userId, userRole, title, message, type, priority, link) => {
-          if (!userId) return;
-          try {
-            const { error: notifError } = await client
-              .from('notifications')
-              .insert([{
-                user_id: userId,
-                user_role: userRole,
-                title: title,
-                message: message,
-                type: type || 'order',
-                priority: priority || 'high',
-                link: link || '/team.html',
-                is_read: false,
-                created_at: new Date().toISOString()
-              }]);
-
-            if (notifError) {
-              console.warn('Notification insert error:', notifError);
-            } else {
-              console.log('✅ Notification sent to:', userId, userRole);
+            if (!userId) {
+                console.warn('❌ No userId provided');
+                return;
             }
-          } catch (e) {
-            console.warn('Notification error:', e);
-          }
+            try {
+                const { data, error: notifError } = await client
+                    .from('notifications')
+                    .insert([{
+                        user_id: String(userId),
+                        user_role: userRole,
+                        title: title,
+                        message: message,
+                        type: type || 'order',
+                        priority: priority || 'high',
+                        link: link || '/team.html',
+                        is_read: false,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select();
+
+                if (notifError) {
+                    console.error('❌ Notification error for', userId, ':', notifError);
+                } else {
+                    console.log('✅ Notification sent to:', userId, '(', userRole, ')');
+                }
+                return data;
+            } catch (e) {
+                console.warn('Notification error:', e);
+            }
         };
 
+        // 1. Notify the REP (Team)
         if (rep.sap_id) {
-          await createNotification(
-            rep.sap_id,
-            'rep',
-            `📦 New Order: ${notificationData.order_id}`,
-            `Patient ${notificationData.patient_name} has submitted a new order for ${notificationData.prescribed_dose}`,
-            'order',
-            'high',
-            '/team.html'
-          );
+            await createNotification(
+                rep.sap_id,
+                'rep',
+                `📦 New Order: ${order.order_id}`,
+                `Patient ${order.patient_name} submitted a new order for ${order.prescribed_dose || '5mg'}`,
+                'order',
+                'high',
+                '/team.html'
+            );
         }
 
+        // 2. Notify the MANAGER (Admin/ZSM)
         if (rep.manager_sap_id) {
-          await createNotification(
-            rep.manager_sap_id,
-            'zsm',
-            `📦 New Order: ${notificationData.order_id}`,
-            `Patient ${notificationData.patient_name} (${repCode}) ordered ${notificationData.prescribed_dose}`,
+            await createNotification(
+                rep.manager_sap_id,
+                'zsm',
+                `📦 New Order: ${order.order_id}`,
+                `Patient ${order.patient_name} (${repCode}) ordered ${order.prescribed_dose || '5mg'}`,
+                'order',
+                'high',
+                '/admin.html'
+            );
+        }
+
+        // 3. Notify HOS (Head of Sales) - Find HOS for this region
+        // First get the manager's region
+        const { data: manager, error: mgrError } = await client
+            .from('managers')
+            .select('region')
+            .eq('manager_sap_id', rep.manager_sap_id)
+            .maybeSingle();
+
+        if (!mgrError && manager) {
+            const region = manager.region || 'Central';
+            
+            // Find HOS for this region
+            const { data: hosData, error: hosError } = await client
+                .from('hos_users')
+                .select('sap_id')
+                .eq('region', region)
+                .maybeSingle();
+
+            if (!hosError && hosData && hosData.sap_id) {
+                await createNotification(
+                    hosData.sap_id,
+                    'hos',
+                    `📦 New Order: ${order.order_id}`,
+                    `Patient ${order.patient_name} (${repCode}) in ${region} region ordered ${order.prescribed_dose || '5mg'}`,
+                    'order',
+                    'medium',
+                    '/hos.html'
+                );
+            } else {
+                console.log('⚠️ No HOS found for region:', region);
+            }
+        }
+
+        // 4. Notify HEAD OFFICE (Always send to HO_MASTER)
+        await createNotification(
+            'HO_MASTER',
+            'ho',
+            `📦 New National Order: ${order.order_id}`,
+            `Patient ${order.patient_name} (${repCode}) in ${order.city || 'Pakistan'} ordered ${order.prescribed_dose || '5mg'}`,
             'order',
-            'high',
-            '/admin.html'
-          );
-        }
+            'medium',
+            '/headoffice.html'
+        );
 
+        // 5. Push notification (if available)
         if (window.triggerPushNotification) {
-          window.triggerPushNotification(
-            `📦 New Order: ${order.order_id}`,
-            `Patient ${order.patient_name} submitted an order for ${order.prescribed_dose || '5mg'} (Territory: ${repCode})`,
-            '/',
-            'order'
-          );
+            window.triggerPushNotification(
+                `📦 New Order: ${order.order_id}`,
+                `Patient ${order.patient_name} submitted an order for ${order.prescribed_dose || '5mg'} (Territory: ${repCode})`,
+                '/',
+                'order'
+            );
         }
 
-      } catch (notifyError) {
-        console.warn('Notification error (non-critical):', notifyError);
-      }
-    }
+        console.log('✅ All notifications sent!');
 
+    } catch (notifyError) {
+        console.error('❌ Notification error:', notifyError);
+    }
+}
     // ============================================================
     // SUBMIT ORDER FUNCTION - FIXED AND CLEAN
     // ============================================================
