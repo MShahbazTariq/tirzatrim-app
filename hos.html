@@ -14,6 +14,9 @@
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Notification System -->
+  <script src="/notification-center.js"></script>
+  <script src="/notification-helper.js"></script>
 
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -1266,5 +1269,17 @@
     // Start
     checkHosSession();
   </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hosData = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
+        if (hosData && hosData.sap_id) {
+            window.notificationCenter = new NotificationCenter({
+                userId: hosData.sap_id,
+                userRole: 'hos',
+                pollInterval: 30000
+            });
+        }
+    });
+</script>
 </body>
 </html>
