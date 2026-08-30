@@ -3,9 +3,9 @@
 
 class NotificationCenter {
     constructor(options = {}) {
-        this.userId = options.userId || null;
+        this.userId = options.userId || 'guest';
         this.userRole = options.userRole || 'rep';
-        this.pollInterval = options.pollInterval || 30000; // 30 seconds
+        this.pollInterval = options.pollInterval || 30000;
         this.containerId = options.containerId || 'notificationCenter';
         this.badgeId = options.badgeId || 'notificationBadge';
         this.dropdownId = options.dropdownId || 'notificationDropdown';
@@ -13,39 +13,27 @@ class NotificationCenter {
         this.unreadCount = 0;
         this.isOpen = false;
         this.channel = null;
-        
+        this.currentFilter = 'all';
         this.init();
     }
 
     async init() {
-        // Create notification UI elements
         this.createNotificationUI();
-        
-        // Load initial notifications
         await this.fetchNotifications();
-        
-        // Start real-time subscription
         this.subscribeToRealtime();
-        
-        // Start polling as fallback
         this.startPolling();
     }
 
     createNotificationUI() {
-        // Check if container exists
         let container = document.getElementById(this.containerId);
         if (!container) {
-            // Create container in header
             container = document.createElement('div');
             container.id = this.containerId;
             container.className = 'relative inline-block';
-            
-            // Find header or append to body
             const header = document.querySelector('header') || document.body;
             header.appendChild(container);
         }
 
-        // Build notification bell HTML
         container.innerHTML = `
             <button onclick="window.notificationCenter.toggleDropdown()" 
                     class="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" 
@@ -61,7 +49,6 @@ class NotificationCenter {
             <div id="${this.dropdownId}" 
                  class="hidden absolute right-0 mt-2 w-[420px] max-h-[500px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50">
                 
-                <!-- Dropdown Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
                     <span class="font-bold text-sm text-slate-900 dark:text-white">Notifications</span>
                     <div class="flex items-center gap-2">
@@ -76,36 +63,34 @@ class NotificationCenter {
                     </div>
                 </div>
                 
-                <!-- Filter Tabs -->
-                <div class="flex gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs">
+                <div class="flex gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs overflow-x-auto">
                     <button onclick="window.notificationCenter.filterNotifications('all')" 
                             data-filter="all" 
-                            class="filter-btn px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold transition-all">
+                            class="filter-btn px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold transition-all whitespace-nowrap">
                         All
                     </button>
                     <button onclick="window.notificationCenter.filterNotifications('order')" 
                             data-filter="order" 
-                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         📦 Orders
                     </button>
                     <button onclick="window.notificationCenter.filterNotifications('feedback')" 
                             data-filter="feedback" 
-                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         ⭐ Feedback
                     </button>
                     <button onclick="window.notificationCenter.filterNotifications('broadcast')" 
                             data-filter="broadcast" 
-                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         📢 Broadcast
                     </button>
                     <button onclick="window.notificationCenter.filterNotifications('system')" 
                             data-filter="system" 
-                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                            class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         ⚙️ System
                     </button>
                 </div>
                 
-                <!-- Notifications List -->
                 <div id="notificationList" class="overflow-y-auto max-h-[340px] divide-y divide-slate-100 dark:divide-slate-800">
                     <div class="px-4 py-8 text-center text-slate-400 text-sm">
                         No notifications yet
@@ -181,20 +166,21 @@ class NotificationCenter {
         }
     }
 
-    renderNotifications(filter = 'all') {
+    renderNotifications(filter = null) {
         const list = document.getElementById('notificationList');
         if (!list) return;
 
+        const activeFilter = filter || this.currentFilter;
         let filtered = this.notifications;
-        if (filter !== 'all') {
-            filtered = filtered.filter(n => n.type === filter);
+        if (activeFilter !== 'all') {
+            filtered = filtered.filter(n => n.type === activeFilter);
         }
 
         if (filtered.length === 0) {
             list.innerHTML = `
                 <div class="px-4 py-8 text-center">
                     <div class="text-3xl mb-2">📭</div>
-                    <div class="text-slate-400 text-sm">No ${filter === 'all' ? '' : filter} notifications</div>
+                    <div class="text-slate-400 text-sm">No ${activeFilter === 'all' ? '' : activeFilter} notifications</div>
                 </div>
             `;
             return;
@@ -209,14 +195,14 @@ class NotificationCenter {
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-sm text-slate-900 dark:text-white truncate">
-                                ${notification.title}
+                                ${this.escapeHtml(notification.title)}
                             </span>
                             ${notification.priority === 'high' ? 
                                 `<span class="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 text-[10px] font-bold">URGENT</span>` : 
                                 ''}
                         </div>
                         <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">
-                            ${notification.message}
+                            ${this.escapeHtml(notification.message)}
                         </p>
                         <div class="flex items-center gap-3 mt-1.5">
                             <span class="text-[10px] text-slate-400">
@@ -245,7 +231,8 @@ class NotificationCenter {
             const { error } = await supabase
                 .from('notifications')
                 .update({ is_read: true })
-                .eq('id', id);
+                .eq('id', id)
+                .eq('user_id', this.userId);
 
             if (error) throw error;
 
@@ -269,7 +256,8 @@ class NotificationCenter {
             const { error } = await supabase
                 .from('notifications')
                 .update({ is_read: true })
-                .in('id', unreadIds);
+                .in('id', unreadIds)
+                .eq('user_id', this.userId);
 
             if (error) throw error;
 
@@ -304,11 +292,11 @@ class NotificationCenter {
     }
 
     filterNotifications(filter) {
-        // Update active filter button
+        this.currentFilter = filter;
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.className = 'filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all';
+            btn.className = 'filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap';
             if (btn.dataset.filter === filter) {
-                btn.className = 'filter-btn px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold transition-all';
+                btn.className = 'filter-btn px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold transition-all whitespace-nowrap';
             }
         });
         this.renderNotifications(filter);
@@ -327,7 +315,6 @@ class NotificationCenter {
     }
 
     showToast(notification) {
-        // Show a toast notification
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
         
         const toast = document.createElement('div');
@@ -339,15 +326,14 @@ class NotificationCenter {
                   notification.type === 'broadcast' ? '📢' : '🔔'}
             </span>
             <div class="flex-1 min-w-0">
-                <div class="font-semibold text-sm text-slate-900 dark:text-white truncate">${notification.title}</div>
-                <div class="text-xs text-slate-600 dark:text-slate-400 truncate">${notification.message}</div>
+                <div class="font-semibold text-sm text-slate-900 dark:text-white truncate">${this.escapeHtml(notification.title)}</div>
+                <div class="text-xs text-slate-600 dark:text-slate-400 truncate">${this.escapeHtml(notification.message)}</div>
             </div>
             <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">✕</button>
         `;
         
         toastContainer.appendChild(toast);
         
-        // Auto-remove after 5 seconds
         setTimeout(() => {
             if (toast.parentElement) {
                 toast.remove();
@@ -365,12 +351,17 @@ class NotificationCenter {
 
     playNotificationSound() {
         try {
-            const audio = new Audio('data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoAAACBhYqFhYaFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhQ==');
+            const audio = new Audio('data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoAAACBhYqFhYaFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhQ==');
             audio.volume = 0.3;
             audio.play().catch(() => {});
-        } catch (err) {
-            // Silent fail if sound can't play
-        }
+        } catch (err) {}
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     formatTime(timestamp) {
