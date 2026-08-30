@@ -1,6 +1,10 @@
 // notification-helper.js
 // Helper functions to create notifications
 
+const supabaseUrl = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+const supabaseKey = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
 async function createNotification(data) {
     const {
         userId,
@@ -14,12 +18,17 @@ async function createNotification(data) {
         expiresAt = null
     } = data;
 
+    if (!userId) {
+        console.warn('No userId provided for notification');
+        return null;
+    }
+
     try {
-        const { data: result, error } = await supabase
+        const { data: result, error } = await supabaseClient
             .from('notifications')
             .insert([{
                 user_id: userId,
-                user_role: userRole,
+                user_role: userRole || 'rep',
                 title: title,
                 message: message,
                 type: type,
@@ -32,6 +41,12 @@ async function createNotification(data) {
             .select();
 
         if (error) throw error;
+        
+        // Also trigger push notification
+        if (window.triggerPushNotification) {
+            window.triggerPushNotification(title, message, link || '/');
+        }
+        
         return result[0];
     } catch (err) {
         console.error('Error creating notification:', err);
@@ -45,11 +60,11 @@ async function notifyNewOrder(order, userId, userRole = 'rep') {
     return createNotification({
         userId: userId,
         userRole: userRole,
-        title: `📦 New Order: ${order.order_id}`,
-        message: `Patient ${order.patient_name} has submitted a new order for ${order.prescribed_dose}`,
+        title: `📦 New Order: ${order.order_id || 'Order'}`,
+        message: `Patient ${order.patient_name || 'Unknown'} has submitted a new order for ${order.prescribed_dose || '5mg'}`,
         type: 'order',
         priority: 'high',
-        link: `/orders.html?order=${order.id}`,
+        link: `/team.html?order=${order.id}`,
         metadata: { order_id: order.id }
     });
 }
@@ -58,11 +73,11 @@ async function notifyOrderStatusUpdate(order, userId, userRole = 'rep') {
     return createNotification({
         userId: userId,
         userRole: userRole,
-        title: `📦 Order ${order.order_id} Update`,
-        message: `Status changed to: ${order.status}`,
+        title: `📦 Order ${order.order_id || 'Order'} Update`,
+        message: `Status changed to: ${order.status || 'Updated'}`,
         type: 'order',
         priority: 'medium',
-        link: `/orders.html?order=${order.id}`,
+        link: `/team.html?order=${order.id}`,
         metadata: { order_id: order.id }
     });
 }
@@ -71,8 +86,8 @@ async function notifyFeedbackReceived(feedback, userId, userRole = 'rep') {
     return createNotification({
         userId: userId,
         userRole: userRole,
-        title: `⭐ New Feedback: ${feedback.order_id}`,
-        message: `Patient rated their experience ${feedback.overall_rating} stars`,
+        title: `⭐ New Feedback: ${feedback.order_id || 'Order'}`,
+        message: `Patient rated their experience ${feedback.overall_rating || '0'} stars`,
         type: 'feedback',
         priority: 'medium',
         link: `/feedback.html?order=${feedback.order_id}`,
@@ -81,11 +96,12 @@ async function notifyFeedbackReceived(feedback, userId, userRole = 'rep') {
 }
 
 async function notifyBroadcast(broadcast, userId, userRole = 'rep') {
+    const shortMsg = broadcast.message ? broadcast.message.substring(0, 100) + (broadcast.message.length > 100 ? '...' : '') : '';
     return createNotification({
         userId: userId,
         userRole: userRole,
-        title: `📢 ${broadcast.title}`,
-        message: broadcast.message.substring(0, 100) + (broadcast.message.length > 100 ? '...' : ''),
+        title: `📢 ${broadcast.title || 'Announcement'}`,
+        message: shortMsg,
         type: 'broadcast',
         priority: 'medium',
         link: `/broadcasts.html?id=${broadcast.id}`,
@@ -111,13 +127,14 @@ async function notifyAllUsers(users, notificationData) {
         const result = await createNotification({
             ...notificationData,
             userId: user.id,
-            userRole: user.role
+            userRole: user.role || 'rep'
         });
-        results.push(result);
+        if (result) results.push(result);
     }
     return results;
 }
 
+// Make functions globally available
 window.notifyNewOrder = notifyNewOrder;
 window.notifyOrderStatusUpdate = notifyOrderStatusUpdate;
 window.notifyFeedbackReceived = notifyFeedbackReceived;
