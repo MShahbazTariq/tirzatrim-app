@@ -13,6 +13,11 @@
   <script src="/theme.js"></script>
   <script src="/broadcast.js"></script>
   <script src="/notification.js"></script>
+  
+  <!-- Notification System -->
+  <script src="/notification-center.js"></script>
+  <script src="/notification-helper.js"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 flex items-center justify-center transition-colors duration-200">
@@ -281,6 +286,64 @@
 
     updateClinicSuggestions();
 
+    // ============================================================
+    // SEND NOTIFICATIONS AFTER ORDER SUBMISSION
+    // ============================================================
+    async function sendOrderNotifications(order, repCode) {
+      try {
+        // Get rep details
+        const { data: rep, error } = await client
+          .from('reps')
+          .select('sap_id, manager_sap_id, full_name')
+          .eq('territory_code', repCode)
+          .single();
+
+        if (error) {
+          console.warn('Could not find rep for notifications:', error.message);
+          return;
+        }
+
+        const notificationData = {
+          order_id: order.order_id || order.id,
+          patient_name: order.patient_name,
+          prescribed_dose: order.prescribed_dose || '5mg'
+        };
+
+        // Notify the rep
+        if (rep.sap_id && window.notifyNewOrder) {
+          await window.notifyNewOrder(
+            notificationData,
+            rep.sap_id,
+            'rep'
+          );
+          console.log('✅ Rep notified:', rep.full_name);
+        }
+
+        // Also notify the manager (ZSM)
+        if (rep.manager_sap_id && window.notifyNewOrder) {
+          await window.notifyNewOrder(
+            notificationData,
+            rep.manager_sap_id,
+            'zsm'
+          );
+          console.log('✅ Manager notified');
+        }
+
+        // Also trigger global push notification for all listening portals
+        if (window.triggerPushNotification) {
+          window.triggerPushNotification(
+            `📦 New Order: ${order.order_id}`,
+            `Patient ${order.patient_name} submitted an order for ${order.prescribed_dose || '5mg'} (Territory: ${repCode})`,
+            '/',
+            'orders'
+          );
+        }
+
+      } catch (notifyError) {
+        console.warn('Notification error (non-critical):', notifyError);
+      }
+    }
+
     async function submitPatientOrder(e) {
       e.preventDefault();
       const statusMsg = document.getElementById('submissionStatus');
@@ -329,26 +392,37 @@
           }
         }
 
-        const { error: insertErr } = await client
+        // Insert order into database
+        const orderData = {
+          order_id,
+          patient_name,
+          age,
+          mobile,
+          city,
+          delivery_address,
+          doctor_name,
+          clinic_name,
+          indication,
+          prescribed_dose,
+          device,
+          rep_code,
+          prescription_url,
+          status: 'New Patient'
+        };
+
+        const { data: insertedOrder, error: insertErr } = await client
           .from('orders')
-          .insert([{
-            order_id,
-            patient_name,
-            age,
-            mobile,
-            city,
-            delivery_address,
-            doctor_name,
-            clinic_name,
-            indication,
-            prescribed_dose,
-            device,
-            rep_code,
-            prescription_url,
-            status: 'New Patient'
-          }]);
+          .insert([orderData])
+          .select()
+          .single();
 
         if (insertErr) throw insertErr;
+
+        // ============================================================
+        // SEND NOTIFICATIONS - NEW CODE ADDED HERE
+        // ============================================================
+        const order = insertedOrder || orderData;
+        await sendOrderNotifications(order, rep_code);
 
         document.getElementById('patientOrderForm').classList.add('hidden');
         document.getElementById('generatedOrderId').innerText = order_id;
