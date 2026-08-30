@@ -345,52 +345,93 @@
     }
 
     async function submitPatientOrder(e) {
-      e.preventDefault();
-      const statusMsg = document.getElementById('submissionStatus');
-      const submitBtn = document.getElementById('submitBtn');
+    e.preventDefault();
+    const statusMsg = document.getElementById('submissionStatus');
+    const submitBtn = document.getElementById('submitBtn');
 
-      statusMsg.className = "text-xs text-center font-medium text-amber-500 dark:text-amber-400";
-      statusMsg.innerText = "Submitting order details...";
-      statusMsg.classList.remove('hidden');
-      submitBtn.disabled = true;
+    statusMsg.className = "text-xs text-center font-medium text-amber-500 dark:text-amber-400";
+    statusMsg.innerText = "Submitting order details...";
+    statusMsg.classList.remove('hidden');
+    submitBtn.disabled = true;
 
-      const patient_name = document.getElementById('patientName').value.trim();
-      const age = parseInt(document.getElementById('patientAge').value) || null;
-      const mobile = document.getElementById('patientMobile').value.trim();
-      const city = document.getElementById('patientCity').value.trim();
-      const delivery_address = document.getElementById('patientAddress').value.trim();
-      const doctor_name = document.getElementById('doctorName').value.trim();
-      const clinic_name = document.getElementById('clinicName').value.trim();
-      const indication = document.getElementById('patientIndication').value;
-      const prescribed_dose = document.getElementById('prescribedDose').value;
-      const device = document.getElementById('deviceType').value;
-      
-      // Strict uppercase formatting
-      const rawRepCode = document.getElementById('territoryRepCode').value || 'DIRECT';
-      const rep_code = rawRepCode.trim().toUpperCase();
+    const patient_name = document.getElementById('patientName').value.trim();
+    const age = parseInt(document.getElementById('patientAge').value) || null;
+    const mobile = document.getElementById('patientMobile').value.trim();
+    const city = document.getElementById('patientCity').value.trim();
+    const delivery_address = document.getElementById('patientAddress').value.trim();
+    const doctor_name = document.getElementById('doctorName').value.trim();
+    const clinic_name = document.getElementById('clinicName').value.trim();
+    const indication = document.getElementById('patientIndication').value;
+    const prescribed_dose = document.getElementById('prescribedDose').value;
+    const device = document.getElementById('deviceType').value;
+    
+    const rawRepCode = document.getElementById('territoryRepCode').value || 'DIRECT';
+    const rep_code = rawRepCode.trim().toUpperCase();
 
-      const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
+    const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
 
-      let prescription_url = null;
-      const fileInput = document.getElementById('prescriptionFile');
+    let prescription_url = null;
+    const fileInput = document.getElementById('prescriptionFile');
 
-      try {
+    try {
         if (fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${order_id}-${Date.now()}.${fileExt}`;
-          
-          const { data: uploadData, error: uploadErr } = await client.storage
-            .from('prescriptions')
-            .upload(fileName, file);
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${order_id}-${Date.now()}.${fileExt}`;
+            
+            const { data: uploadData, error: uploadErr } = await client.storage
+                .from('prescriptions')
+                .upload(fileName, file);
 
-          if (!uploadErr && uploadData) {
-            const { data: publicUrlData } = client.storage
-              .from('prescriptions')
-              .getPublicUrl(fileName);
-            prescription_url = publicUrlData?.publicUrl || null;
-          }
+            if (!uploadErr && uploadData) {
+                const { data: publicUrlData } = client.storage
+                    .from('prescriptions')
+                    .getPublicUrl(fileName);
+                prescription_url = publicUrlData?.publicUrl || null;
+            }
         }
+
+        const orderData = {
+            order_id,
+            patient_name,
+            age,
+            mobile,
+            city,
+            delivery_address,
+            doctor_name,
+            clinic_name,
+            indication,
+            prescribed_dose,
+            device,
+            rep_code,
+            prescription_url,
+            status: 'New Patient'
+        };
+
+        const { data: insertedOrder, error: insertErr } = await client
+            .from('orders')
+            .insert([orderData])
+            .select()
+            .single();
+
+        if (insertErr) throw insertErr;
+
+        // ============================================================
+        // ✅ SEND NOTIFICATIONS - Updated to use direct insert
+        // ============================================================
+        const order = insertedOrder || orderData;
+        await sendOrderNotifications(order, rep_code);
+
+        document.getElementById('patientOrderForm').classList.add('hidden');
+        document.getElementById('generatedOrderId').innerText = order_id;
+        document.getElementById('successView').classList.remove('hidden');
+
+    } catch (err) {
+        statusMsg.className = "text-xs text-center font-medium text-rose-500";
+        statusMsg.innerText = "Failed to submit order: " + err.message;
+        submitBtn.disabled = false;
+    }
+}
 
         // Insert order into database
         const orderData = {
