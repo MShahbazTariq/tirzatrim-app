@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+    /* Smooth Scrollbarless Containers */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -67,7 +68,7 @@
     </div>
   </div>
 
-  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
+  <!-- EXECUTIVE SLIDE-OVER DRAWER (HQ Profile & Administration Tools) -->
   <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
   <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
     <div class="space-y-6">
@@ -125,10 +126,10 @@
     </div>
   </aside>
 
-  <!-- MAIN DASHBOARD -->
+  <!-- MAIN NATIONAL EXECUTIVE DASHBOARD -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
     
-    <!-- HEADER -->
+    <!-- 1. HEADER -->
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
       <button onclick="openSideMenu()" title="Open Menu" class="absolute right-4 top-4 sm:right-6 sm:top-6 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">
         ☰
@@ -162,7 +163,7 @@
       </div>
     </header>
 
-    <!-- KPI STRIP -->
+    <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">National Patients</div>
@@ -182,18 +183,26 @@
       </div>
     </div>
 
-    <!-- APP GRID: now only Analytics tab remains -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all col-span-2 sm:col-span-1">
+    <!-- 3. APP GRID LAUNCHPAD (3 Tabs: National Orders, Team Dr List, Analytics) -->
+    <div class="grid grid-cols-3 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">National Orders</span>
+      </button>
+      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📋</span>
+        <span class="text-xs font-bold">Team Dr List</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">📊</span>
         <span class="text-xs font-bold">Analytics</span>
       </button>
     </div>
 
-    <!-- ACTIVE VIEW: ANALYTICS (combined from previous 3 tabs) -->
-    <div id="view-analytics" class="tab-view-container space-y-4">
-      
-      <!-- 1. CASCADING FILTER (from National Orders) -->
+    <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
+    
+    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
+    <div id="view-orders" class="tab-view-container space-y-4">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
           <span>🔍</span> Cascading Multi-Level Search (Region → ZSM → Rep → Keyword)
@@ -215,41 +224,26 @@
         </div>
       </div>
 
-      <!-- 2. ENROLLMENT TREND + TOP PRESCRIBERS + DOSAGE BREAKDOWN (from original analytics) -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-        <div class="flex items-center justify-between">
+      <!-- Patient Cards Grid (Read-Only National Overview) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
           </h3>
-          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
         </div>
-        <div class="h-64 w-full pt-2">
-          <canvas id="dailyEnrollmentChart"></canvas>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>🩺</span> National Top Prescribing Doctors
-          </h3>
-          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
-          </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>💉</span> Dosage & Device Breakdown
-          </h3>
-          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
-            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+        <div id="hoCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading national records...
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 3. TEAM DOCTOR TABLE (from Team Dr List) -->
+    <!-- TAB 2: TEAM DOCTOR LIST (THREE-LEVEL FILTER: REGION -> ZSM -> KAM/REP) -->
+    <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
+        
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -326,8 +320,45 @@
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- 4. DOCTOR SUMMARY DIRECTORY (from Dr Summary) -->
+    <!-- TAB 3: ANALYTICS (Combined: Trends & KOLs + Dr Summary + Timeline) -->
+    <div id="view-analytics" class="tab-view-container space-y-4 hidden">
+      
+      <!-- TRENDS & KOLs SECTION -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📊</span> National Patient Enrollment Trend (Last 14 Days)
+          </h3>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">National Trend</span>
+        </div>
+        <div class="h-64 w-full pt-2">
+          <canvas id="dailyEnrollmentChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🩺</span> National Top Prescribing Doctors
+          </h3>
+          <div id="topDoctorsList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading prescribers...</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>💉</span> Dosage & Device Breakdown
+          </h3>
+          <div id="doseDistributionList" class="space-y-2 text-sm divide-y divide-slate-200 dark:divide-slate-800/60">
+            <div class="text-slate-400 dark:text-slate-500 py-2 text-center">Loading dosage share...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCTOR SUMMARY SECTION -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -419,7 +450,7 @@
         <div id="doctorPatientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5"></div>
       </div>
 
-      <!-- 5. TIMELINE / DATE SCOPE (from original Timeline) -->
+      <!-- TIMELINE SECTION -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
           <span>📅</span> Configure Date Window
@@ -447,15 +478,24 @@
           Showing: Month to Date
         </div>
       </div>
+
     </div>
 
   </div>
 
-  <!-- BOTTOM NAV (only Analytics) -->
+  <!-- 5. FIXED BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 flex items-center justify-around md:hidden">
-    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+    <button onclick="switchTab('orders')" id="bottomNav-orders" class="bottom-nav-item flex flex-col items-center text-emerald-600 dark:text-emerald-400">
+      <span class="text-lg">👥</span>
+      <span class="text-xs font-bold">Orders</span>
+    </button>
+    <button onclick="switchTab('teamDocs')" id="bottomNav-teamDocs" class="bottom-nav-item flex flex-col items-center text-slate-400">
+      <span class="text-lg">📋</span>
+      <span class="text-xs font-medium">Team Docs</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">📊</span>
-      <span class="text-xs font-bold">Analytics</span>
+      <span class="text-xs font-medium">Analytics</span>
     </button>
     <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400">
       <span class="text-lg">⚙️</span>
@@ -514,6 +554,7 @@
       const currentDose = prescribedDose || '5mg';
       const doseKey = normalizeDoseKey(currentDose);
       const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
+
       return {
         isDue: daysElapsed >= 21,
         daysElapsed,
@@ -558,9 +599,13 @@
       }
 
       if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
-        setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
-        renderDoctorList();
-        renderHoTeamDoctorsTable();
+        setTimeout(() => {
+          updateDailyChart(activeFilteredOrders);
+          renderDoctorList();
+        }, 100);
+      }
+      if (tabId === 'teamDocs') {
+        fetchTeamDoctors();
       }
     }
 
@@ -590,6 +635,7 @@
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
       } else if (type === 'YESTERDAY') {
         document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const y = new Date();
@@ -597,6 +643,7 @@
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
       } else if (type === 'LAST7') {
         document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const last7 = new Date();
@@ -604,17 +651,20 @@
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
       } else if (type === 'MTD') {
         document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
       } else if (type === 'ALL') {
         document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
         document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
       document.getElementById('calendarFromDate').value = filterStartDate || '';
@@ -626,15 +676,19 @@
     function onCustomDateSelected() {
       const from = document.getElementById('calendarFromDate').value;
       const to = document.getElementById('calendarToDate').value;
+
       if (from && to) {
         filterStartDate = from;
         filterEndDate = to;
         currentDateScope = "CUSTOM";
+        
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
           if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
+
         document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
         applyAllFilters();
       }
     }
@@ -900,7 +954,8 @@
         initDates();
         window.fetchEverything();
         initHQRealtimeSync();
-        switchTab('analytics');
+        // Default to orders tab on load
+        switchTab('orders');
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -1084,8 +1139,8 @@
       updateMetrics();
       updateDailyChart(hierarchyMatchedOrders);
       updateSummaries();
+      renderCards();
       renderDoctorList();
-      renderHoTeamDoctorsTable();
     }
 
     function updateMetrics() {
@@ -1096,6 +1151,7 @@
       document.getElementById('statTotal').innerText = total;
       document.getElementById('statProcess').innerText = inProcess;
       document.getElementById('statDelivered').innerText = delivered;
+      document.getElementById('filteredCount').innerText = total;
 
       const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
       if (ratings.length > 0) {
@@ -1214,6 +1270,88 @@
           <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
         </div>
       `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('hoCardsGrid');
+      if (!grid) return;
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found matching your selected date and filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = activeFilteredOrders.map(order => {
+        const fb = feedbackMap[order.id];
+        const esc = getEscalationDetails(order.created_at, order.prescribed_dose);
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isDispatched = order.status === 'Dispatched';
+        const isCancelled = order.status === 'Cancelled';
+
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
+            
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">${order.order_id || 'N/A'}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">Rep: ${order.rep_code || 'Direct'}</span>
+                  ${esc.isDue ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">🔄 Refill Due (D${esc.daysElapsed})</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-400 mt-1">${new Date(order.created_at).toLocaleDateString()}</div>
+              </div>
+              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-xl ${isCancelled ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (isDispatched ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700'))}">
+                ${isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New Patient')))}
+              </span>
+            </div>
+
+            <div class="space-y-1.5 text-sm">
+              <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
+              <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
+                📍 <strong>${order.city}:</strong> ${order.delivery_address || 'No street address provided'}
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Doctor</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-300 text-sm">Dr. ${(order.doctor_name || 'N/A').replace(/^(dr\.?|doctor)\s*/i, '')}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Clinic / Hospital</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Current Dose</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">${esc.currentDose} (${order.device || 'Multi-Dose Pen'})</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5">
+                <span class="text-slate-500 dark:text-slate-400">Escalation Target</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
+              </div>
+              ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` : ''}
+
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `
+                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
+                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Verified Feedback:</span>
+              <span>${fb ? `<span class="text-amber-500 font-bold">${renderStars(fb.overall_rating)}</span>` : '<span class="text-slate-400 italic">Pending</span>'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStars(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5 ? 1 : 0;
+      const empty = 5 - full - half;
+      return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
     }
 
     function buildDoctorData() {
@@ -1359,6 +1497,26 @@
     function closeDoctorPatientPanel() {
       document.getElementById('doctorPatientPanel').classList.add('hidden');
     }
+
+    function exportFilteredCSV() {
+      if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
+      let csv = "Order ID,Date,Manager SAP,Rep Code,Patient Name,Age,Mobile,City,Address,Doctor Name,Clinic Name,Indication,Dose,Device,Status,Cancellation Reason,Rating\n";
+      
+      activeFilteredOrders.forEach(o => {
+        const fb = feedbackMap[o.id];
+        const rating = fb ? fb.overall_rating : "Pending";
+        csv += `"${o.order_id || ''}","${new Date(o.created_at).toLocaleDateString()}","${o.manager_sap_id || ''}","${o.rep_code || ''}","${o.patient_name || ''}","${o.age || ''}","${o.mobile || ''}","${o.city || ''}","${(o.delivery_address || '').replace(/"/g, '""')}","${o.doctor_name || ''}","${o.clinic_name || ''}","${o.indication || ''}","${o.prescribed_dose || ''}","${o.device || ''}","${o.status || ''}","${(o.cancellation_reason || '').replace(/"/g, '""')}","${rating}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TirzaTrim_HQ_Filtered_${currentDateScope}_Export.csv`;
+      a.click();
+    }
+
+    // Make export function available globally
+    window.exportFilteredCSV = exportFilteredCSV;
 
     checkHoSession();
   </script>
