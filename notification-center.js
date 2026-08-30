@@ -14,10 +14,51 @@ class NotificationCenter {
         this.isOpen = false;
         this.channel = null;
         this.currentFilter = 'all';
-        this.init();
+        this.supabaseClient = null;
+        
+        // Get Supabase client
+        this.getSupabaseClient();
+    }
+
+    getSupabaseClient() {
+        // Try to get the existing Supabase client
+        if (window.supabase && window.supabase.createClient) {
+            // Check if there's already a client instance
+            const existingClient = window._supabaseClient || null;
+            if (existingClient) {
+                this.supabaseClient = existingClient;
+                this.init();
+                return;
+            }
+            
+            // Create new client using the same config
+            const url = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+            const key = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+            this.supabaseClient = supabase.createClient(url, key);
+            window._supabaseClient = this.supabaseClient;
+            this.init();
+        } else {
+            // Wait for Supabase to load
+            const checkSupabase = setInterval(() => {
+                if (window.supabase && window.supabase.createClient) {
+                    clearInterval(checkSupabase);
+                    const url = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+                    const key = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+                    this.supabaseClient = supabase.createClient(url, key);
+                    window._supabaseClient = this.supabaseClient;
+                    this.init();
+                }
+            }, 500);
+        }
     }
 
     async init() {
+        if (!this.supabaseClient) {
+            console.warn('Supabase client not available, retrying...');
+            setTimeout(() => this.getSupabaseClient(), 1000);
+            return;
+        }
+        
         this.createNotificationUI();
         await this.fetchNotifications();
         this.subscribeToRealtime();
@@ -101,17 +142,23 @@ class NotificationCenter {
     }
 
     async fetchNotifications() {
-        if (!this.userId) return;
+        if (!this.userId || !this.supabaseClient) {
+            console.warn('Cannot fetch notifications: missing userId or client');
+            return [];
+        }
 
         try {
-            const { data, error } = await supabase
+            const { data, error } = await this.supabaseClient
                 .from('notifications')
                 .select('*')
                 .eq('user_id', this.userId)
                 .order('created_at', { ascending: false })
                 .limit(50);
 
-            if (error) throw error;
+            if (error) {
+                console.warn('Fetch notifications error:', error);
+                return [];
+            }
 
             this.notifications = data || [];
             this.unreadCount = this.notifications.filter(n => !n.is_read).length;
@@ -120,36 +167,63 @@ class NotificationCenter {
             
             return this.notifications;
         } catch (err) {
-            console.error('Error fetching notifications:', err);
+            console.warn('Error fetching notifications:', err);
             return [];
         }
     }
 
     subscribeToRealtime() {
-        if (!this.userId) return;
+        if (!this.supabaseClient || !this.userId) {
+            console.warn('Cannot subscribe: missing client or userId');
+            return;
+        }
 
-        this.channel = supabase
-            .channel('public:notifications')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${this.userId}`
-                },
-                (payload) => {
-                    this.notifications.unshift(payload.new);
-                    if (!payload.new.is_read) {
-                        this.unreadCount++;
-                        this.updateBadge();
-                        this.playNotificationSound();
-                        this.showToast(payload.new);
-                    }
-                    this.renderNotifications();
+        try {
+            // Clean up existing channel
+            if (this.channel) {
+                try {
+                    this.supabaseClient.removeChannel(this.channel);
+                } catch (e) {
+                    console.warn('Error removing channel:', e);
                 }
-            )
-            .subscribe();
+                this.channel = null;
+            }
+
+            // Create new channel
+            this.channel = this.supabaseClient
+                .channel(`notifications-${this.userId}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${this.userId}`
+                    },
+                    (payload) => {
+                        console.log('📨 New notification received:', payload);
+                        this.notifications.unshift(payload.new);
+                        if (!payload.new.is_read) {
+                            this.unreadCount++;
+                            this.updateBadge();
+                            this.playNotificationSound();
+                            this.showToast(payload.new);
+                        }
+                        this.renderNotifications();
+                    }
+                );
+
+            this.channel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Notification channel subscribed');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.warn('⚠️ Notification channel error');
+                }
+            });
+
+        } catch (err) {
+            console.warn('Error subscribing to realtime:', err);
+        }
     }
 
     startPolling() {
@@ -227,8 +301,10 @@ class NotificationCenter {
     }
 
     async markAsRead(id) {
+        if (!this.supabaseClient) return;
+
         try {
-            const { error } = await supabase
+            const { error } = await this.supabaseClient
                 .from('notifications')
                 .update({ is_read: true })
                 .eq('id', id)
@@ -244,16 +320,18 @@ class NotificationCenter {
                 this.renderNotifications();
             }
         } catch (err) {
-            console.error('Error marking as read:', err);
+            console.warn('Error marking as read:', err);
         }
     }
 
     async markAllAsRead() {
+        if (!this.supabaseClient) return;
+
         const unreadIds = this.notifications.filter(n => !n.is_read).map(n => n.id);
         if (unreadIds.length === 0) return;
 
         try {
-            const { error } = await supabase
+            const { error } = await this.supabaseClient
                 .from('notifications')
                 .update({ is_read: true })
                 .in('id', unreadIds)
@@ -266,16 +344,17 @@ class NotificationCenter {
             this.updateBadge();
             this.renderNotifications();
         } catch (err) {
-            console.error('Error marking all as read:', err);
+            console.warn('Error marking all as read:', err);
         }
     }
 
     async clearAll() {
+        if (!this.supabaseClient) return;
         if (this.notifications.length === 0) return;
         if (!confirm('Clear all notifications?')) return;
 
         try {
-            const { error } = await supabase
+            const { error } = await this.supabaseClient
                 .from('notifications')
                 .delete()
                 .eq('user_id', this.userId);
@@ -287,7 +366,7 @@ class NotificationCenter {
             this.updateBadge();
             this.renderNotifications();
         } catch (err) {
-            console.error('Error clearing notifications:', err);
+            console.warn('Error clearing notifications:', err);
         }
     }
 
@@ -378,8 +457,13 @@ class NotificationCenter {
     }
 
     destroy() {
-        if (this.channel) {
-            supabase.removeChannel(this.channel);
+        if (this.channel && this.supabaseClient) {
+            try {
+                this.supabaseClient.removeChannel(this.channel);
+            } catch (e) {
+                console.warn('Error removing channel:', e);
+            }
+            this.channel = null;
         }
     }
 }
