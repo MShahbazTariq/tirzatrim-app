@@ -1207,10 +1207,10 @@
     }
 
     function checkHosSession() {
-      const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
-      const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
+    const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
+    const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
 
-      if (auth && data.sap_id) {
+    if (auth && data.sap_id) {
         hosUserRegion = data.region || 'Central';
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
@@ -1226,14 +1226,26 @@
         // Set region filter in doctor list to match HOS region
         const regionFilter = document.getElementById('hosDoctorRegionFilter');
         if (regionFilter && data.region) {
-          regionFilter.value = data.region;
+            regionFilter.value = data.region;
+        }
+
+        // ============================================================
+        // ✅ ADD NOTIFICATION CENTER HERE
+        // ============================================================
+        if (typeof NotificationCenter !== 'undefined') {
+            console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
+            window.notificationCenter = new NotificationCenter({
+                userId: data.sap_id,
+                userRole: 'hos',
+                pollInterval: 30000
+            });
         }
 
         initDates();
         window.fetchEverything();
         initHQRealtimeSync();
         switchTab('orders');
-      } else {
+    } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
         document.getElementById('loginForm').classList.remove('hidden');
@@ -1241,8 +1253,8 @@
         document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         document.getElementById('authErrorMsg').classList.add('hidden');
-      }
     }
+}
 
     // Make functions globally accessible
     window.switchTab = switchTab;
