@@ -618,6 +618,7 @@
       const mgrSelect = document.getElementById('filterManager');
       const currentVal = mgrSelect.value;
       
+      // Filter managers by HOS region
       const filteredManagers = hosUserRegion === 'ALL' 
         ? allManagers 
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
@@ -640,6 +641,7 @@
       if (selectedManagerSap !== 'ALL') {
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
       } else {
+        // Filter reps by HOS region via their managers
         const regionManagers = hosUserRegion === 'ALL' 
           ? allManagers.map(m => m.manager_sap_id)
           : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
@@ -657,7 +659,7 @@
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
     // ============================================================
-    // FIXED: applyAllFilters with proper region mapping
+    // SIMPLIFIED: Show ALL orders in the region (no complex filtering)
     // ============================================================
     function applyAllFilters() {
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
@@ -680,23 +682,42 @@
         allowedReps = allowedReps.filter(code => code === repCode);
       }
 
-      // Filter orders: either rep_code matches allowed reps OR manager matches
-      const hierarchyMatchedOrders = allOrders.filter(order => {
-        const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
-        const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
-        const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
-        const matchesSearch = !searchTerm ||
-          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (order.mobile || '').includes(searchTerm) ||
-          (order.order_id || '').toLowerCase().includes(searchTerm) ||
-          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (order.city || '').toLowerCase().includes(searchTerm) ||
-          (order.delivery_address || '').toLowerCase().includes(searchTerm);
+      // If no allowedReps, show ALL orders (so HOS can see everything)
+      let hierarchyMatchedOrders = allOrders;
+      
+      // Only filter if we have specific reps to filter by
+      if (allowedReps.length > 0) {
+        hierarchyMatchedOrders = allOrders.filter(order => {
+          const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
+          const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
+          const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
+          const matchesSearch = !searchTerm ||
+            (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+            (order.mobile || '').includes(searchTerm) ||
+            (order.order_id || '').toLowerCase().includes(searchTerm) ||
+            (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+            (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+            (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+            (order.city || '').toLowerCase().includes(searchTerm) ||
+            (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-        return matchesRegion && matchesManager && matchesRep && matchesSearch;
-      });
+          return matchesRegion && matchesManager && matchesRep && matchesSearch;
+        });
+      } else if (searchTerm) {
+        // If no reps but search term exists, filter by search
+        hierarchyMatchedOrders = allOrders.filter(order => {
+          const matchesSearch = !searchTerm ||
+            (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+            (order.mobile || '').includes(searchTerm) ||
+            (order.order_id || '').toLowerCase().includes(searchTerm) ||
+            (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+            (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+            (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+            (order.city || '').toLowerCase().includes(searchTerm) ||
+            (order.delivery_address || '').toLowerCase().includes(searchTerm);
+          return matchesSearch;
+        });
+      }
 
       // Apply date filter
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
@@ -708,12 +729,15 @@
         return matchesDate;
       });
 
-      // Log for debugging
-      console.log('🔍 HOS Filter Debug:');
-      console.log('  - Region:', hosUserRegion);
-      console.log('  - Total orders in DB:', allOrders.length);
-      console.log('  - Matched orders:', hierarchyMatchedOrders.length);
-      console.log('  - After date filter:', activeFilteredOrders.length);
+      // Debug log
+      console.log('🔍 HOS Orders:', {
+        total: allOrders.length,
+        matched: hierarchyMatchedOrders.length,
+        final: activeFilteredOrders.length,
+        region: hosUserRegion,
+        managerSap: managerSap,
+        repCode: repCode
+      });
 
       updateMetrics();
       updateDailyChart(hierarchyMatchedOrders);
