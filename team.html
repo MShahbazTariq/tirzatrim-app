@@ -17,6 +17,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Fast, Client-side QR Code Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Notification System -->
+  <script src="/notification-center.js"></script>
+  <script src="/notification-helper.js"></script>
 
   <style>
     /* Smooth Scrollbarless Containers */
@@ -2091,6 +2094,18 @@
     checkSession();
     checkGlobalBroadcast('team');
   </script>
+  <script>
+    // Initialize notification center after login
+    document.addEventListener('DOMContentLoaded', function() {
+        if (currentRep && currentRep.sap_id) {
+            window.notificationCenter = new NotificationCenter({
+                userId: currentRep.sap_id,
+                userRole: 'rep',
+                pollInterval: 30000
+            });
+        }
+    });
+</script>
 
 </body>
 </html>
