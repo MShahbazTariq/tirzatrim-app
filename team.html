@@ -237,7 +237,7 @@
       </div>
     </div>
 
-    <!-- 3. APP GRID LAUNCHPAD (Merged Doctor Tools & Patient QR into single Share & Links Hub) -->
+    <!-- 3. APP GRID LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-teal-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
         <span class="text-xl">👥</span>
@@ -371,7 +371,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: ANALYTICS (Merged Trends & Timeline + Doctor Summary) -->
+    <!-- TAB 3: ANALYTICS -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
       
       <!-- Date Scope Configurator -->
@@ -438,7 +438,7 @@
         </div>
       </div>
 
-      <!-- DOCTOR SUMMARY SECTION (from Head Office) -->
+      <!-- DOCTOR SUMMARY SECTION -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -532,7 +532,7 @@
 
     </div>
 
-    <!-- MERGED HUB: SHARE & LINKS (DOCTOR TOOLS + PATIENT QR) -->
+    <!-- MERGED HUB: SHARE & LINKS -->
     <div id="view-doctorLink" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-sm">
         
@@ -1241,6 +1241,16 @@
         window.fetchRepOrders();
         window.fetchTerritoryDoctors();
         initRepRealtimeSync();
+        
+        // Initialize Notification Center after login
+        if (currentRep && currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
+          window.notificationCenter = new NotificationCenter({
+            userId: currentRep.sap_id,
+            userRole: 'rep',
+            pollInterval: 30000
+          });
+        }
+        
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -2094,18 +2104,6 @@
     checkSession();
     checkGlobalBroadcast('team');
   </script>
-  <script>
-    // Initialize notification center after login
-    document.addEventListener('DOMContentLoaded', function() {
-        if (currentRep && currentRep.sap_id) {
-            window.notificationCenter = new NotificationCenter({
-                userId: currentRep.sap_id,
-                userRole: 'rep',
-                pollInterval: 30000
-            });
-        }
-    });
-</script>
 
 </body>
 </html>
