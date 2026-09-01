@@ -1640,6 +1640,85 @@
 
   applyAllFilters();
 }
+    // ============================================================
+// ORDERS TAB DATE FILTER FUNCTIONS
+// ============================================================
+
+// Sync orders tab date buttons with main date filter
+function syncOrdersDateButtons() {
+  const buttons = ['Today', 'Yesterday', '7Days', 'MTD', 'All'];
+  const map = {
+    'TODAY': 'ordersBtnToday',
+    'YESTERDAY': 'ordersBtnYesterday',
+    'LAST7': 'ordersBtn7Days',
+    'MTD': 'ordersBtnMTD',
+    'ALL': 'ordersBtnAll'
+  };
+  
+  // Reset all buttons
+  buttons.forEach(id => {
+    const btn = document.getElementById(map[id]);
+    if (btn) {
+      btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+    }
+  });
+  
+  // Highlight active button
+  const activeBtn = document.getElementById(map[currentDateScope]);
+  if (activeBtn) {
+    activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
+  }
+  
+  // Update badge
+  const badge = document.getElementById('ordersDateBadge');
+  if (badge) {
+    const scopeMap = {
+      'TODAY': 'Today',
+      'YESTERDAY': 'Yesterday',
+      'LAST7': 'Last 7 Days',
+      'MTD': 'Month to Date',
+      'ALL': 'All Time',
+      'CUSTOM': 'Custom Range'
+    };
+    badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+  }
+  
+  // Update calendar inputs
+  document.getElementById('ordersCalendarFrom').value = filterStartDate || '';
+  document.getElementById('ordersCalendarTo').value = filterEndDate || '';
+}
+
+// Handle custom date from orders tab
+function onOrdersCustomDate() {
+  const from = document.getElementById('ordersCalendarFrom').value;
+  const to = document.getElementById('ordersCalendarTo').value;
+  
+  if (from && to) {
+    filterStartDate = from;
+    filterEndDate = to;
+    currentDateScope = 'CUSTOM';
+    
+    // Reset main date buttons
+    ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+      const el = document.getElementById(`btnDate${id}`);
+      if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+    });
+    
+    // Update badges
+    document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+    document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+    
+    syncOrdersDateButtons();
+    applyAllFilters();
+  }
+}
+
+// Override setDatePreset to also update orders tab
+const originalSetDatePreset = setDatePreset;
+setDatePreset = function(type) {
+  originalSetDatePreset(type);
+  syncOrdersDateButtons();
+};
 
     function renderStars(rating) {
       if (!rating) return '';
