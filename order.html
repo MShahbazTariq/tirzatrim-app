@@ -196,10 +196,93 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ... (PAKISTAN_CLINICS and other existing code remains the same)
+    const PAKISTAN_CLINICS = {
+      "Lahore": [
+        "IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", 
+        "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)",
+        "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", 
+        "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal",
+        "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"
+      ],
+      "Karachi": [
+        "Aga Khan University Hospital (AKUH)", "Liaquat National Hospital", "South City Hospital", 
+        "Ziauddin Hospital (Clifton/North Nazimabad)", "Indus Hospital", "Tabba Heart Institute",
+        "Patel Hospital", "Civil Hospital Karachi", "Jinnah Postgraduate Medical Centre (JPMC)",
+        "OMI Hospital", "National Medical Centre (NMC)", "Hashmanis Hospital", "IDC Karachi"
+      ],
+      "Islamabad": [
+        "IDC (Islamabad Diagnostic Centre)", "Shifa International Hospital", "PIMS (Pakistan Institute of Medical Sciences)", 
+        "Kulsum International Hospital", "Maroof International Hospital", "Ali Medical Centre",
+        "PAF Hospital Islamabad", "Quaid-e-Azam International Hospital", "Federal Government Polyclinic Hospital"
+      ],
+      "Rawalpindi": [
+        "IDC Rawalpindi", "Rawalpindi Institute of Cardiology (RIC)", "Holy Family Hospital", 
+        "Benazir Bhutto Hospital (BBH)", "District Headquarter Hospital (DHQ)", "Hearts International Hospital", 
+        "Al-Shifa Trust Eye Hospital", "Bilal Hospital", "Maryam Memorial Hospital"
+      ],
+      "Faisalabad": [
+        "Allied Hospital", "Faisal Hospital", "DHQ Hospital Faisalabad", 
+        "National Hospital Faisalabad", "Mian Muhammad Trust Hospital", "Chiniot General Hospital", "IDC Faisalabad"
+      ],
+      "Multan": [
+        "Nishtar Hospital", "Multan Institute of Cardiology (MIC)", "Bakhtawar Amin Memorial Hospital", 
+        "Mukhtar A. Sheikh Hospital", "Fatima Medical Centre", "IDC Multan"
+      ],
+      "Peshawar": [
+        "Shaukat Khanum Peshawar", "Hayatabad Medical Complex (HMC)", "Khyber Teaching Hospital (KTH)", 
+        "Lady Reading Hospital (LRH)", "Rehman Medical Institute (RMI)", "North West General Hospital", "IDC Peshawar"
+      ]
+    };
+
+    const GENERAL_CLINICS = [
+      "IDC (Islamabad Diagnostic Centre)", "Chughtai Medical Center", "Excel Labs / Medical Center", "Al-Khidmat Clinic"
+    ];
+
+    function updateClinicSuggestions() {
+      const city = document.getElementById('patientCity').value.trim();
+      const datalist = document.getElementById('clinicSuggestions');
+      datalist.innerHTML = "";
+
+      let list = PAKISTAN_CLINICS[city] || [];
+      if (list.length === 0) {
+        list = GENERAL_CLINICS;
+      } else {
+        list = [...new Set([...list, ...GENERAL_CLINICS])];
+      }
+
+      list.forEach(clinic => {
+        const opt = document.createElement('option');
+        opt.value = clinic;
+        datalist.appendChild(opt);
+      });
+    }
+
+    // Auto-detect territory rep code and URL parameters for 1-click step-up refills
+    const urlParams = new URLSearchParams(window.location.search);
+    const assignedRep = urlParams.get('rep') ? urlParams.get('rep').trim().toUpperCase() : 'DIRECT';
+    document.getElementById('territoryRepCode').value = assignedRep;
+
+    if (urlParams.get('name')) {
+      document.getElementById('patientName').value = decodeURIComponent(urlParams.get('name'));
+    }
+    if (urlParams.get('mobile')) {
+      document.getElementById('patientMobile').value = decodeURIComponent(urlParams.get('mobile'));
+    }
+    if (urlParams.get('dose')) {
+      const doseVal = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+      const doseSelect = document.getElementById('prescribedDose');
+      for (let i = 0; i < doseSelect.options.length; i++) {
+        if (doseSelect.options[i].value.toLowerCase() === doseVal) {
+          doseSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    updateClinicSuggestions();
 
     // ============================================================
-    // SEND NOTIFICATIONS - DIRECT INSERT (NO EXTERNAL DEPENDENCIES)
+    // SEND NOTIFICATIONS - DIRECT INSERT
     // ============================================================
     async function sendOrderNotifications(order, repCode) {
         try {
@@ -345,7 +428,7 @@
     }
 
     // ============================================================
-    // SUBMIT ORDER FUNCTION
+    // SUBMIT ORDER FUNCTION - COMPLETE
     // ============================================================
     async function submitPatientOrder(e) {
       e.preventDefault();
@@ -358,11 +441,62 @@
       statusMsg.classList.remove('hidden');
       submitBtn.disabled = true;
 
-      // ... get all form values (existing code) ...
+      // Get form values
+      const patient_name = document.getElementById('patientName').value.trim();
+      const age = parseInt(document.getElementById('patientAge').value) || null;
+      const mobile = document.getElementById('patientMobile').value.trim();
+      const city = document.getElementById('patientCity').value.trim();
+      const delivery_address = document.getElementById('patientAddress').value.trim();
+      const doctor_name = document.getElementById('doctorName').value.trim();
+      const clinic_name = document.getElementById('clinicName').value.trim();
+      const indication = document.getElementById('patientIndication').value;
+      const prescribed_dose = document.getElementById('prescribedDose').value;
+      const device = document.getElementById('deviceType').value;
+      const rep_code = document.getElementById('territoryRepCode').value.trim().toUpperCase() || 'DIRECT';
+
+      const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+      let prescription_url = null;
+      const fileInput = document.getElementById('prescriptionFile');
 
       try {
-        // ... insert order (existing code) ...
+        // Upload prescription file if selected
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${order_id}-${Date.now()}.${fileExt}`;
+          
+          const { error: uploadErr } = await client.storage
+            .from('prescriptions')
+            .upload(fileName, file);
 
+          if (!uploadErr) {
+            const { data: publicUrlData } = client.storage
+              .from('prescriptions')
+              .getPublicUrl(fileName);
+            prescription_url = publicUrlData?.publicUrl || null;
+          }
+        }
+
+        // ✅ Define orderData BEFORE using it
+        const orderData = {
+          order_id,
+          patient_name,
+          age,
+          mobile,
+          city,
+          delivery_address,
+          doctor_name,
+          clinic_name,
+          indication,
+          prescribed_dose,
+          device,
+          rep_code,
+          prescription_url,
+          status: 'New Patient'
+        };
+
+        // Insert order into database
         const { data: insertedOrder, error: insertErr } = await client
           .from('orders')
           .insert([orderData])
@@ -373,9 +507,7 @@
 
         console.log('✅ Order inserted:', insertedOrder);
 
-        // ============================================================
-        // ✅ SEND NOTIFICATIONS - THIS IS THE KEY PART
-        // ============================================================
+        // Send notifications to ALL levels
         await sendOrderNotifications(insertedOrder || orderData, rep_code);
 
         // Show success
@@ -391,7 +523,34 @@
       }
     }
 
-    // ... rest of the existing functions ...
+    function resetForAnotherOrder() {
+      document.getElementById('patientOrderForm').reset();
+      document.getElementById('territoryRepCode').value = assignedRep;
+      document.getElementById('submissionStatus').classList.add('hidden');
+      document.getElementById('submitBtn').disabled = false;
+
+      document.getElementById('successView').classList.add('hidden');
+      document.getElementById('patientOrderForm').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeCurrentWindow() {
+      window.close();
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 font-sans text-center transition-colors duration-200">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-3 shadow-xl">
+              <div class="text-3xl text-emerald-600 dark:text-emerald-400">✓</div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Order Submitted Successfully</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">You may now safely close this browser tab.</p>
+            </div>
+          </div>
+        `;
+      }, 300);
+    }
+
+    updateClinicSuggestions();
+    checkGlobalBroadcast('patient');
   </script>
 </body>
 </html>
