@@ -1713,12 +1713,26 @@ function onOrdersCustomDate() {
   }
 }
 
-// Override setDatePreset to also update orders tab
+// ... existing setDatePreset function ...
+function setDatePreset(type) {
+  // ... existing code ...
+}
+
+// ✅ ONLY ONE COPY OF THIS - DELETE THE DUPLICATE
 const originalSetDatePreset = setDatePreset;
 setDatePreset = function(type) {
   originalSetDatePreset(type);
   syncOrdersDateButtons();
 };
+
+// Your other functions
+function syncOrdersDateButtons() {
+  // ...
+}
+
+function onOrdersCustomDate() {
+  // ...
+}
 
     function renderStars(rating) {
       if (!rating) return '';
