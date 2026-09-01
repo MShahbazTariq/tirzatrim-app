@@ -554,8 +554,7 @@
       </div>
 
     </div>
-
-    <!-- MERGED HUB: SHARE & LINKS -->
+        <!-- MERGED HUB: SHARE & LINKS -->
     <div id="view-doctorLink" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-sm">
         
@@ -724,8 +723,7 @@
       <span class="text-xs font-medium">Settings</span>
     </button>
   </nav>
-
-  <script>
+    <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
@@ -1583,202 +1581,183 @@
       setDatePreset('MTD');
     }
 
-    function setDatePreset(type) {
-  currentDateScope = type;
-  const today = new Date();
-
-  // Reset all button styles
-  ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-    const el = document.getElementById(`btnDate${id}`);
-    if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-  });
-
-  if (type === 'TODAY') {
-    document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-    filterStartDate = getLocalDateKey(today);
-    filterEndDate = getLocalDateKey(today);
-    document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-    document.getElementById('activeDateScopeTag').innerText = "Today";
-    
-  } else if (type === 'YESTERDAY') {
-    document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-    const y = new Date();
-    y.setDate(y.getDate() - 1);
-    filterStartDate = getLocalDateKey(y);
-    filterEndDate = getLocalDateKey(y);
-    document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-    document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-    
-  } else if (type === 'LAST7') {
-    document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-    const last7 = new Date();
-    last7.setDate(last7.getDate() - 6);
-    filterStartDate = getLocalDateKey(last7);
-    filterEndDate = getLocalDateKey(today);
-    document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-    document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-    
-  } else if (type === 'MTD') {
-    document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-    // ✅ FIX: Use the FIRST day of the month, not today
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    filterStartDate = getLocalDateKey(firstDay);
-    filterEndDate = getLocalDateKey(today);
-    document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-    document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-    
-  } else if (type === 'ALL') {
-    document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-    filterStartDate = null;
-    filterEndDate = null;
-    document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
-    document.getElementById('activeDateScopeTag').innerText = "All Time";
-  }
-
-  document.getElementById('calendarFromDate').value = filterStartDate || '';
-  document.getElementById('calendarToDate').value = filterEndDate || '';
-
-  applyAllFilters();
-}
     // ============================================================
-// ORDERS TAB DATE FILTER FUNCTIONS
-// ============================================================
+    // DATE FUNCTIONS - FIXED
+    // ============================================================
 
-// Sync orders tab date buttons with main date filter
-function syncOrdersDateButtons() {
-  const buttons = ['Today', 'Yesterday', '7Days', 'MTD', 'All'];
-  const map = {
-  'TODAY': 'ordersBtnToday',
-  'YESTERDAY': 'ordersBtnYesterday',
-  'LAST7': 'ordersBtn7Days',
-  'MTD': 'ordersBtnMTD',
-  'ALL': 'ordersBtnAll'
-};
-  
-  // Reset all buttons
-  buttons.forEach(id => {
-    const btn = document.getElementById(map[id]);
-    if (btn) {
-      btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+
+      // Reset all button styles
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+
+      if (type === 'TODAY') {
+        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Today";
+        
+      } else if (type === 'YESTERDAY') {
+        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+        
+      } else if (type === 'LAST7') {
+        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const last7 = new Date();
+        last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+        
+      } else if (type === 'MTD') {
+        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+        
+      } else if (type === 'ALL') {
+        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
+        document.getElementById('activeDateScopeTag').innerText = "All Time";
+      }
+
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      applyAllFilters();
     }
-  });
-  
-  // Highlight active button
-  const activeBtn = document.getElementById(map[currentDateScope]);
-  if (activeBtn) {
-    activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
-  }
-  
-  // Update badge
-  const badge = document.getElementById('ordersDateBadge');
-  if (badge) {
-    const scopeMap = {
-      'TODAY': 'Today',
-      'YESTERDAY': 'Yesterday',
-      'LAST7': 'Last 7 Days',
-      'MTD': 'Month to Date',
-      'ALL': 'All Time',
-      'CUSTOM': 'Custom Range'
+
+    // ORDERS TAB DATE FILTER FUNCTIONS
+    function syncOrdersDateButtons() {
+      const buttons = ['Today', 'Yesterday', '7Days', 'MTD', 'All'];
+      const map = {
+        'TODAY': 'ordersBtnToday',
+        'YESTERDAY': 'ordersBtnYesterday',
+        'LAST7': 'ordersBtn7Days',
+        'MTD': 'ordersBtnMTD',
+        'ALL': 'ordersBtnAll'
+      };
+      
+      // Reset all buttons
+      buttons.forEach(id => {
+        const btn = document.getElementById(map[id]);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+        }
+      });
+      
+      // Highlight active button
+      const activeBtn = document.getElementById(map[currentDateScope]);
+      if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
+      }
+      
+      // Update badge
+      const badge = document.getElementById('ordersDateBadge');
+      if (badge) {
+        const scopeMap = {
+          'TODAY': 'Today',
+          'YESTERDAY': 'Yesterday',
+          'LAST7': 'Last 7 Days',
+          'MTD': 'Month to Date',
+          'ALL': 'All Time',
+          'CUSTOM': 'Custom Range'
+        };
+        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+      }
+      
+      // Update calendar inputs
+      document.getElementById('ordersCalendarFrom').value = filterStartDate || '';
+      document.getElementById('ordersCalendarTo').value = filterEndDate || '';
+    }
+
+    function onOrdersCustomDate() {
+      const from = document.getElementById('ordersCalendarFrom').value;
+      const to = document.getElementById('ordersCalendarTo').value;
+      
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = 'CUSTOM';
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        
+        syncOrdersDateButtons();
+        applyAllFilters();
+      }
+    }
+
+    // Override setDatePreset to also update orders tab
+    const originalSetDatePreset = setDatePreset;
+    setDatePreset = function(type) {
+      originalSetDatePreset(type);
+      syncOrdersDateButtons();
     };
-    badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
-  }
-  
-  // Update calendar inputs
-  document.getElementById('ordersCalendarFrom').value = filterStartDate || '';
-  document.getElementById('ordersCalendarTo').value = filterEndDate || '';
-}
-
-// Handle custom date from orders tab
-function onOrdersCustomDate() {
-  const from = document.getElementById('ordersCalendarFrom').value;
-  const to = document.getElementById('ordersCalendarTo').value;
-  
-  if (from && to) {
-    filterStartDate = from;
-    filterEndDate = to;
-    currentDateScope = 'CUSTOM';
-    
-    // Reset main date buttons
-    ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-      const el = document.getElementById(`btnDate${id}`);
-      if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-    });
-    
-    // Update badges
-    document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-    document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-    
-    syncOrdersDateButtons();
-    applyAllFilters();
-  }
-}
-
-// ... existing setDatePreset function ...
-function setDatePreset(type) {
-  // ... existing code ...
-}
-
-// ✅ ONLY ONE COPY OF THIS - DELETE THE DUPLICATE
-const originalSetDatePreset = setDatePreset;
-setDatePreset = function(type) {
-  originalSetDatePreset(type);
-  syncOrdersDateButtons();
-};
-
-// Your other functions
-function syncOrdersDateButtons() {
-  // ...
-}
-
-function onOrdersCustomDate() {
-  // ...
-}
-
-    function renderStars(rating) {
+          function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
     }
 
     function applyAllFilters() {
-  const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
-  const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
+      const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
 
-  const repTerritoryCode = currentRep?.territory_code || '';
+      const repTerritoryCode = currentRep?.territory_code || '';
 
-  const hierarchyMatchedOrders = rawOrders.filter(order => {
-    const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
-    const matchesSearch = !searchTerm || 
-      (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-      (order.mobile || '').includes(searchTerm) ||
-      (order.order_id || '').toLowerCase().includes(searchTerm) ||
-      (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-      (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-      (order.delivery_address || '').toLowerCase().includes(searchTerm);
+      const hierarchyMatchedOrders = rawOrders.filter(order => {
+        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+        const matchesSearch = !searchTerm || 
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-    const matchesRep = !repTerritoryCode || (order.rep_code || '').toUpperCase() === repTerritoryCode.toUpperCase();
+        const matchesRep = !repTerritoryCode || (order.rep_code || '').toUpperCase() === repTerritoryCode.toUpperCase();
 
-    return matchesStatus && matchesSearch && matchesRep;
-  });
+        return matchesStatus && matchesSearch && matchesRep;
+      });
 
-  // ✅ FIX: Properly filter by date using the created_at field
-  activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-    // Use the created_at date directly
-    const orderDate = new Date(o.created_at);
-    const orderDateStr = orderDate.toISOString().split('T')[0];
-    
-    let matchesDate = true;
-    if (filterStartDate && filterEndDate) {
-      matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+      // ✅ FIX: Properly filter by date using the created_at field
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDate = new Date(o.created_at);
+        const orderDateStr = orderDate.toISOString().split('T')[0];
+        
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+      renderDoctorSummaryList();
     }
-    return matchesDate;
-  });
-
-  updateMetrics();
-  updateDailyChart(hierarchyMatchedOrders);
-  updateSummaries();
-  renderCards();
-  renderDoctorSummaryList();
-}
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
@@ -2211,6 +2190,7 @@ function onOrdersCustomDate() {
       openWhatsAppUniversal(mobile, msg);
     }
 
+    // Initialize
     checkSession();
     checkGlobalBroadcast('team');
   </script>
