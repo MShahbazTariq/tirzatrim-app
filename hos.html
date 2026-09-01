@@ -166,60 +166,60 @@
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all"><span class="text-xl">📊</span><span class="text-xs font-bold">Analytics</span></button>
     </div>
 
-    <!-- TAB 1: ORDERS -->
-<div id="view-orders" class="tab-view-container space-y-4">
-  
-  <!-- Hierarchy Search Engine -->
-  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
-    <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-      <span>🔍</span> Hierarchy Search Engine (ZSM • Field Rep • Keyword)
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-        <option value="ALL">All ZSMs in My Region</option>
-      </select>
-      <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-        <option value="ALL">All Reps in Selection</option>
-      </select>
-      <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-    </div>
-  </div>
-
-  <!-- ✅ DATE FILTER - NEW -->
-  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
-      <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
-      <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
-      <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
-      <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all">Month to Date</button>
-      <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+    <!-- TAB 1: ORDERS WITH DATE FILTER -->
+    <div id="view-orders" class="tab-view-container space-y-4">
       
-      <div class="flex items-center gap-1 ml-2">
-        <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-        <span class="text-xs text-slate-400">to</span>
-        <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-        <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+      <!-- Hierarchy Search Engine -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+          <span>🔍</span> Hierarchy Search Engine (ZSM • Field Rep • Keyword)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <option value="ALL">All ZSMs in My Region</option>
+          </select>
+          <select id="filterRep" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <option value="ALL">All Reps in Selection</option>
+          </select>
+          <input type="text" id="globalSearchInput" oninput="applyAllFilters()" placeholder="Patient, Mobile, Doctor, City..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+        </div>
+      </div>
+
+      <!-- ✅ DATE FILTER -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
+          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
+          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
+          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
+          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all">Month to Date</button>
+          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+          
+          <div class="flex items-center gap-1 ml-2">
+            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <span class="text-xs text-slate-400">to</span>
+            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+          </div>
+          
+          <span id="ordersDateBadge" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
+        </div>
+      </div>
+
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">Loading regional records...</div>
+        </div>
       </div>
       
-      <span id="ordersDateBadge" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
     </div>
-  </div>
-
-  <!-- Patient Cards Grid -->
-  <div class="space-y-3">
-    <div class="flex items-center justify-between px-1">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-        <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-      </h3>
-      <span id="activeDateScopeTag" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
-    </div>
-    <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">Loading regional records...</div>
-    </div>
-  </div>
-  
-</div>
 
     <!-- TAB 2: TEAM DOCTOR LIST -->
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
@@ -444,8 +444,7 @@
         document.getElementById('loginTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       }
     }
-
-    function getInitials(name) {
+        function getInitials(name) {
       if (!name) return 'HS';
       const parts = name.trim().split(/\s+/);
       if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
@@ -653,7 +652,6 @@
       const mgrSelect = document.getElementById('filterManager');
       const currentVal = mgrSelect.value;
       
-      // Filter managers by HOS region - show ALL if region is ALL or match region
       const filteredManagers = hosUserRegion === 'ALL' 
         ? allManagers 
         : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase());
@@ -676,7 +674,6 @@
       if (selectedManagerSap !== 'ALL') {
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedManagerSap);
       } else {
-        // Filter reps by HOS region via their managers
         const regionManagers = hosUserRegion === 'ALL' 
           ? allManagers.map(m => m.manager_sap_id)
           : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase()).map(m => m.manager_sap_id);
@@ -693,58 +690,60 @@
 
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
+    // ============================================================
+    // ✅ FIXED: applyAllFilters with proper region filtering
+    // ============================================================
     function applyAllFilters() {
-  const managerSap = document.getElementById('filterManager')?.value || 'ALL';
-  const repCode = document.getElementById('filterRep')?.value || 'ALL';
-  const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
+      const managerSap = document.getElementById('filterManager')?.value || 'ALL';
+      const repCode = document.getElementById('filterRep')?.value || 'ALL';
+      const searchTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
 
-  // ✅ FIX: Case-insensitive region matching
-  const regionManagers = hosUserRegion === 'ALL' 
-    ? allManagers.map(m => m.manager_sap_id)
-    : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase()).map(m => m.manager_sap_id);
+      const regionManagers = hosUserRegion === 'ALL' 
+        ? allManagers.map(m => m.manager_sap_id)
+        : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase()).map(m => m.manager_sap_id);
 
-  let allowedReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id)).map(r => r.territory_code);
+      let allowedReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id)).map(r => r.territory_code);
 
-  if (managerSap !== 'ALL') {
-    allowedReps = allReps.filter(r => r.manager_sap_id === managerSap).map(r => r.territory_code);
-  }
+      if (managerSap !== 'ALL') {
+        allowedReps = allReps.filter(r => r.manager_sap_id === managerSap).map(r => r.territory_code);
+      }
 
-  if (repCode !== 'ALL') {
-    allowedReps = allowedReps.filter(code => code === repCode);
-  }
+      if (repCode !== 'ALL') {
+        allowedReps = allowedReps.filter(code => code === repCode);
+      }
 
-  const hierarchyMatchedOrders = allOrders.filter(order => {
-    const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
-    const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
-    const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
-    const matchesSearch = !searchTerm ||
-      (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-      (order.mobile || '').includes(searchTerm) ||
-      (order.order_id || '').toLowerCase().includes(searchTerm) ||
-      (order.rep_code || '').toLowerCase().includes(searchTerm) ||
-      (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-      (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-      (order.city || '').toLowerCase().includes(searchTerm) ||
-      (order.delivery_address || '').toLowerCase().includes(searchTerm);
+      const hierarchyMatchedOrders = allOrders.filter(order => {
+        const matchesRegion = allowedReps.includes(order.rep_code) || regionManagers.includes(order.manager_sap_id);
+        const matchesManager = managerSap === 'ALL' || order.manager_sap_id === managerSap || allowedReps.includes(order.rep_code);
+        const matchesRep = repCode === 'ALL' || order.rep_code === repCode;
+        const matchesSearch = !searchTerm ||
+          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+          (order.mobile || '').includes(searchTerm) ||
+          (order.order_id || '').toLowerCase().includes(searchTerm) ||
+          (order.rep_code || '').toLowerCase().includes(searchTerm) ||
+          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+          (order.city || '').toLowerCase().includes(searchTerm) ||
+          (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-    return matchesRegion && matchesManager && matchesRep && matchesSearch;
-  });
+        return matchesRegion && matchesManager && matchesRep && matchesSearch;
+      });
 
-  activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-    const orderDateStr = getLocalDateKey(o.created_at);
-    let matchesDate = true;
-    if (filterStartDate && filterEndDate) {
-      matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+        const orderDateStr = getLocalDateKey(o.created_at);
+        let matchesDate = true;
+        if (filterStartDate && filterEndDate) {
+          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
+        }
+        return matchesDate;
+      });
+
+      updateMetrics();
+      updateDailyChart(hierarchyMatchedOrders);
+      updateSummaries();
+      renderCards();
+      renderDoctorList();
     }
-    return matchesDate;
-  });
-
-  updateMetrics();
-  updateDailyChart(hierarchyMatchedOrders);
-  updateSummaries();
-  renderCards();
-  renderDoctorList();
-}
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
@@ -1095,8 +1094,7 @@
       document.getElementById('calendarToDate').value = filterEndDate || '';
       applyAllFilters();
     }
-
-    function onCustomDateSelected() {
+        function onCustomDateSelected() {
       const from = document.getElementById('calendarFromDate').value;
       const to = document.getElementById('calendarToDate').value;
       if (from && to) {
@@ -1112,6 +1110,83 @@
         applyAllFilters();
       }
     }
+
+    // ============================================================
+    // ORDERS TAB DATE FILTER FUNCTIONS
+    // ============================================================
+
+    function syncOrdersDateButtons() {
+      const map = {
+        'TODAY': 'ordersBtnToday',
+        'YESTERDAY': 'ordersBtnYesterday',
+        'LAST7': 'ordersBtn7Days',
+        'MTD': 'ordersBtnMTD',
+        'ALL': 'ordersBtnAll'
+      };
+      
+      const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
+      allButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+        }
+      });
+      
+      const activeBtnId = map[currentDateScope];
+      if (activeBtnId) {
+        const activeBtn = document.getElementById(activeBtnId);
+        if (activeBtn) {
+          activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all";
+        }
+      }
+      
+      const badge = document.getElementById('ordersDateBadge');
+      if (badge) {
+        const scopeMap = {
+          'TODAY': 'Today',
+          'YESTERDAY': 'Yesterday',
+          'LAST7': 'Last 7 Days',
+          'MTD': 'Month to Date',
+          'ALL': 'All Time',
+          'CUSTOM': 'Custom Range'
+        };
+        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+      }
+      
+      const fromInput = document.getElementById('ordersCalendarFrom');
+      const toInput = document.getElementById('ordersCalendarTo');
+      if (fromInput) fromInput.value = filterStartDate || '';
+      if (toInput) toInput.value = filterEndDate || '';
+    }
+
+    function onOrdersCustomDate() {
+      const from = document.getElementById('ordersCalendarFrom').value;
+      const to = document.getElementById('ordersCalendarTo').value;
+      
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = 'CUSTOM';
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        
+        syncOrdersDateButtons();
+        applyAllFilters();
+      }
+    }
+
+    // Override setDatePreset to also update orders tab
+    const originalSetDatePreset = setDatePreset;
+    setDatePreset = function(type) {
+      originalSetDatePreset(type);
+      syncOrdersDateButtons();
+    };
 
     function exportFilteredCSV() {
       if (!activeFilteredOrders || activeFilteredOrders.length === 0) return alert("No records to export.");
@@ -1310,6 +1385,8 @@
     window.switchTab = switchTab;
     window.setDatePreset = setDatePreset;
     window.onCustomDateSelected = onCustomDateSelected;
+    window.onOrdersCustomDate = onOrdersCustomDate;
+    window.syncOrdersDateButtons = syncOrdersDateButtons;
     window.exportFilteredCSV = exportFilteredCSV;
     window.openSideMenu = openSideMenu;
     window.closeSideMenu = closeSideMenu;
