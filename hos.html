@@ -314,7 +314,8 @@
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
-    let hosUserRegion = "Central"; // Default region
+    let hosUserRegion = "Central";
+    let hosUserSapId = null;
 
     let realtimeChannel = null;
     let hqPollingInterval = null;
@@ -618,10 +619,10 @@
       const mgrSelect = document.getElementById('filterManager');
       const currentVal = mgrSelect.value;
       
-      // Filter managers by HOS region
+      // Filter managers by HOS region - show ALL if region is ALL or match region
       const filteredManagers = hosUserRegion === 'ALL' 
         ? allManagers 
-        : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
+        : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase());
 
       mgrSelect.innerHTML = '<option value="ALL">All ZSMs in My Region</option>' +
         filteredManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
@@ -644,7 +645,7 @@
         // Filter reps by HOS region via their managers
         const regionManagers = hosUserRegion === 'ALL' 
           ? allManagers.map(m => m.manager_sap_id)
-          : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
+          : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase()).map(m => m.manager_sap_id);
         filteredReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id));
       }
 
@@ -666,7 +667,7 @@
       // First filter by HOS region
       const regionManagers = hosUserRegion === 'ALL' 
         ? allManagers.map(m => m.manager_sap_id)
-        : allManagers.filter(m => (m.region || 'Central') === hosUserRegion).map(m => m.manager_sap_id);
+        : allManagers.filter(m => (m.region || 'Central').toLowerCase() === hosUserRegion.toLowerCase()).map(m => m.manager_sap_id);
 
       let allowedReps = allReps.filter(r => regionManagers.includes(r.manager_sap_id)).map(r => r.territory_code);
 
@@ -1128,6 +1129,7 @@
         sessionStorage.setItem('tt_hos_auth', 'true');
         sessionStorage.setItem('tt_hos_data', JSON.stringify(data));
         hosUserRegion = data.region || 'Central';
+        hosUserSapId = data.sap_id;
         checkHosSession();
       } catch (err) {
         document.getElementById('authErrorMsg').innerText = "Login error: " + err.message;
@@ -1203,6 +1205,7 @@
       sessionStorage.removeItem('tt_hos_auth');
       sessionStorage.removeItem('tt_hos_data');
       hosUserRegion = 'Central';
+      hosUserSapId = null;
       checkHosSession();
     }
 
@@ -1212,6 +1215,7 @@
 
       if (auth && data.sap_id) {
         hosUserRegion = data.region || 'Central';
+        hosUserSapId = data.sap_id;
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardContent').classList.remove('hidden');
 
