@@ -204,7 +204,7 @@
 
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
     
-    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER -->
+    <!-- TAB 1: NATIONAL ORDERS & MULTI-LEVEL FILTER WITH DATE FILTER -->
     <div id="view-orders" class="tab-view-container space-y-4">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
@@ -227,6 +227,28 @@
         </div>
       </div>
 
+      <!-- ✅ NEW: Date Filter Buttons for Orders Tab -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
+          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
+          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
+          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
+          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all">Month to Date</button>
+          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+          
+          <!-- Custom Date Range -->
+          <div class="flex items-center gap-1 ml-2">
+            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <span class="text-xs text-slate-400">to</span>
+            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+          </div>
+          
+          <span id="ordersDateBadge" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
+        </div>
+      </div>
+
       <!-- Patient Cards Grid (Read-Only National Overview) -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
@@ -242,8 +264,7 @@
         </div>
       </div>
     </div>
-
-    <!-- TAB 2: TEAM DOCTOR LIST (THREE-LEVEL FILTER: REGION -> ZSM -> KAM/REP) -->
+        <!-- TAB 2: TEAM DOCTOR LIST (THREE-LEVEL FILTER: REGION -> ZSM -> KAM/REP) -->
     <div id="view-teamDocs" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
         
@@ -505,8 +526,7 @@
       <span class="text-xs font-medium">HQ Menu</span>
     </button>
   </nav>
-
-  <script>
+    <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
@@ -675,6 +695,80 @@
 
       applyAllFilters();
     }
+
+    // ORDERS TAB DATE FILTER FUNCTIONS
+    function syncOrdersDateButtons() {
+      const map = {
+        'TODAY': 'ordersBtnToday',
+        'YESTERDAY': 'ordersBtnYesterday',
+        'LAST7': 'ordersBtn7Days',
+        'MTD': 'ordersBtnMTD',
+        'ALL': 'ordersBtnAll'
+      };
+      
+      const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
+      allButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+        }
+      });
+      
+      const activeBtnId = map[currentDateScope];
+      if (activeBtnId) {
+        const activeBtn = document.getElementById(activeBtnId);
+        if (activeBtn) {
+          activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all";
+        }
+      }
+      
+      const badge = document.getElementById('ordersDateBadge');
+      if (badge) {
+        const scopeMap = {
+          'TODAY': 'Today',
+          'YESTERDAY': 'Yesterday',
+          'LAST7': 'Last 7 Days',
+          'MTD': 'Month to Date',
+          'ALL': 'All Time',
+          'CUSTOM': 'Custom Range'
+        };
+        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+      }
+      
+      const fromInput = document.getElementById('ordersCalendarFrom');
+      const toInput = document.getElementById('ordersCalendarTo');
+      if (fromInput) fromInput.value = filterStartDate || '';
+      if (toInput) toInput.value = filterEndDate || '';
+    }
+
+    function onOrdersCustomDate() {
+      const from = document.getElementById('ordersCalendarFrom').value;
+      const to = document.getElementById('ordersCalendarTo').value;
+      
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = 'CUSTOM';
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        
+        syncOrdersDateButtons();
+        applyAllFilters();
+      }
+    }
+
+    // Override setDatePreset to also update orders tab
+    const originalSetDatePreset = setDatePreset;
+    setDatePreset = function(type) {
+      originalSetDatePreset(type);
+      syncOrdersDateButtons();
+    };
 
     function onCustomDateSelected() {
       const from = document.getElementById('calendarFromDate').value;
@@ -957,6 +1051,16 @@
         initDates();
         window.fetchEverything();
         initHQRealtimeSync();
+        
+        // Initialize Notification Center for Head Office
+        if (typeof NotificationCenter !== 'undefined') {
+          window.notificationCenter = new NotificationCenter({
+            userId: 'HO_MASTER',
+            userRole: 'ho',
+            pollInterval: 30000
+          });
+        }
+        
         // Default to orders tab on load
         switchTab('orders');
       } else {
@@ -1518,22 +1622,19 @@
       a.click();
     }
 
-    // Make export function available globally
+    // Make functions globally accessible
     window.exportFilteredCSV = exportFilteredCSV;
+    window.switchTab = switchTab;
+    window.setDatePreset = setDatePreset;
+    window.onCustomDateSelected = onCustomDateSelected;
+    window.onOrdersCustomDate = onOrdersCustomDate;
+    window.syncOrdersDateButtons = syncOrdersDateButtons;
+    window.openSideMenu = openSideMenu;
+    window.closeSideMenu = closeSideMenu;
+    window.fetchEverything = fetchEverything;
 
+    // Initialize
     checkHoSession();
   </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Head Office uses master key
-        if (sessionStorage.getItem('tt_ho_auth') === 'true') {
-            window.notificationCenter = new NotificationCenter({
-                userId: 'HO_MASTER',
-                userRole: 'ho',
-                pollInterval: 30000
-            });
-        }
-    });
-</script>
 </body>
 </html>
