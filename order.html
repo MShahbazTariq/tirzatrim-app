@@ -292,6 +292,7 @@
     async function sendOrderNotifications(order, repCode) {
       try {
         console.log('📤 Sending notifications for order:', order.order_id);
+        console.log('📤 Rep Code:', repCode);
         
         // 1. Get rep details
         const { data: rep, error: repError } = await client
@@ -320,6 +321,7 @@
             region = manager.region || 'Central';
           }
         }
+        console.log('✅ Region:', region);
 
         // 3. Get HOS for this region
         let hosSapId = null;
@@ -332,6 +334,8 @@
         if (!hosError && hosData) {
           hosSapId = hosData.sap_id;
           console.log('✅ HOS found for region:', region, 'SAP:', hosSapId);
+        } else {
+          console.log('⚠️ No HOS found for region:', region);
         }
 
         // 4. Function to create notification
@@ -408,7 +412,7 @@
           );
         }
 
-        // 5d. HEAD OFFICE (Always)
+        // 5d. HEAD OFFICE (Always send to HO_MASTER)
         await createNotification(
           'HO_MASTER',
           'ho',
