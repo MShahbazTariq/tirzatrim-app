@@ -1637,17 +1637,12 @@
       return '⭐'.repeat(rating);
     }
 
-    // ============================================================
-// ✅ FIXED: applyAllFilters now filters by rep_code
-// ============================================================
-function applyAllFilters() {
+    function applyAllFilters() {
   const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
   const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
 
-  // Get the current rep's territory code
   const repTerritoryCode = currentRep?.territory_code || '';
 
-  // Filter orders by status, search, AND rep_code
   const hierarchyMatchedOrders = rawOrders.filter(order => {
     const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
     const matchesSearch = !searchTerm || 
@@ -1658,14 +1653,17 @@ function applyAllFilters() {
       (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
       (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-    // ✅ FIX: Filter by rep_code matching the logged-in rep's territory
     const matchesRep = !repTerritoryCode || (order.rep_code || '').toUpperCase() === repTerritoryCode.toUpperCase();
 
     return matchesStatus && matchesSearch && matchesRep;
   });
 
+  // ✅ FIX: Properly filter by date using the created_at field
   activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-    const orderDateStr = getLocalDateKey(o.created_at);
+    // Use the created_at date directly
+    const orderDate = new Date(o.created_at);
+    const orderDateStr = orderDate.toISOString().split('T')[0];
+    
     let matchesDate = true;
     if (filterStartDate && filterEndDate) {
       matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
