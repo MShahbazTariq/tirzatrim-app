@@ -1637,38 +1637,48 @@
       return '⭐'.repeat(rating);
     }
 
-    function applyAllFilters() {
-      const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
-      const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
+    // ============================================================
+// ✅ FIXED: applyAllFilters now filters by rep_code
+// ============================================================
+function applyAllFilters() {
+  const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
 
-      const hierarchyMatchedOrders = rawOrders.filter(order => {
-        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
-        const matchesSearch = !searchTerm || 
-          (order.patient_name || '').toLowerCase().includes(searchTerm) ||
-          (order.mobile || '').includes(searchTerm) ||
-          (order.order_id || '').toLowerCase().includes(searchTerm) ||
-          (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
-          (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
-          (order.delivery_address || '').toLowerCase().includes(searchTerm);
+  // Get the current rep's territory code
+  const repTerritoryCode = currentRep?.territory_code || '';
 
-        return matchesStatus && matchesSearch;
-      });
+  // Filter orders by status, search, AND rep_code
+  const hierarchyMatchedOrders = rawOrders.filter(order => {
+    const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+    const matchesSearch = !searchTerm || 
+      (order.patient_name || '').toLowerCase().includes(searchTerm) ||
+      (order.mobile || '').includes(searchTerm) ||
+      (order.order_id || '').toLowerCase().includes(searchTerm) ||
+      (order.doctor_name || '').toLowerCase().includes(searchTerm) ||
+      (order.clinic_name || '').toLowerCase().includes(searchTerm) ||
+      (order.delivery_address || '').toLowerCase().includes(searchTerm);
 
-      activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
-        let matchesDate = true;
-        if (filterStartDate && filterEndDate) {
-          matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
-        }
-        return matchesDate;
-      });
+    // ✅ FIX: Filter by rep_code matching the logged-in rep's territory
+    const matchesRep = !repTerritoryCode || (order.rep_code || '').toUpperCase() === repTerritoryCode.toUpperCase();
 
-      updateMetrics();
-      updateDailyChart(hierarchyMatchedOrders);
-      updateSummaries();
-      renderCards();
-      renderDoctorSummaryList();
+    return matchesStatus && matchesSearch && matchesRep;
+  });
+
+  activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
+    const orderDateStr = getLocalDateKey(o.created_at);
+    let matchesDate = true;
+    if (filterStartDate && filterEndDate) {
+      matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
     }
+    return matchesDate;
+  });
+
+  updateMetrics();
+  updateDailyChart(hierarchyMatchedOrders);
+  updateSummaries();
+  renderCards();
+  renderDoctorSummaryList();
+}
 
     function updateMetrics() {
       const total = activeFilteredOrders.length;
