@@ -1642,49 +1642,53 @@
       applyAllFilters();
     }
 
-    // ORDERS TAB DATE FILTER FUNCTIONS
     function syncOrdersDateButtons() {
-      const buttons = ['Today', 'Yesterday', '7Days', 'MTD', 'All'];
-      const map = {
-        'TODAY': 'ordersBtnToday',
-        'YESTERDAY': 'ordersBtnYesterday',
-        'LAST7': 'ordersBtn7Days',
-        'MTD': 'ordersBtnMTD',
-        'ALL': 'ordersBtnAll'
-      };
-      
-      // Reset all buttons
-      buttons.forEach(id => {
-        const btn = document.getElementById(map[id]);
-        if (btn) {
-          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
-        }
-      });
-      
-      // Highlight active button
-      const activeBtn = document.getElementById(map[currentDateScope]);
-      if (activeBtn) {
-        activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
-      }
-      
-      // Update badge
-      const badge = document.getElementById('ordersDateBadge');
-      if (badge) {
-        const scopeMap = {
-          'TODAY': 'Today',
-          'YESTERDAY': 'Yesterday',
-          'LAST7': 'Last 7 Days',
-          'MTD': 'Month to Date',
-          'ALL': 'All Time',
-          'CUSTOM': 'Custom Range'
-        };
-        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
-      }
-      
-      // Update calendar inputs
-      document.getElementById('ordersCalendarFrom').value = filterStartDate || '';
-      document.getElementById('ordersCalendarTo').value = filterEndDate || '';
+  const map = {
+    'TODAY': 'ordersBtnToday',
+    'YESTERDAY': 'ordersBtnYesterday',
+    'LAST7': 'ordersBtn7Days',
+    'MTD': 'ordersBtnMTD',
+    'ALL': 'ordersBtnAll'
+  };
+  
+  // Reset ALL buttons
+  const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
+  allButtons.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
     }
+  });
+  
+  // Highlight active button
+  const activeBtnId = map[currentDateScope];
+  if (activeBtnId) {
+    const activeBtn = document.getElementById(activeBtnId);
+    if (activeBtn) {
+      activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
+    }
+  }
+  
+  // Update badge
+  const badge = document.getElementById('ordersDateBadge');
+  if (badge) {
+    const scopeMap = {
+      'TODAY': 'Today',
+      'YESTERDAY': 'Yesterday',
+      'LAST7': 'Last 7 Days',
+      'MTD': 'Month to Date',
+      'ALL': 'All Time',
+      'CUSTOM': 'Custom Range'
+    };
+    badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+  }
+  
+  // Update calendar inputs
+  const fromInput = document.getElementById('ordersCalendarFrom');
+  const toInput = document.getElementById('ordersCalendarTo');
+  if (fromInput) fromInput.value = filterStartDate || '';
+  if (toInput) toInput.value = filterEndDate || '';
+}
 
     function onOrdersCustomDate() {
       const from = document.getElementById('ordersCalendarFrom').value;
