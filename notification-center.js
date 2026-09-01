@@ -77,18 +77,18 @@ class NotificationCenter {
 
         container.innerHTML = `
             <button onclick="window.notificationCenter.toggleDropdown()" 
-                    class="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" 
+                    class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" 
                     id="notificationBellBtn"
                     title="Notifications">
                 <span class="text-xl">🔔</span>
                 <span id="${this.badgeId}" 
-                      class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center hidden">
+                      class="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center hidden">
                     0
                 </span>
             </button>
             
             <div id="${this.dropdownId}" 
-                 class="hidden absolute right-0 mt-2 w-[420px] max-h-[500px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50">
+                 class="hidden fixed sm:absolute right-0 mt-2 w-[95vw] sm:w-[420px] max-h-[85vh] sm:max-h-[500px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50">
                 
                 <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
                     <span class="font-bold text-sm text-slate-900 dark:text-white">Notifications</span>
@@ -132,7 +132,7 @@ class NotificationCenter {
                     </button>
                 </div>
                 
-                <div id="notificationList" class="overflow-y-auto max-h-[340px] divide-y divide-slate-100 dark:divide-slate-800">
+                <div id="notificationList" class="overflow-y-auto max-h-[60vh] sm:max-h-[340px] divide-y divide-slate-100 dark:divide-slate-800">
                     <div class="px-4 py-8 text-center text-slate-400 text-sm">
                         No notifications yet
                     </div>
