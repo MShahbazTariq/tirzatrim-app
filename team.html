@@ -1561,76 +1561,62 @@
     }
 
     function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
+  currentDateScope = type;
+  const today = new Date();
 
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      });
+  // Reset all button styles
+  ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+    const el = document.getElementById(`btnDate${id}`);
+    if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+  });
 
-      if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        filterStartDate = getLocalDateKey(today);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Today";
-      } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-        filterStartDate = getLocalDateKey(y);
-        filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-      } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        const last7 = new Date();
-        last7.setDate(last7.getDate() - 6);
-        filterStartDate = getLocalDateKey(last7);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-      } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        filterStartDate = getLocalDateKey(firstDay);
-        filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-      } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
-        filterStartDate = null;
-        filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
-        document.getElementById('activeDateScopeTag').innerText = "All Time";
-      }
+  if (type === 'TODAY') {
+    document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+    filterStartDate = getLocalDateKey(today);
+    filterEndDate = getLocalDateKey(today);
+    document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
+    document.getElementById('activeDateScopeTag').innerText = "Today";
+    
+  } else if (type === 'YESTERDAY') {
+    document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    filterStartDate = getLocalDateKey(y);
+    filterEndDate = getLocalDateKey(y);
+    document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
+    document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+    
+  } else if (type === 'LAST7') {
+    document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+    const last7 = new Date();
+    last7.setDate(last7.getDate() - 6);
+    filterStartDate = getLocalDateKey(last7);
+    filterEndDate = getLocalDateKey(today);
+    document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+    document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+    
+  } else if (type === 'MTD') {
+    document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+    // ✅ FIX: Use the FIRST day of the month, not today
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    filterStartDate = getLocalDateKey(firstDay);
+    filterEndDate = getLocalDateKey(today);
+    document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+    document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+    
+  } else if (type === 'ALL') {
+    document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+    filterStartDate = null;
+    filterEndDate = null;
+    document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
+    document.getElementById('activeDateScopeTag').innerText = "All Time";
+  }
 
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
+  document.getElementById('calendarFromDate').value = filterStartDate || '';
+  document.getElementById('calendarToDate').value = filterEndDate || '';
 
-      applyAllFilters();
-    }
-
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        });
-
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        applyAllFilters();
-      }
-    }
+  applyAllFilters();
+}
 
     function renderStars(rating) {
       if (!rating) return '';
