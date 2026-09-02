@@ -346,40 +346,21 @@
             </div>
         </div>
 
-                <!-- Predictive Analytics (Month-End Forecast & Scenarios) -->
+                        <!-- Predictive Analytics (Compact Version) -->
         <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Projected Month-End Orders</div>
             <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">~<span id="predictedOrders">0</span> Orders</div>
             
-            <!-- What-If Scenario Grid -->
-            <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-2 text-[10px]">
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">Current Pace</span>
-                    <span class="font-black text-indigo-600 dark:text-indigo-400" id="currentPace">0</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">If 3/day</span>
-                    <span class="font-black text-blue-600 dark:text-blue-400" id="pace3">0</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">If 5/day</span>
-                    <span class="font-black text-blue-600 dark:text-blue-400" id="pace5">0</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">If 7/day</span>
-                    <span class="font-black text-blue-600 dark:text-blue-400" id="pace7">0</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">If 10/day</span>
-                    <span class="font-black text-blue-600 dark:text-blue-400" id="pace10">0</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                    <span class="font-semibold text-slate-500">Days Left</span>
-                    <span class="font-black text-slate-700 dark:text-slate-300" id="daysLeft">0</span>
-                </div>
+            <!-- Compact What-If Strip -->
+            <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap gap-2 text-[10px] font-bold">
+                <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Current: <span id="currentPace">0</span></span>
+                <span class="px-2 py-1 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400">3/day: <span id="pace3">0</span></span>
+                <span class="px-2 py-1 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400">5/day: <span id="pace5">0</span></span>
+                <span class="px-2 py-1 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400">7/day: <span id="pace7">0</span></span>
+                <span class="px-2 py-1 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400">10/day: <span id="pace10">0</span></span>
+                <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Days Left: <span id="daysLeft">0</span></span>
             </div>
         </div>
-
         <!-- Doctor Churn Warning (By Rep) -->
     <div class="pt-2 text-sm border-t border-slate-200 dark:border-slate-800 mt-3">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
