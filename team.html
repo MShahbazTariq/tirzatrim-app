@@ -260,62 +260,62 @@
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
     
     <!-- TAB 1: PATIENTS & ORDERS VIEW -->
-<div id="view-orders" class="tab-view-container space-y-4">
-  
-  <!-- Search & Status Filter -->
-  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Clinic, Mobile..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500">
-      <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500">
-        <option value="ALL">All Statuses</option>
-        <option value="New Patient">New Patient</option>
-        <option value="Prescription Received">Prescription Received</option>
-        <option value="Order Processing">Order Processing</option>
-        <option value="Dispatched">Dispatched</option>
-        <option value="Delivered">Delivered</option>
-        <option value="Cancelled">Cancelled</option>
-        <option value="Feedback Submitted">Feedback Submitted</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- ✅ NEW: Date Filter Buttons for Orders Tab -->
-  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
-      <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
-      <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
-      <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
-      <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all">Month to Date</button>
-      <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
-      
-      <!-- Custom Date Range -->
-      <div class="flex items-center gap-1 ml-2">
-        <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
-        <span class="text-xs text-slate-400">to</span>
-        <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
-        <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+    <div id="view-orders" class="tab-view-container space-y-4">
+      <!-- Search & Status Filter -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input type="text" id="patientSearchInput" oninput="applyAllFilters()" placeholder="🔍 Search Patient, Doctor, Clinic, Mobile..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          <select id="statusFilterSelect" onchange="applyAllFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-teal-500">
+            <option value="ALL">All Statuses</option>
+            <option value="New Patient">New Patient</option>
+            <option value="Prescription Received">Prescription Received</option>
+            <option value="Order Processing">Order Processing</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Feedback Submitted">Feedback Submitted</option>
+          </select>
+        </div>
       </div>
-      
-      <span id="ordersDateBadge" class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
-    </div>
-  </div>
 
-  <!-- Patient Cards Grid -->
-  <div class="space-y-3">
-    <div class="flex items-center justify-between px-1">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-        <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
-      </h3>
-      <span id="activeDateScopeTag" class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
-    </div>
-    <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-        Loading territory records...
+      <!-- Date Filter Buttons for Orders Tab -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
+          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
+          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
+          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
+          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all">Month to Date</button>
+          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+          
+          <!-- Custom Date Range -->
+          <div class="flex items-center gap-1 ml-2">
+            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+            <span class="text-xs text-slate-400">to</span>
+            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+          </div>
+          
+          <span id="ordersDateBadge" class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
+        </div>
+      </div>
+
+      <!-- Patient Cards Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>👥</span> Territory Patient Records (<span id="filteredCount">0</span>)
+          </h3>
+          <span id="activeDateScopeTag" class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
+        </div>
+        <div id="repCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
+            Loading territory records...
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+
     <!-- TAB 2: TERRITORY DOCTORS & VISIT STATUS TRACKER -->
     <div id="view-doctors" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
@@ -333,7 +333,6 @@
           <div class="flex items-center gap-2 flex-wrap">
             <input type="text" id="doctorSearchInput" oninput="renderTerritoryDoctors()" placeholder="🔍 Search Doctor..." class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
             
-            <!-- Sort Dropdown -->
             <select id="doctorSortSelect" onchange="renderTerritoryDoctors()" class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
               <option value="NAME_ASC">Sort: Name (A-Z)</option>
               <option value="GRADE_ASC">Sort: Class (A to B)</option>
@@ -396,7 +395,6 @@
 
     <!-- TAB 3: ANALYTICS -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
-      
       <!-- Date Scope Configurator -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -552,9 +550,9 @@
         </div>
         <div id="doctorPatientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5"></div>
       </div>
-
     </div>
-        <!-- MERGED HUB: SHARE & LINKS -->
+
+    <!-- MERGED HUB: SHARE & LINKS -->
     <div id="view-doctorLink" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-sm">
         
@@ -671,7 +669,6 @@
   <!-- QR CODE POPUP MODAL -->
   <div id="qrModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 text-center relative">
-      
       <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white text-base w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors">
         ✕
       </button>
@@ -696,7 +693,6 @@
           📋 Copy Link
         </button>
       </div>
-
     </div>
   </div>
 
@@ -723,7 +719,8 @@
       <span class="text-xs font-medium">Settings</span>
     </button>
   </nav>
-    <script>
+
+  <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
@@ -747,8 +744,11 @@
     let realtimeChannel = null;
     let repPollingInterval = null;
 
+    // Tracking for dropdown selections & unlocking
     window._selectedChannels = {};
     window._selectedMdsProviders = {};
+    window._editingOrders = {};
+    window._activeRoutingInteractions = false;
 
     const TITRATION_MAP = {
       '2.5mg': '5mg',
@@ -861,6 +861,9 @@
 
     window.fetchRepOrders = async function(silent = false) {
       if (!currentRep || !currentRep.territory_code) return;
+
+      // Prevent re-rendering during active dropdown interaction
+      if (window._activeRoutingInteractions) return;
 
       const tCode = (currentRep.territory_code || '').trim().toUpperCase();
 
@@ -1225,12 +1228,16 @@
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          () => { window.fetchRepOrders(true); }
+          () => {
+            if (!window._activeRoutingInteractions) window.fetchRepOrders(true);
+          }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'feedback' },
-          () => { window.fetchRepOrders(true); }
+          () => {
+            if (!window._activeRoutingInteractions) window.fetchRepOrders(true);
+          }
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -1240,7 +1247,9 @@
 
       if (repPollingInterval) clearInterval(repPollingInterval);
       repPollingInterval = setInterval(() => {
-        window.fetchRepOrders(true);
+        if (!window._activeRoutingInteractions) {
+          window.fetchRepOrders(true);
+        }
       }, 5000);
     }
 
@@ -1263,7 +1272,6 @@
         window.fetchTerritoryDoctors();
         initRepRealtimeSync();
         
-        // Initialize Notification Center after login
         if (currentRep && currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
           window.notificationCenter = new NotificationCenter({
             userId: currentRep.sap_id,
@@ -1271,7 +1279,6 @@
             pollInterval: 30000
           });
         }
-        
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('dashboardContent').classList.add('hidden');
@@ -1425,7 +1432,7 @@
       openWhatsAppUniversal("", message);
     }
 
-    /* FULFILLMENT ROUTING LOGIC */
+    /* FULFILLMENT ROUTING & EDITING LOGIC */
     async function populateMdsDropdown(orderId, city) {
       const container = document.getElementById(`mdsContainer-${orderId}`);
       if (!container) return;
@@ -1448,13 +1455,15 @@
       select.innerHTML = '<option value="">Select MDS Partner...</option>' +
         providers.map(p => `<option value="${p.provider_name}">${p.provider_name}</option>`).join('');
 
-      const savedMds = window._selectedMdsProviders?.[orderId];
+      const savedMds = window._selectedMdsProviders?.[orderId] || 
+        rawOrders.find(o => String(o.id) === String(orderId))?.mds_provider;
       if (savedMds) {
         select.value = savedMds;
       }
     }
 
     function handleChannelChoice(orderId, channel, city) {
+      window._activeRoutingInteractions = true;
       window._selectedChannels[orderId] = channel;
       const mdsContainer = document.getElementById(`mdsContainer-${orderId}`);
       if (channel === 'MDS') {
@@ -1466,7 +1475,22 @@
     }
 
     function handleMdsSelection(orderId, val) {
+      window._activeRoutingInteractions = true;
       window._selectedMdsProviders[orderId] = val;
+    }
+
+    function enableRoutingEdit(orderId, city) {
+      window._activeRoutingInteractions = true;
+      window._editingOrders[orderId] = true;
+      renderCards();
+    }
+
+    function cancelRoutingEdit(orderId) {
+      delete window._editingOrders[orderId];
+      delete window._selectedChannels[orderId];
+      delete window._selectedMdsProviders[orderId];
+      window._activeRoutingInteractions = false;
+      renderCards();
     }
 
     async function saveOrderRouting(orderId, city) {
@@ -1504,6 +1528,8 @@
       } else {
         delete window._selectedChannels[orderId];
         delete window._selectedMdsProviders[orderId];
+        delete window._editingOrders[orderId];
+        window._activeRoutingInteractions = false;
         alert(`✅ Order successfully routed to ${channel === 'MP' ? 'M&P Helpline (Scheduled 24-48h)' : 'MDS Express (' + mdsProvider + ')'}!`);
         window.fetchRepOrders(true);
       }
@@ -1581,114 +1607,109 @@
       setDatePreset('MTD');
     }
 
-    // ============================================================
-    // DATE FUNCTIONS - FIXED
-    // ============================================================
-
     function setDatePreset(type) {
       currentDateScope = type;
       const today = new Date();
 
-      // Reset all button styles
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
         if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
 
       if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const btn = document.getElementById('btnDateToday');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
         document.getElementById('activeDateScopeTag').innerText = "Today";
-        
       } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const btn = document.getElementById('btnDateYesterday');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const y = new Date();
         y.setDate(y.getDate() - 1);
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
         document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
         document.getElementById('activeDateScopeTag').innerText = "Yesterday";
-        
       } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const btn = document.getElementById('btnDate7Days');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const last7 = new Date();
         last7.setDate(last7.getDate() - 6);
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
         document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
-        
       } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const btn = document.getElementById('btnDateMTD');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
         document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
         document.getElementById('activeDateScopeTag').innerText = "Month to Date";
-        
       } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
+        const btn = document.getElementById('btnDateAll');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
         document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Territory)";
         document.getElementById('activeDateScopeTag').innerText = "All Time";
       }
 
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
+      const fromCal = document.getElementById('calendarFromDate');
+      const toCal = document.getElementById('calendarToDate');
+      if (fromCal) fromCal.value = filterStartDate || '';
+      if (toCal) toCal.value = filterEndDate || '';
 
+      syncOrdersDateButtons();
       applyAllFilters();
     }
 
     function syncOrdersDateButtons() {
-  const map = {
-    'TODAY': 'ordersBtnToday',
-    'YESTERDAY': 'ordersBtnYesterday',
-    'LAST7': 'ordersBtn7Days',
-    'MTD': 'ordersBtnMTD',
-    'ALL': 'ordersBtnAll'
-  };
-  
-  // Reset ALL buttons
-  const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
-  allButtons.forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+      const map = {
+        'TODAY': 'ordersBtnToday',
+        'YESTERDAY': 'ordersBtnYesterday',
+        'LAST7': 'ordersBtn7Days',
+        'MTD': 'ordersBtnMTD',
+        'ALL': 'ordersBtnAll'
+      };
+      
+      const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
+      allButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
+        }
+      });
+      
+      const activeBtnId = map[currentDateScope];
+      if (activeBtnId) {
+        const activeBtn = document.getElementById(activeBtnId);
+        if (activeBtn) {
+          activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
+        }
+      }
+      
+      const badge = document.getElementById('ordersDateBadge');
+      if (badge) {
+        const scopeMap = {
+          'TODAY': 'Today',
+          'YESTERDAY': 'Yesterday',
+          'LAST7': 'Last 7 Days',
+          'MTD': 'Month to Date',
+          'ALL': 'All Time',
+          'CUSTOM': 'Custom Range'
+        };
+        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+      }
+      
+      const fromInput = document.getElementById('ordersCalendarFrom');
+      const toInput = document.getElementById('ordersCalendarTo');
+      if (fromInput) fromInput.value = filterStartDate || '';
+      if (toInput) toInput.value = filterEndDate || '';
     }
-  });
-  
-  // Highlight active button
-  const activeBtnId = map[currentDateScope];
-  if (activeBtnId) {
-    const activeBtn = document.getElementById(activeBtnId);
-    if (activeBtn) {
-      activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white shadow-sm transition-all";
-    }
-  }
-  
-  // Update badge
-  const badge = document.getElementById('ordersDateBadge');
-  if (badge) {
-    const scopeMap = {
-      'TODAY': 'Today',
-      'YESTERDAY': 'Yesterday',
-      'LAST7': 'Last 7 Days',
-      'MTD': 'Month to Date',
-      'ALL': 'All Time',
-      'CUSTOM': 'Custom Range'
-    };
-    badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
-  }
-  
-  // Update calendar inputs
-  const fromInput = document.getElementById('ordersCalendarFrom');
-  const toInput = document.getElementById('ordersCalendarTo');
-  if (fromInput) fromInput.value = filterStartDate || '';
-  if (toInput) toInput.value = filterEndDate || '';
-}
 
     function onOrdersCustomDate() {
       const from = document.getElementById('ordersCalendarFrom').value;
@@ -1712,13 +1733,28 @@
       }
     }
 
-    // Override setDatePreset to also update orders tab
-    const originalSetDatePreset = setDatePreset;
-    setDatePreset = function(type) {
-      originalSetDatePreset(type);
-      syncOrdersDateButtons();
-    };
-          function renderStars(rating) {
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+
+      if (from && to) {
+        filterStartDate = from;
+        filterEndDate = to;
+        currentDateScope = "CUSTOM";
+        
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        syncOrdersDateButtons();
+        applyAllFilters();
+      }
+    }
+
+    function renderStars(rating) {
       if (!rating) return '';
       return '⭐'.repeat(rating);
     }
@@ -1726,7 +1762,6 @@
     function applyAllFilters() {
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
-
       const repTerritoryCode = currentRep?.territory_code || '';
 
       const hierarchyMatchedOrders = rawOrders.filter(order => {
@@ -1744,12 +1779,8 @@
         return matchesStatus && matchesSearch && matchesRep;
       });
 
-      // ✅ FIX: Properly filter by date using the created_at field (LOCAL TIMEZONE)
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDate = new Date(o.created_at);
-        // ❌ OLD WAY (UTC): const orderDateStr = orderDate.toISOString().split('T')[0];
-        
-        // ✅ NEW WAY (LOCAL): Manually get local YYYY-MM-DD
         const orderDateStr = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
         
         let matchesDate = true;
@@ -2016,10 +2047,12 @@
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched';
         const isCancelled = order.status === 'Cancelled';
-        const isRouted = order.fulfillment_channel ? true : false;
+        
+        const isRouted = Boolean(order.fulfillment_channel);
+        const isBeingEdited = Boolean(window._editingOrders[order.id]);
         const routedLabel = order.fulfillment_channel === 'MP' ? '📦 M&P Helpline' : (order.mds_provider ? '⚡ MDS: ' + order.mds_provider : '⚡ MDS Express');
 
-        const selectedChan = window._selectedChannels[order.id] || order.fulfillment_channel || '';
+        const selectedChan = window._selectedChannels[order.id] !== undefined ? window._selectedChannels[order.id] : (order.fulfillment_channel || '');
 
         return `
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all">
@@ -2083,35 +2116,55 @@
               ` : ''}
             </div>
 
-            <!-- FULFILLMENT ROUTING ACTION BLOCK -->
+            <!-- FULFILLMENT ROUTING ACTION BLOCK (WITH EDIT LOCK & PENCIL RECTIFICATION) -->
             <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
               <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                 <span>🚚 Fulfillment Route:</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">
-                  ${isRouted ? routedLabel : '⚠️ Routing Pending'}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">
+                    ${isRouted ? routedLabel : '⚠️ Routing Pending'}
+                  </span>
+                  ${isRouted && !isBeingEdited ? `
+                    <button onclick="enableRoutingEdit('${order.id}', '${order.city}')" title="Rectify / Change Routing" class="p-1 px-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs transition-colors">
+                      ✏️
+                    </button>
+                  ` : ''}
+                </div>
               </div>
 
-              <div class="space-y-2 pt-1">
-                <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
-                  <label class="flex items-center gap-1.5 cursor-pointer">
-                    <input type="radio" name="channel-${order.id}" value="MP" ${selectedChan === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
-                  </label>
-                  <label class="flex items-center gap-1.5 cursor-pointer">
-                    <input type="radio" name="channel-${order.id}" value="MDS" ${selectedChan === 'MDS' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
-                  </label>
-                </div>
+              ${(!isRouted || isBeingEdited) ? `
+                <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
+                  <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="channel-${order.id}" value="MP" ${selectedChan === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="channel-${order.id}" value="MDS" ${selectedChan === 'MDS' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
+                    </label>
+                  </div>
 
-                <div id="mdsContainer-${order.id}" class="${selectedChan === 'MDS' ? '' : 'hidden'} space-y-1.5 pt-1">
-                  <select id="mdsSelect-${order.id}" onchange="handleMdsSelection('${order.id}', this.value)" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
-                    <option value="">Select MDS Partner...</option>
-                  </select>
-                </div>
+                  <div id="mdsContainer-${order.id}" class="${selectedChan === 'MDS' ? '' : 'hidden'} space-y-1.5 pt-1">
+                    <select id="mdsSelect-${order.id}" onfocus="window._activeRoutingInteractions=true;" onblur="window._activeRoutingInteractions=false;" onchange="handleMdsSelection('${order.id}', this.value)" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+                      <option value="">Select MDS Partner...</option>
+                    </select>
+                  </div>
 
-                <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
-                  🚀 Save & Update Routing
-                </button>
-              </div>
+                  <div class="flex items-center gap-2 pt-1">
+                    <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="flex-1 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
+                      🚀 ${isBeingEdited ? 'Save New Route' : 'Save & Update Routing'}
+                    </button>
+                    ${isBeingEdited ? `
+                      <button onclick="cancelRoutingEdit('${order.id}')" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all">
+                        Cancel
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              ` : `
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 italic pt-0.5">
+                  Route locked. Tap ✏️ above to rectify medium.
+                </div>
+              `}
             </div>
 
             <!-- Patient Feedback -->
@@ -2142,9 +2195,15 @@
       }).join('');
 
       activeFilteredOrders.forEach(order => {
-        const selectedChan = window._selectedChannels[order.id] || order.fulfillment_channel;
-        if (selectedChan === 'MDS') {
-          populateMdsDropdown(order.id, order.city);
+        const isRouted = Boolean(order.fulfillment_channel);
+        const isBeingEdited = Boolean(window._editingOrders[order.id]);
+        if (!isRouted || isBeingEdited) {
+          const selectedChan = window._selectedChannels[order.id] !== undefined 
+            ? window._selectedChannels[order.id] 
+            : (order.fulfillment_channel || '');
+          if (selectedChan === 'MDS') {
+            populateMdsDropdown(order.id, order.city);
+          }
         }
       });
     }
@@ -2201,6 +2260,5 @@
     checkSession();
     checkGlobalBroadcast('team');
   </script>
- 
 </body>
 </html>
