@@ -2301,8 +2301,7 @@ function calculateExecutiveInsights() {
         badgeEl.innerText = "C";
     }
 
-    // 2. Anomaly Detection (Drop >20% based on previous 7 days vs current 7 days)
-    // NOTE: Since we don't have historical data in activeFilteredOrders, we check allOrders filtered by active date range
+    // 2. Anomaly Detection
     const today = new Date();
     const last7Days = new Date(); last7Days.setDate(today.getDate() - 7);
     const prev7Days = new Date(); prev7Days.setDate(today.getDate() - 14);
@@ -2318,36 +2317,32 @@ function calculateExecutiveInsights() {
         anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
     }
 
-    // 3. Predictive Analytics (Simple Moving Average based on last 14 days)
-    // If 14 days had 10 orders, next 7 days will be roughly 5.
+    // 3. Predictive Analytics
     const last14Days = new Date(); last14Days.setDate(today.getDate() - 14);
     const ordersLast14 = currentOrdersData.filter(o => new Date(o.created_at) >= last14Days).length;
     const predicted = Math.round((ordersLast14 / 14) * 7);
 
     document.getElementById('predictedOrders').innerText = predicted;
 
-        // 4. Doctor Churn Warning (No orders in 30+ days)
+    // 4. Doctor Churn Warning (No orders in 30+ days) - SAFE VERSION
     const churnList = document.getElementById('churnWarningList');
     const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    // ✅ SAFE VERSION: Only filter by your reps if registeredReps exists, otherwise just use the full list
     let baseDoctors = teamDoctorsData;
     if (typeof registeredReps !== 'undefined' && registeredReps.length > 0) {
         const myRepTerritories = registeredReps.map(r => r.territory_code);
         baseDoctors = teamDoctorsData.filter(doc => myRepTerritories.includes(doc['Territory ID']));
     }
 
-    // ✅ Clean the list: Remove duplicates, empty values, and "undefined"
     const inactiveDoctors = [...new Set(baseDoctors
         .map(doc => (doc['Doctor Name'] || '').trim())
         .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
     )].filter(doctorName => {
-        // Find if this doctor has any orders in the last 30 days
         const hasRecentOrder = currentOrdersData.some(o => {
             return (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo;
         });
         return !hasRecentOrder;
-    }).slice(0, 5); // Only show top 5 for UI
+    }).slice(0, 5);
 
     if (inactiveDoctors.length > 0) {
         churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>⚠️</span> Doctor Churn Warnings (No Rx in 30+ Days)</div>` +
@@ -2361,6 +2356,7 @@ function calculateExecutiveInsights() {
         churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>✅</span> Doctor Churn Warnings</div>
         <div class="text-emerald-600 text-xs font-semibold">All doctors have recent prescriptions.</div>`;
     }
+} // <--- Make sure this closing bracket exists!
   </script>
 </body>
 </html>
