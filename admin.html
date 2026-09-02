@@ -2339,13 +2339,23 @@
             anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
         }
 
-        // 3. Predictive Analytics
-        const last14Days = new Date(); last14Days.setDate(today.getDate() - 14);
-        const ordersLast14 = currentOrdersData.filter(o => new Date(o.created_at) >= last14Days).length;
-        const predicted = Math.round((ordersLast14 / 14) * 7);
+    // 3. Predictive Analytics (Monthly Run-Rate)
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Count orders placed in the current month
+    const ordersThisMonth = currentOrdersData.filter(o => new Date(o.created_at) >= startOfMonth).length;
+    
+    // Calculate days passed in the current month (max 1 to avoid division by zero)
+    const daysPassed = Math.max(now.getDate(), 1);
+    
+    // Total days in the current month
+    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    
+    // Projection Formula: (Orders so far) ÷ (Days passed) × (Total days in month)
+    const predicted = Math.round((ordersThisMonth / daysPassed) * totalDaysInMonth);
 
-        document.getElementById('predictedOrders').innerText = predicted;
-
+    document.getElementById('predictedOrders').innerText = predicted;
         // 4. Populate Rep Dropdown & Render List
         populateUntappedDropdown();
         renderUntappedList();
