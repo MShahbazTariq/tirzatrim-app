@@ -2331,9 +2331,8 @@ function calculateExecutiveInsights() {
     const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
 
     // Check all doctors from teamDoctorsData
-    const inactiveDoctors = teamDoctorsData.filter(doc => {
-        const doctorName = doc['Doctor Name'] || '';
-        // Find if this doctor has any orders in activeFilteredOrders in the last 30 days
+        const inactiveDoctors = [...new Set(teamDoctorsData.map(doc => doc['Doctor Name']).filter(Boolean))].filter(doctorName => {
+        // Find if this doctor has any orders in the last 30 days
         const hasRecentOrder = currentOrdersData.some(o => {
             return (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo;
         });
