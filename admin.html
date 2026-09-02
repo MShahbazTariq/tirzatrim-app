@@ -2326,16 +2326,19 @@ function calculateExecutiveInsights() {
 
     document.getElementById('predictedOrders').innerText = predicted;
 
-            // 4. Doctor Churn Warning (No orders in 30+ days)
+        // 4. Doctor Churn Warning (No orders in 30+ days)
     const churnList = document.getElementById('churnWarningList');
     const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    // ✅ Get unique doctor names assigned ONLY to your reps (by Territory ID)
-    const myRepTerritories = registeredReps.map(r => r.territory_code);
-    const myDoctors = teamDoctorsData.filter(doc => myRepTerritories.includes(doc['Territory ID']));
-    
+    // ✅ SAFE VERSION: Only filter by your reps if registeredReps exists, otherwise just use the full list
+    let baseDoctors = teamDoctorsData;
+    if (typeof registeredReps !== 'undefined' && registeredReps.length > 0) {
+        const myRepTerritories = registeredReps.map(r => r.territory_code);
+        baseDoctors = teamDoctorsData.filter(doc => myRepTerritories.includes(doc['Territory ID']));
+    }
+
     // ✅ Clean the list: Remove duplicates, empty values, and "undefined"
-    const inactiveDoctors = [...new Set(myDoctors
+    const inactiveDoctors = [...new Set(baseDoctors
         .map(doc => (doc['Doctor Name'] || '').trim())
         .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
     )].filter(doctorName => {
