@@ -1744,10 +1744,13 @@
         return matchesStatus && matchesSearch && matchesRep;
       });
 
-      // ✅ FIX: Properly filter by date using the created_at field
+      // ✅ FIX: Properly filter by date using the created_at field (LOCAL TIMEZONE)
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
         const orderDate = new Date(o.created_at);
-        const orderDateStr = orderDate.toISOString().split('T')[0];
+        // ❌ OLD WAY (UTC): const orderDateStr = orderDate.toISOString().split('T')[0];
+        
+        // ✅ NEW WAY (LOCAL): Manually get local YYYY-MM-DD
+        const orderDateStr = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
         
         let matchesDate = true;
         if (filterStartDate && filterEndDate) {
