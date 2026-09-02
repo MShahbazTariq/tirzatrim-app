@@ -2282,172 +2282,171 @@
       checkGlobalBroadcast('admin');
     }
 
+        // ============================================================
+    // 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
     // ============================================================
-// 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
-// ============================================================
-let currentUntappedDoctors = [];
+    let currentUntappedDoctors = [];
 
-function normalizeName(name) {
-    return String(name || '')
-        .toLowerCase()
-        .replace(/^dr\.?\s*/i, '')
-        .replace(/[^a-z\s]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function calculateExecutiveInsights() {
-    // 1. Territory Health Score
-    const total = activeFilteredOrders.length;
-    const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
-    const healthRatio = total > 0 ? (delivered / total) : 0;
-    
-    const healthEl = document.getElementById('territoryHealthText');
-    const badgeEl = document.getElementById('territoryHealthBadge');
-    
-    if (total === 0) {
-        healthEl.innerText = "No Data";
-        badgeEl.className = "w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center text-white font-black text-lg shadow-lg";
-        badgeEl.innerText = "N/A";
-    } else if (healthRatio >= 0.8) {
-        healthEl.innerText = "Excellent";
-        badgeEl.className = "w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
-        badgeEl.innerText = "A";
-    } else if (healthRatio >= 0.5) {
-        healthEl.innerText = "Average";
-        badgeEl.className = "w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
-        badgeEl.innerText = "B";
-    } else {
-        healthEl.innerText = "Critical";
-        badgeEl.className = "w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
-        badgeEl.innerText = "C";
+    function normalizeName(name) {
+        return String(name || '')
+            .toLowerCase()
+            .replace(/^dr\.?\s*/i, '')
+            .replace(/[^a-z\s]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
-    // 2. Anomaly Detection
-    const today = new Date();
-    const last7Days = new Date(); last7Days.setDate(today.getDate() - 7);
-    const prev7Days = new Date(); prev7Days.setDate(today.getDate() - 14);
+    function calculateExecutiveInsights() {
+        // 1. Territory Health Score
+        const total = activeFilteredOrders.length;
+        const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+        const healthRatio = total > 0 ? (delivered / total) : 0;
+        
+        const healthEl = document.getElementById('territoryHealthText');
+        const badgeEl = document.getElementById('territoryHealthBadge');
+        
+        if (total === 0) {
+            healthEl.innerText = "No Data";
+            badgeEl.className = "w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center text-white font-black text-lg shadow-lg";
+            badgeEl.innerText = "N/A";
+        } else if (healthRatio >= 0.8) {
+            healthEl.innerText = "Excellent";
+            badgeEl.className = "w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+            badgeEl.innerText = "A";
+        } else if (healthRatio >= 0.5) {
+            healthEl.innerText = "Average";
+            badgeEl.className = "w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+            badgeEl.innerText = "B";
+        } else {
+            healthEl.innerText = "Critical";
+            badgeEl.className = "w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+            badgeEl.innerText = "C";
+        }
 
-    const ordersLast7 = currentOrdersData.filter(o => new Date(o.created_at) >= last7Days).length;
-    const ordersPrev7 = currentOrdersData.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+        // 2. Anomaly Detection
+        const today = new Date();
+        const last7Days = new Date(); last7Days.setDate(today.getDate() - 7);
+        const prev7Days = new Date(); prev7Days.setDate(today.getDate() - 14);
 
-    const anomalyText = document.getElementById('anomalyAlertText');
-    if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
-        const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
-        anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
-    } else {
-        anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+        const ordersLast7 = currentOrdersData.filter(o => new Date(o.created_at) >= last7Days).length;
+        const ordersPrev7 = currentOrdersData.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+
+        const anomalyText = document.getElementById('anomalyAlertText');
+        if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
+            const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
+            anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
+        } else {
+            anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+        }
+
+        // 3. Predictive Analytics
+        const last14Days = new Date(); last14Days.setDate(today.getDate() - 14);
+        const ordersLast14 = currentOrdersData.filter(o => new Date(o.created_at) >= last14Days).length;
+        const predicted = Math.round((ordersLast14 / 14) * 7);
+
+        document.getElementById('predictedOrders').innerText = predicted;
+
+        // 4. Populate Rep Dropdown & Render List
+        populateUntappedDropdown();
+        renderUntappedList();
     }
 
-    // 3. Predictive Analytics
-    const last14Days = new Date(); last14Days.setDate(today.getDate() - 14);
-    const ordersLast14 = currentOrdersData.filter(o => new Date(o.created_at) >= last14Days).length;
-    const predicted = Math.round((ordersLast14 / 14) * 7);
-
-    document.getElementById('predictedOrders').innerText = predicted;
-
-    // 4. Populate Rep Dropdown & Render List
-    populateUntappedDropdown();
-    renderUntappedList();
-}
-
-function populateUntappedDropdown() {
-    const select = document.getElementById('untappedRepFilter');
-    if (!select) return;
-    
-    const currentVal = select.value;
-    
-    // Populate with registered reps
-    select.innerHTML = '<option value="ALL">All My Reps</option>' +
-        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-    
-    // Preserve selected value if still exists
-    if (currentVal && registeredReps.some(r => r.territory_code === currentVal)) {
-        select.value = currentVal;
-    }
-}
-
-function renderUntappedList() {
-    const container = document.getElementById('untappedListContainer');
-    if (!container) return;
-
-    const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
-    const today = new Date();
-    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
-
-    // 1. Filter doctors by selected rep's Territory ID
-    let baseDoctors = teamDoctorsData;
-    
-    if (selectedRep !== 'ALL') {
-        baseDoctors = teamDoctorsData.filter(doc => (doc['Territory ID'] || '') === selectedRep);
+    function populateUntappedDropdown() {
+        const select = document.getElementById('untappedRepFilter');
+        if (!select) return;
+        
+        const currentVal = select.value;
+        
+        // Populate with registered reps
+        select.innerHTML = '<option value="ALL">All My Reps</option>' +
+            registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+        
+        // Preserve selected value if still exists
+        if (currentVal && registeredReps.some(r => r.territory_code === currentVal)) {
+            select.value = currentVal;
+        }
     }
 
-    // 2. Get unique names from Master List (Exact names as uploaded in CSV)
-    const allDoctorNames = [...new Set(baseDoctors
-        .map(doc => (doc['Doctor Name'] || '').trim())
-        .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
-    )];
+    function renderUntappedList() {
+        const container = document.getElementById('untappedListContainer');
+        if (!container) return;
 
-    // 3. Fuzzy Match to find if they prescribed
-    const untappedDoctors = allDoctorNames.filter(doctorName => {
-        const normalizedMaster = normalizeName(doctorName);
-        const masterWords = normalizedMaster.split(' ');
+        const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+        const today = new Date();
+        const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
 
-        const hasRecentOrder = currentOrdersData.some(o => {
-            const normalizedOrder = normalizeName(o.doctor_name || '');
-            const orderWords = normalizedOrder.split(' ');
+        // 1. Filter doctors by selected rep's Territory ID
+        let baseDoctors = teamDoctorsData;
+        
+        if (selectedRep !== 'ALL') {
+            baseDoctors = teamDoctorsData.filter(doc => (doc['Territory ID'] || '') === selectedRep);
+        }
 
-            // Match if 2 or more words match (e.g. "Noman Butt" matches "Nauman J Butt")
-            const matchedWords = masterWords.filter(word => orderWords.includes(word));
-            return matchedWords.length >= 2;
+        // 2. Get unique names from Master List (Exact names as uploaded in CSV)
+        const allDoctorNames = [...new Set(baseDoctors
+            .map(doc => (doc['Doctor Name'] || '').trim())
+            .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
+        )];
+
+        // 3. Fuzzy Match to find if they prescribed
+        const untappedDoctors = allDoctorNames.filter(doctorName => {
+            const normalizedMaster = normalizeName(doctorName);
+            const masterWords = normalizedMaster.split(' ');
+
+            const hasRecentOrder = currentOrdersData.some(o => {
+                const normalizedOrder = normalizeName(o.doctor_name || '');
+                const orderWords = normalizedOrder.split(' ');
+
+                // Match if 2 or more words match (e.g. "Noman Butt" matches "Nauman J Butt")
+                const matchedWords = masterWords.filter(word => orderWords.includes(word));
+                return matchedWords.length >= 2;
+            });
+
+            return !hasRecentOrder;
         });
 
-        return !hasRecentOrder;
-    });
+        // 4. Save for CSV Export
+        currentUntappedDoctors = untappedDoctors;
 
-    // 4. Save for CSV Export
-    currentUntappedDoctors = untappedDoctors;
-
-    // 5. Render UI (Show Full List, no limit)
-    if (untappedDoctors.length > 0) {
-        // If 80 doctors, show all 80 (scrollable)
-        container.innerHTML = untappedDoctors.map(doc => `
-            <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
-                <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Untapped</span>
-            </div>
-        `).join('');
-    } else {
-        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this territory have recent prescriptions.</div>`;
-    }
-}
-
-function exportUntappedCSV() {
-    if (currentUntappedDoctors.length === 0) {
-        alert("No untapped doctors to export for this rep.");
-        return;
+        // 5. Render UI (Show Full List, no limit)
+        if (untappedDoctors.length > 0) {
+            // If 80 doctors, show all 80 (scrollable)
+            container.innerHTML = untappedDoctors.map(doc => `
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
+                    <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Untapped</span>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this territory have recent prescriptions.</div>`;
+        }
     }
 
-    const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
-    const repName = selectedRep === 'ALL' ? 'All_Reps' : selectedRep;
+    function exportUntappedCSV() {
+        if (currentUntappedDoctors.length === 0) {
+            alert("No untapped doctors to export for this rep.");
+            return;
+        }
 
-    let csv = "Doctor Name,Status\n";
-    currentUntappedDoctors.forEach(doc => {
-        csv += `"Dr. ${doc}","Untapped"\n`;
-    });
+        const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+        const repName = selectedRep === 'ALL' ? 'All_Reps' : selectedRep;
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Untapped_Doctors_${repName}.csv`;
-    a.click();
-} // <--- Make sure this closing bracket exists!
+        let csv = "Doctor Name,Status\n";
+        currentUntappedDoctors.forEach(doc => {
+            csv += `"Dr. ${doc}","Untapped"\n`;
+        });
 
-// Expose functions globally
-window.renderUntappedList = renderUntappedList;
-window.exportUntappedCSV = exportUntappedCSV;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Untapped_Doctors_${repName}.csv`;
+        a.click();
+    }
 
+    // Expose functions globally
+    window.renderUntappedList = renderUntappedList;
+    window.exportUntappedCSV = exportUntappedCSV;
   </script>
 </body>
 </html>
