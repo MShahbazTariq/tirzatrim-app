@@ -2324,28 +2324,32 @@ function calculateExecutiveInsights() {
 
     document.getElementById('predictedOrders').innerText = predicted;
 
-    // 4. Doctor Churn Warning (No orders in 30+ days) - SAFE VERSION
+        // 4. Doctor Churn Warning (RELIABLE CRITERIA)
     const churnList = document.getElementById('churnWarningList');
     const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
+    const ninetyDaysAgo = new Date(); ninetyDaysAgo.setDate(today.getDate() - 90);
 
-    let baseDoctors = teamDoctorsData;
-    if (typeof registeredReps !== 'undefined' && registeredReps.length > 0) {
-        const myRepTerritories = registeredReps.map(r => r.territory_code);
-        baseDoctors = teamDoctorsData.filter(doc => myRepTerritories.includes(doc['Territory ID']));
-    }
-
-    const inactiveDoctors = [...new Set(baseDoctors
+    // Step 1: Get unique doctor names
+    const allDoctorNames = [...new Set(teamDoctorsData
         .map(doc => (doc['Doctor Name'] || '').trim())
         .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
-    )].filter(doctorName => {
-        const hasRecentOrder = currentOrdersData.some(o => {
-            return (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo;
-        });
-        return !hasRecentOrder;
-    }).slice(0, 5);
+    )];
+
+    // Step 2: Criteria - Had an order in the last 90 days, BUT NOT in the last 30 days
+    const inactiveDoctors = allDoctorNames.filter(doctorName => {
+        const hadRecentOrder = currentOrdersData.some(o => 
+            (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo
+        );
+        const hadOlderOrder = currentOrdersData.some(o => 
+            (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= ninetyDaysAgo && new Date(o.created_at) < thirtyDaysAgo
+        );
+        
+        // Return true ONLY if they prescribed recently in the past, but stopped in the last 30 days
+        return !hadRecentOrder && hadOlderOrder;
+    }).slice(0, 5); // Only show top 5 for UI
 
     if (inactiveDoctors.length > 0) {
-        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>⚠️</span> Doctor Churn Warnings (No Rx in 30+ Days)</div>` +
+        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>⚠️</span> Actual Doctor Churn Warnings (Stopped prescribing)</div>` +
             inactiveDoctors.map(doc => `
                 <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                     <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
@@ -2354,7 +2358,7 @@ function calculateExecutiveInsights() {
             `).join('');
     } else {
         churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>✅</span> Doctor Churn Warnings</div>
-        <div class="text-emerald-600 text-xs font-semibold">All doctors have recent prescriptions.</div>`;
+        <div class="text-emerald-600 text-xs font-semibold">No doctors have stopped prescribing recently.</div>`;
     }
 } // <--- Make sure this closing bracket exists!
   </script>
