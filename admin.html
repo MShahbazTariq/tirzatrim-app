@@ -2290,10 +2290,9 @@
       checkGlobalBroadcast('admin');
     }
 
-        // ============================================================
+    // ============================================================
     // 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
     // ============================================================
-
     function normalizeName(name) {
         return String(name || '')
             .toLowerCase()
@@ -2346,41 +2345,41 @@
             anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
         }
 
-    // 3. Predictive Analytics (Month-End Forecast & What-If Scenarios)
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    // Count orders placed in the current month
-    const ordersThisMonth = currentOrdersData.filter(o => new Date(o.created_at) >= startOfMonth).length;
-    
-    // Calculate days passed and remaining
-    const daysPassed = Math.max(now.getDate(), 1); // Don't divide by 0
-    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const daysRemaining = totalDaysInMonth - daysPassed;
-    
-    // Current Pace
-    const dailyAvg = (ordersThisMonth / daysPassed);
-    const forecast = Math.round(dailyAvg * totalDaysInMonth);
+        // 3. Predictive Analytics (Month-End Forecast & What-If Scenarios)
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Count orders placed in the current month
+        const ordersThisMonth = currentOrdersData.filter(o => new Date(o.created_at) >= startOfMonth).length;
+        
+        // Calculate days passed and remaining
+        const daysPassed = Math.max(now.getDate(), 1); // Don't divide by 0
+        const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const daysRemaining = totalDaysInMonth - daysPassed;
+        
+        // Current Pace
+        const dailyAvg = (ordersThisMonth / daysPassed);
+        const forecast = Math.round(dailyAvg * totalDaysInMonth);
 
-    // Update Main Title
-    document.getElementById('predictedOrders').innerText = forecast;
-    document.getElementById('currentPace').innerText = `${dailyAvg.toFixed(1)}/day`;
-    document.getElementById('daysLeft').innerText = `${daysRemaining} days`;
+        // Update Main Title
+        document.getElementById('predictedOrders').innerText = forecast;
+        document.getElementById('currentPace').innerText = `${dailyAvg.toFixed(1)}/day`;
+        document.getElementById('daysLeft').innerText = `${daysRemaining} days`;
 
-    // Update What-If Scenarios (Remaining Days + Current Orders)
-    const pace3 = ordersThisMonth + (daysRemaining * 3);
-    const pace5 = ordersThisMonth + (daysRemaining * 5);
-    const pace7 = ordersThisMonth + (daysRemaining * 7);
-    const pace10 = ordersThisMonth + (daysRemaining * 10);
+        // Update What-If Scenarios (Remaining Days + Current Orders)
+        const pace3 = ordersThisMonth + (daysRemaining * 3);
+        const pace5 = ordersThisMonth + (daysRemaining * 5);
+        const pace7 = ordersThisMonth + (daysRemaining * 7);
+        const pace10 = ordersThisMonth + (daysRemaining * 10);
 
-    document.getElementById('pace3').innerText = `~${pace3}`;
-    document.getElementById('pace5').innerText = `~${pace5}`;
-    document.getElementById('pace7').innerText = `~${pace7}`;
-    document.getElementById('pace10').innerText = `~${pace10}`;
+        document.getElementById('pace3').innerText = `~${pace3}`;
+        document.getElementById('pace5').innerText = `~${pace5}`;
+        document.getElementById('pace7').innerText = `~${pace7}`;
+        document.getElementById('pace10').innerText = `~${pace10}`;
 
-    // 4. Populate Rep Dropdown & Render List
-    populateUntappedDropdown();
-    renderUntappedList();
+        // 4. Populate Rep Dropdown & Render List
+        populateUntappedDropdown();
+        renderUntappedList();
     }
 
     function populateUntappedDropdown() {
@@ -2399,7 +2398,7 @@
         }
     }
 
-        function renderUntappedList() {
+    function renderUntappedList() {
         const container = document.getElementById('untappedListContainer');
         if (!container) return;
 
