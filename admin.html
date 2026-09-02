@@ -1905,7 +1905,8 @@
       });
 
       activeFilteredOrders = hierarchyMatchedOrders.filter(o => {
-        const orderDateStr = getLocalDateKey(o.created_at);
+        const orderDate = new Date(o.created_at);
+        const orderDateStr = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
         let matchesDate = true;
         if (filterStartDate && filterEndDate) {
           matchesDate = orderDateStr >= filterStartDate && orderDateStr <= filterEndDate;
