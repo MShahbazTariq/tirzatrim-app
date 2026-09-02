@@ -859,6 +859,7 @@
 
     let currentManager = JSON.parse(localStorage.getItem('tt_current_manager') || sessionStorage.getItem('tt_current_manager') || 'null');
     let currentOrdersData = [];
+    let currentUntappedDoctors = [];
     let registeredReps = [];
     let teamDoctorsData = [];
     let feedbackMap = {};
@@ -2285,7 +2286,6 @@
         // ============================================================
     // 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
     // ============================================================
-    let currentUntappedDoctors = [];
 
     function normalizeName(name) {
         return String(name || '')
