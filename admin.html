@@ -2442,12 +2442,12 @@ function exportUntappedCSV() {
     a.href = url;
     a.download = `Untapped_Doctors_${repName}.csv`;
     a.click();
-}
+} // <--- Make sure this closing bracket exists!
 
 // Expose functions globally
 window.renderUntappedList = renderUntappedList;
 window.exportUntappedCSV = exportUntappedCSV;
-} // <--- Make sure this closing bracket exists!
+
   </script>
 </body>
 </html>
