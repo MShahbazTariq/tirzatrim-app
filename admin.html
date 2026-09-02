@@ -317,6 +317,53 @@
       </div>
     </div>
 
+    <!-- SMART AI INSIGHTS PANEL -->
+<div id="aiInsightsPanel" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm space-y-3">
+    <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🤖</span> Executive AI Insights
+        </h3>
+        <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">Live Analysis</span>
+    </div>
+
+    <!-- Health Score & Anomaly Detection -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        
+        <!-- Territory Health Score -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+                <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Territory Health</div>
+                <div id="territoryHealthText" class="text-xl font-black text-slate-900 dark:text-white mt-1">Excellent</div>
+            </div>
+            <div id="territoryHealthBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg">A</div>
+        </div>
+
+        <!-- Anomaly Detection -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Anomaly Alert</div>
+            <div id="anomalyAlertText" class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-2">
+                <span class="text-emerald-600">✅ No anomalies detected.</span>
+            </div>
+        </div>
+
+        <!-- Predictive Analytics (Next Week) -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Predictive Volume (Next 7 Days)</div>
+            <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">~<span id="predictedOrders">0</span> Orders</div>
+        </div>
+
+    </div>
+
+    <!-- Doctor Churn Warning -->
+    <div id="churnWarningList" class="pt-2 text-sm">
+        <div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+            <span>⚠️</span> Doctor Churn Warnings (No Rx in 30+ Days)
+        </div>
+        <!-- JS will inject list here -->
+        <div class="text-slate-400 text-xs">Checking latest prescription dates...</div>
+    </div>
+</div>
+
     <!-- 3. APP GRID LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
@@ -1871,6 +1918,7 @@
       updateSummaries();
       renderCards();
       renderDoctorList();
+      calculateExecutiveInsights();
     }
 
     function updateMetrics() {
@@ -2221,6 +2269,89 @@
     if (typeof checkGlobalBroadcast === 'function') {
       checkGlobalBroadcast('admin');
     }
+
+    // ============================================================
+// 🚀 EXECUTIVE AI INSIGHTS LOGIC
+// ============================================================
+function calculateExecutiveInsights() {
+    // 1. Territory Health Score (Based on Delivered %)
+    const total = activeFilteredOrders.length;
+    const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+    const healthRatio = total > 0 ? (delivered / total) : 0;
+    
+    const healthEl = document.getElementById('territoryHealthText');
+    const badgeEl = document.getElementById('territoryHealthBadge');
+    
+    if (total === 0) {
+        healthEl.innerText = "No Data";
+        badgeEl.className = "w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center text-white font-black text-lg shadow-lg";
+        badgeEl.innerText = "N/A";
+    } else if (healthRatio >= 0.8) {
+        healthEl.innerText = "Excellent";
+        badgeEl.className = "w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+        badgeEl.innerText = "A";
+    } else if (healthRatio >= 0.5) {
+        healthEl.innerText = "Average";
+        badgeEl.className = "w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+        badgeEl.innerText = "B";
+    } else {
+        healthEl.innerText = "Critical";
+        badgeEl.className = "w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+        badgeEl.innerText = "C";
+    }
+
+    // 2. Anomaly Detection (Drop >20% based on previous 7 days vs current 7 days)
+    // NOTE: Since we don't have historical data in activeFilteredOrders, we check allOrders filtered by active date range
+    const today = new Date();
+    const last7Days = new Date(); last7Days.setDate(today.getDate() - 7);
+    const prev7Days = new Date(); prev7Days.setDate(today.getDate() - 14);
+
+    const ordersLast7 = allOrders.filter(o => new Date(o.created_at) >= last7Days).length;
+    const ordersPrev7 = allOrders.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+
+    const anomalyText = document.getElementById('anomalyAlertText');
+    if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
+        const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
+        anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
+    } else {
+        anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+    }
+
+    // 3. Predictive Analytics (Simple Moving Average based on last 14 days)
+    // If 14 days had 10 orders, next 7 days will be roughly 5.
+    const last14Days = new Date(); last14Days.setDate(today.getDate() - 14);
+    const ordersLast14 = allOrders.filter(o => new Date(o.created_at) >= last14Days).length;
+    const predicted = Math.round((ordersLast14 / 14) * 7);
+
+    document.getElementById('predictedOrders').innerText = predicted;
+
+    // 4. Doctor Churn Warning (No orders in 30+ days)
+    const churnList = document.getElementById('churnWarningList');
+    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    // Check all doctors from teamDoctorsData
+    const inactiveDoctors = teamDoctorsData.filter(doc => {
+        const doctorName = doc['Doctor Name'] || '';
+        // Find if this doctor has any orders in activeFilteredOrders in the last 30 days
+        const hasRecentOrder = allOrders.some(o => {
+            return (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo;
+        });
+        return !hasRecentOrder;
+    }).slice(0, 5); // Only show top 5 for UI
+
+    if (inactiveDoctors.length > 0) {
+        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>⚠️</span> Doctor Churn Warnings (No Rx in 30+ Days)</div>` +
+            inactiveDoctors.map(doc => `
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc['Doctor Name']}</span>
+                    <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Inactive 30d+</span>
+                </div>
+            `).join('');
+    } else {
+        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>✅</span> Doctor Churn Warnings</div>
+        <div class="text-emerald-600 text-xs font-semibold">All doctors have recent prescriptions.</div>`;
+    }
+}
   </script>
 </body>
 </html>
