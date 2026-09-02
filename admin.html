@@ -354,15 +354,26 @@
 
     </div>
 
-    <!-- Doctor Churn Warning -->
-    <div id="churnWarningList" class="pt-2 text-sm">
-        <div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
-            <span>⚠️</span> Doctor Churn Warnings (No Rx in 30+ Days)
+        <!-- Doctor Churn Warning (By Rep) -->
+    <div class="pt-2 text-sm border-t border-slate-200 dark:border-slate-800 mt-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <span>⚠️</span> Untapped Doctors by Rep
+            </div>
+            <div class="flex items-center gap-2">
+                <select id="untappedRepFilter" onchange="renderUntappedList()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+                    <!-- JS will populate this -->
+                </select>
+                <button onclick="exportUntappedCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all">
+                    📥 Download CSV
+                </button>
+            </div>
         </div>
-        <!-- JS will inject list here -->
-        <div class="text-slate-400 text-xs">Checking latest prescription dates...</div>
+        <div id="untappedListContainer">
+            <!-- JS will inject list here -->
+            <div class="text-slate-400 text-xs">Select a rep to view their untapped doctors...</div>
+        </div>
     </div>
-</div>
 
     <!-- 3. APP GRID LAUNCHPAD -->
     <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
@@ -2272,10 +2283,21 @@
     }
 
     // ============================================================
-// 🚀 EXECUTIVE AI INSIGHTS LOGIC
+// 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
 // ============================================================
+let currentUntappedDoctors = [];
+
+function normalizeName(name) {
+    return String(name || '')
+        .toLowerCase()
+        .replace(/^dr\.?\s*/i, '')
+        .replace(/[^a-z\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 function calculateExecutiveInsights() {
-    // 1. Territory Health Score (Based on Delivered %)
+    // 1. Territory Health Score
     const total = activeFilteredOrders.length;
     const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
     const healthRatio = total > 0 ? (delivered / total) : 0;
@@ -2324,42 +2346,107 @@ function calculateExecutiveInsights() {
 
     document.getElementById('predictedOrders').innerText = predicted;
 
-        // 4. Doctor Churn Warning (RELIABLE CRITERIA)
-    const churnList = document.getElementById('churnWarningList');
-    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
-    const ninetyDaysAgo = new Date(); ninetyDaysAgo.setDate(today.getDate() - 90);
+    // 4. Populate Rep Dropdown & Render List
+    populateUntappedDropdown();
+    renderUntappedList();
+}
 
-    // Step 1: Get unique doctor names
-    const allDoctorNames = [...new Set(teamDoctorsData
+function populateUntappedDropdown() {
+    const select = document.getElementById('untappedRepFilter');
+    if (!select) return;
+    
+    const currentVal = select.value;
+    
+    // Populate with registered reps
+    select.innerHTML = '<option value="ALL">All My Reps</option>' +
+        registeredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+    
+    // Preserve selected value if still exists
+    if (currentVal && registeredReps.some(r => r.territory_code === currentVal)) {
+        select.value = currentVal;
+    }
+}
+
+function renderUntappedList() {
+    const container = document.getElementById('untappedListContainer');
+    if (!container) return;
+
+    const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+    const today = new Date();
+    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    // 1. Filter doctors by selected rep's Territory ID
+    let baseDoctors = teamDoctorsData;
+    
+    if (selectedRep !== 'ALL') {
+        baseDoctors = teamDoctorsData.filter(doc => (doc['Territory ID'] || '') === selectedRep);
+    }
+
+    // 2. Get unique names from Master List (Exact names as uploaded in CSV)
+    const allDoctorNames = [...new Set(baseDoctors
         .map(doc => (doc['Doctor Name'] || '').trim())
         .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
     )];
 
-    // Step 2: Criteria - Had an order in the last 90 days, BUT NOT in the last 30 days
-    const inactiveDoctors = allDoctorNames.filter(doctorName => {
-        const hadRecentOrder = currentOrdersData.some(o => 
-            (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= thirtyDaysAgo
-        );
-        const hadOlderOrder = currentOrdersData.some(o => 
-            (o.doctor_name || '').includes(doctorName) && new Date(o.created_at) >= ninetyDaysAgo && new Date(o.created_at) < thirtyDaysAgo
-        );
-        
-        // Return true ONLY if they prescribed recently in the past, but stopped in the last 30 days
-        return !hadRecentOrder && hadOlderOrder;
-    }).slice(0, 5); // Only show top 5 for UI
+    // 3. Fuzzy Match to find if they prescribed
+    const untappedDoctors = allDoctorNames.filter(doctorName => {
+        const normalizedMaster = normalizeName(doctorName);
+        const masterWords = normalizedMaster.split(' ');
 
-    if (inactiveDoctors.length > 0) {
-        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>⚠️</span> Actual Doctor Churn Warnings (Stopped prescribing)</div>` +
-            inactiveDoctors.map(doc => `
-                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                    <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
-                    <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Inactive 30d+</span>
-                </div>
-            `).join('');
+        const hasRecentOrder = currentOrdersData.some(o => {
+            const normalizedOrder = normalizeName(o.doctor_name || '');
+            const orderWords = normalizedOrder.split(' ');
+
+            // Match if 2 or more words match (e.g. "Noman Butt" matches "Nauman J Butt")
+            const matchedWords = masterWords.filter(word => orderWords.includes(word));
+            return matchedWords.length >= 2;
+        });
+
+        return !hasRecentOrder;
+    });
+
+    // 4. Save for CSV Export
+    currentUntappedDoctors = untappedDoctors;
+
+    // 5. Render UI (Show Full List, no limit)
+    if (untappedDoctors.length > 0) {
+        // If 80 doctors, show all 80 (scrollable)
+        container.innerHTML = untappedDoctors.map(doc => `
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
+                <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Untapped</span>
+            </div>
+        `).join('');
     } else {
-        churnList.innerHTML = `<div class="font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><span>✅</span> Doctor Churn Warnings</div>
-        <div class="text-emerald-600 text-xs font-semibold">No doctors have stopped prescribing recently.</div>`;
+        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this territory have recent prescriptions.</div>`;
     }
+}
+
+function exportUntappedCSV() {
+    if (currentUntappedDoctors.length === 0) {
+        alert("No untapped doctors to export for this rep.");
+        return;
+    }
+
+    const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+    const repName = selectedRep === 'ALL' ? 'All_Reps' : selectedRep;
+
+    let csv = "Doctor Name,Status\n";
+    currentUntappedDoctors.forEach(doc => {
+        csv += `"Dr. ${doc}","Untapped"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Untapped_Doctors_${repName}.csv`;
+    a.click();
+}
+
+// Expose functions globally
+window.renderUntappedList = renderUntappedList;
+window.exportUntappedCSV = exportUntappedCSV;
 } // <--- Make sure this closing bracket exists!
   </script>
 </body>
