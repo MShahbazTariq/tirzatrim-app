@@ -372,7 +372,18 @@
           <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
           <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all">Month to Date</button>
           <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+
+          <!-- Custom Date Range -->
+          <div class="flex items-center gap-1 ml-2">
+            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <span class="text-xs text-slate-400">to</span>
+            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+          </div>
           
+          <span id="ordersDateBadge" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full ml-auto">All Time</span>
+        </div>
+      </div>
 
     <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
@@ -474,19 +485,6 @@
             <option value="Cancelled">Cancelled</option>
             <option value="Feedback Submitted">Feedback Submitted</option>
           </select>
-        </div>
-      </div>
-
-      
-          <!-- Custom Date Range -->
-          <div class="flex items-center gap-1 ml-2">
-            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <span class="text-xs text-slate-400">to</span>
-            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
-          </div>
-          
-          <span id="ordersDateBadge" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full ml-auto">All Time</span>
         </div>
       </div>
 
