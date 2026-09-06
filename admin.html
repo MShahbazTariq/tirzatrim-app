@@ -2320,7 +2320,7 @@
       checkGlobalBroadcast('admin');
     }
 
-    // ============================================================
+        // ============================================================
     // 🚀 EXECUTIVE AI INSIGHTS LOGIC (with Rep Filtering)
     // ============================================================
     function normalizeName(name) {
@@ -2367,9 +2367,8 @@
         }
 
         // 2. Anomaly Detection
-        const today = new Date();
-        const last7Days = new Date(); last7Days.setDate(today.getDate() - 7);
-        const prev7Days = new Date(); prev7Days.setDate(today.getDate() - 14);
+        const last7Days = new Date(); last7Days.setDate(now.getDate() - 7);
+        const prev7Days = new Date(); prev7Days.setDate(now.getDate() - 14);
 
         const ordersLast7 = currentOrdersData.filter(o => new Date(o.created_at) >= last7Days).length;
         const ordersPrev7 = currentOrdersData.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
@@ -2383,22 +2382,14 @@
         }
 
         // 3. Predictive Analytics (Month-End Forecast & What-If Scenarios)
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        
-        // Count orders placed in the current month
-        const ordersThisMonth = currentOrdersData.filter(o => new Date(o.created_at) >= startOfMonth).length;
-        
-        // Calculate days passed and remaining
-        const daysPassed = Math.max(now.getDate(), 1); // Don't divide by 0
-        const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         const daysRemaining = totalDaysInMonth - daysPassed;
         
         // Current Pace
         const dailyAvg = (ordersThisMonth / daysPassed);
-        const forecast = Math.round(dailyAvg * totalDaysInMonth);
+        const finalForecast = Math.round(dailyAvg * totalDaysInMonth);
 
         // Update Main Title
-        document.getElementById('predictedOrders').innerText = forecast;
+        document.getElementById('predictedOrders').innerText = finalForecast;
         document.getElementById('currentPace').innerText = `${dailyAvg.toFixed(1)}/day`;
         document.getElementById('daysLeft').innerText = `${daysRemaining} days`;
 
