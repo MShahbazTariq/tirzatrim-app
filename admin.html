@@ -488,17 +488,17 @@
         </div>
       </div>
 
-      <!-- Patient Cards Grid -->
+            <!-- Patient Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
           </h3>
-          <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">All Time</span>
-        </div>
-        <div id="mgrCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-            Loading zone records...
+          <div class="flex items-center gap-2">
+            <span id="activeDateScopeTag" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">All Time</span>
+            <button onclick="exportToCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all">
+              📥 Download Data
+            </button>
           </div>
         </div>
       </div>
