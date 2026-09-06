@@ -363,6 +363,17 @@
       </button>
     </div>
 
+    <!-- ✅ NEW: Date Filter Buttons for Orders Tab -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
+          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
+          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
+          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
+          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all">Month to Date</button>
+          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+          
+
     <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
@@ -466,16 +477,7 @@
         </div>
       </div>
 
-      <!-- ✅ NEW: Date Filter Buttons for Orders Tab -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
-          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
-          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
-          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
-          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all">Month to Date</button>
-          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
-          
+      
           <!-- Custom Date Range -->
           <div class="flex items-center gap-1 ml-2">
             <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500">
