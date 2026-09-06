@@ -339,6 +339,34 @@
       </div>
     </header>
 
+    <!-- 3. APP GRID LAUNCHPAD -->
+    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
+      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👥</span>
+        <span class="text-xs font-bold">Orders</span>
+      </button>
+      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📋</span>
+        <span class="text-xs font-bold">Team Dr List</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📊</span>
+        <span class="text-xs font-bold">Analytics</span>
+      </button>
+      <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📢</span>
+        <span class="text-xs font-bold">Broadcast</span>
+      </button>
+      <button onclick="openRepsModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">👔</span>
+        <span class="text-xs font-bold">Transfers</span>
+      </button>
+      <button onclick="exportToCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
+        <span class="text-xl">📥</span>
+        <span class="text-xs font-bold">Export CSV</span>
+      </button>
+    </div>
+
     <!-- 2. QUICK HORIZONTAL KPI STRIP -->
     <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
       <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
@@ -416,34 +444,6 @@
                 <div class="text-slate-400 text-xs">Select a rep to view their untapped doctors...</div>
             </div>
         </div>
-    </div>
-
-    <!-- 3. APP GRID LAUNCHPAD -->
-    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-1">
-      <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-emerald-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">👥</span>
-        <span class="text-xs font-bold">Orders</span>
-      </button>
-      <button onclick="switchTab('teamDocs')" id="tabBtn-teamDocs" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📋</span>
-        <span class="text-xs font-bold">Team Dr List</span>
-      </button>
-      <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📊</span>
-        <span class="text-xs font-bold">Analytics</span>
-      </button>
-      <button onclick="switchTab('broadcasts')" id="tabBtn-broadcasts" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📢</span>
-        <span class="text-xs font-bold">Broadcast</span>
-      </button>
-      <button onclick="openRepsModal()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">👔</span>
-        <span class="text-xs font-bold">Transfers</span>
-      </button>
-      <button onclick="exportToCSV()" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all">
-        <span class="text-xl">📥</span>
-        <span class="text-xs font-bold">Export CSV</span>
-      </button>
     </div>
 
     <!-- 4. ACTIVE VIEW MODULE CONTAINER -->
