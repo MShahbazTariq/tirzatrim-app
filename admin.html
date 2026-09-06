@@ -2366,21 +2366,6 @@
             badgeEl.innerText = "C";
         }
 
-        // 2. Anomaly Detection
-        const last7Days = new Date(); last7Days.setDate(now.getDate() - 7);
-        const prev7Days = new Date(); prev7Days.setDate(now.getDate() - 14);
-
-        const ordersLast7 = currentOrdersData.filter(o => new Date(o.created_at) >= last7Days).length;
-        const ordersPrev7 = currentOrdersData.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
-
-        const anomalyText = document.getElementById('anomalyAlertText');
-        if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
-            const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
-            anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
-        } else {
-            anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
-        }
-
         // 3. Predictive Analytics (Month-End Forecast & What-If Scenarios)
         const daysRemaining = totalDaysInMonth - daysPassed;
         
