@@ -2329,7 +2329,7 @@
             .trim();
     }
 
-    function calculateExecutiveInsights() {
+        function calculateExecutiveInsights() {
         // 1. Territory Health Score
         const total = activeFilteredOrders.length;
         
@@ -2363,6 +2363,23 @@
             badgeEl.innerText = "C";
         }
 
+        // 2. Anomaly Detection
+        const last7Days = new Date(); last7Days.setDate(now.getDate() - 7);
+        const prev7Days = new Date(); prev7Days.setDate(now.getDate() - 14);
+
+        const ordersLast7 = currentOrdersData.filter(o => new Date(o.created_at) >= last7Days).length;
+        const ordersPrev7 = currentOrdersData.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+
+        const anomalyText = document.getElementById('anomalyAlertText');
+        if (anomalyText) {
+            if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
+                const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
+                anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
+            } else {
+                anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+            }
+        }
+
         // 3. Predictive Analytics (Month-End Forecast & What-If Scenarios)
         const daysRemaining = totalDaysInMonth - daysPassed;
         
@@ -2371,9 +2388,13 @@
         const finalForecast = Math.round(dailyAvg * totalDaysInMonth);
 
         // Update Main Title
-        document.getElementById('predictedOrders').innerText = finalForecast;
-        document.getElementById('currentPace').innerText = `${dailyAvg.toFixed(1)}/day`;
-        document.getElementById('daysLeft').innerText = `${daysRemaining} days`;
+        const predictedOrdersEl = document.getElementById('predictedOrders');
+        const currentPaceEl = document.getElementById('currentPace');
+        const daysLeftEl = document.getElementById('daysLeft');
+        
+        if (predictedOrdersEl) predictedOrdersEl.innerText = finalForecast;
+        if (currentPaceEl) currentPaceEl.innerText = `${dailyAvg.toFixed(1)}/day`;
+        if (daysLeftEl) daysLeftEl.innerText = `${daysRemaining} days`;
 
         // Update What-If Scenarios (Remaining Days + Current Orders)
         const pace3 = ordersThisMonth + (daysRemaining * 3);
@@ -2381,16 +2402,17 @@
         const pace7 = ordersThisMonth + (daysRemaining * 7);
         const pace10 = ordersThisMonth + (daysRemaining * 10);
 
-        document.getElementById('pace3').innerText = `~${pace3}`;
-        document.getElementById('pace5').innerText = `~${pace5}`;
-        document.getElementById('pace7').innerText = `~${pace7}`;
-        document.getElementById('pace10').innerText = `~${pace10}`;
+        const pace3El = document.getElementById('pace3');
+        const pace5El = document.getElementById('pace5');
+        const pace7El = document.getElementById('pace7');
+        const pace10El = document.getElementById('pace10');
+        
+        if (pace3El) pace3El.innerText = `~${pace3}`;
+        if (pace5El) pace5El.innerText = `~${pace5}`;
+        if (pace7El) pace7El.innerText = `~${pace7}`;
+        if (pace10El) pace10El.innerText = `~${pace10}`;
 
-        // 4. Populate Rep Dropdown & Render List
-        populateUntappedDropdown();
-        renderUntappedList();
-      
-                              // ✅ NEW: Calculate the extra stats for the Territory Health box
+        // 4. Extra Stats for Territory Health Box
         try {
             const healthDeliveryEl = document.getElementById('healthDeliveryPct');
             const healthFeedbackEl = document.getElementById('healthFeedbackPct');
@@ -2415,6 +2437,11 @@
             console.warn("Extra stats skipped:", e);
         }
 
+        // 5. Populate Rep Dropdown & Render List
+        populateUntappedDropdown();
+        renderUntappedList();
+    }
+
     function populateUntappedDropdown() {
         const select = document.getElementById('untappedRepFilter');
         if (!select) return;
@@ -2431,7 +2458,7 @@
         }
     }
 
-        function renderUntappedList() {
+    function renderUntappedList() {
         const container = document.getElementById('untappedListContainer');
         if (!container) return;
 
@@ -2516,7 +2543,7 @@
     }
 
     // Function to expand and show full list
-        function showAllUntapped() {
+    function showAllUntapped() {
         isUntappedExpanded = true;
         renderUntappedList();
     }
