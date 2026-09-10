@@ -2389,6 +2389,20 @@
         // 4. Populate Rep Dropdown & Render List
         populateUntappedDropdown();
         renderUntappedList();
+      
+              // ✅ NEW: Calculate the extra stats for the Territory Health box
+        const deliveredCount = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+        const feedbackCount = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+        const uniqueRepsCount = [...new Set(activeFilteredOrders.map(o => o.rep_code).filter(Boolean))].length;
+        const todayOrdersCount = activeFilteredOrders.filter(o => getLocalDateKey(o.created_at) === getLocalDateKey(new Date())).length;
+
+        const deliveryPct = total > 0 ? Math.round((deliveredCount / total) * 100) : 0;
+        const feedbackPct = total > 0 ? Math.round((feedbackCount / total) * 100) : 0;
+
+        document.getElementById('healthDeliveryPct').innerText = deliveryPct;
+        document.getElementById('healthFeedbackPct').innerText = feedbackPct;
+        document.getElementById('healthActiveReps').innerText = uniqueRepsCount;
+        document.getElementById('healthNewToday').innerText = todayOrdersCount;
     }
 
     function populateUntappedDropdown() {
