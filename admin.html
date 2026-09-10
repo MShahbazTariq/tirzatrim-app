@@ -151,7 +151,7 @@
     </div>
   </div>
 
-  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
+    <!-- EXECUTIVE SLIDE-OVER DRAWER -->
   <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
   <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
     <div class="space-y-6">
@@ -163,21 +163,22 @@
         <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
       </div>
 
-                              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Territory Health</div>
-                        <div id="territoryHealthText" class="text-xl font-black text-slate-900 dark:text-white mt-1">Excellent</div>
-                    </div>
-                    <div id="territoryHealthBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg">A</div>
-                </div>
-                <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[10px] font-bold">
-                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Delivery: <span id="healthDeliveryPct">0</span>%</span>
-                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Feedback: <span id="healthFeedbackPct">0</span>%</span>
-                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Reps: <span id="healthActiveReps">0</span></span>
-                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">New Today: <span id="healthNewToday">0</span></span>
-                </div>
-            </div>
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center gap-3">
+          <div id="menuAvatarBadge" class="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase">ST</div>
+          <div>
+            <div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">M. Shahbaz Tariq</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Zonal Sales Manager</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Zone: <span id="menuZoneDisplay">LHR2</span></span>
+          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7613</span></span>
+          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready
+          </span>
+        </div>
+      </div>
 
       <div class="space-y-2">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Administrative Tools</div>
@@ -186,7 +187,6 @@
           <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
         </button>
 
-        <!-- NEW MDS MANAGEMENT BUTTON -->
         <button onclick="openMdsModal()" class="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
           <span class="text-base">⚡</span> <span>Manage MDS Partners</span>
         </button>
@@ -210,7 +210,7 @@
       </button>
     </div>
   </aside>
-
+  
   <!-- REP & TERRITORY MANAGEMENT MODAL -->
   <div id="repsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
