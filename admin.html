@@ -163,20 +163,20 @@
         <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
       </div>
 
-                  <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex-1">
-                    <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Territory Health</div>
-                    <div id="territoryHealthText" class="text-xl font-black text-slate-900 dark:text-white mt-1">Excellent</div>
-                    
-                    <!-- NEW: Mini Stats under Territory Health -->
-                    <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[10px] font-bold">
-                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Delivery: <span id="healthDeliveryPct">0</span>%</span>
-                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Feedback: <span id="healthFeedbackPct">0</span>%</span>
-                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Reps: <span id="healthActiveReps">0</span></span>
-                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">New Today: <span id="healthNewToday">0</span></span>
+                              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Territory Health</div>
+                        <div id="territoryHealthText" class="text-xl font-black text-slate-900 dark:text-white mt-1">Excellent</div>
                     </div>
+                    <div id="territoryHealthBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg">A</div>
                 </div>
-                <div id="territoryHealthBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg ml-3">A</div>
+                <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[10px] font-bold">
+                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Delivery: <span id="healthDeliveryPct">0</span>%</span>
+                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Feedback: <span id="healthFeedbackPct">0</span>%</span>
+                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">Reps: <span id="healthActiveReps">0</span></span>
+                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">New Today: <span id="healthNewToday">0</span></span>
+                </div>
             </div>
 
       <div class="space-y-2">
