@@ -781,7 +781,7 @@
     let chartInstance = null;
     let currentModalLink = "";
     let isUntappedExpanded = false;
-
+    let currentUntappedDoctors = [];
     let isEditMode = false;
     let isDeleteMode = false;
     let currentDoctorFilter = "ALL";
@@ -2088,8 +2088,6 @@
       renderUntappedList();
     }
 
-    let currentUntappedDoctors = [];
-
         function buildDoctorData() {
       const doctorMap = {};
       activeFilteredOrders.forEach(order => {
@@ -2201,8 +2199,6 @@
     }
 
     // ✅ AI INSIGHTS (Territory Health, Forecast, Anomaly, Untapped)
-    let isUntappedExpanded = false;
-    let currentUntappedDoctors = [];
 
     function normalizeName(name) {
       return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
