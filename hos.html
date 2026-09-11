@@ -1642,7 +1642,7 @@
       checkHosSession();
     }
 
-    function checkHosSession() {
+        function checkHosSession() {
       const auth = sessionStorage.getItem('tt_hos_auth') === 'true';
       const data = JSON.parse(sessionStorage.getItem('tt_hos_data') || '{}');
 
@@ -1711,6 +1711,8 @@
     window.renderUntappedList = renderUntappedList;
     window.exportUntappedCSV = exportUntappedCSV;
     window.showAllUntapped = showAllUntapped;
+    window.populateUntappedDropdown = populateUntappedDropdown;
+    window.populateUntappedRepDropdown = populateUntappedRepDropdown;
     window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
 
     checkHosSession();
