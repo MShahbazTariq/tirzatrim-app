@@ -1220,14 +1220,14 @@
       } catch (e) { console.warn("Extra stats skipped:", e); }
     }
 
-            function populateUntappedDropdown() {
+        function populateUntappedDropdown() {
       const mgrSelect = document.getElementById('untappedMgrFilter');
       const repSelect = document.getElementById('untappedRepFilter');
       if (!mgrSelect || !repSelect) return;
 
-      // ✅ ALWAYS default to "ALL" on first load (don't preserve previous value)
-      mgrSelect.value = 'ALL';
-      repSelect.value = 'ALL';
+      // ✅ Save the currently selected values before rebuilding
+      const currentMgr = mgrSelect.value;
+      const currentRep = repSelect.value;
 
       const regionManagers = hosUserRegion === 'ALL'
         ? allManagers
@@ -1236,36 +1236,48 @@
       mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
         regionManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
 
-      populateUntappedRepDropdown();
+      // ✅ Restore saved value if it still exists in the new list
+      if (currentMgr && (currentMgr === 'ALL' || regionManagers.some(m => m.manager_sap_id === currentMgr))) {
+        mgrSelect.value = currentMgr;
+      }
+
+      // Now populate the Rep dropdown (it preserves its own value too)
+      populateUntappedRepDropdown(currentRep);
+      
+      // Re-render the list with the preserved selection
       renderUntappedList();
     }
-
-    function populateUntappedRepDropdown() {
+    
+        function populateUntappedRepDropdown(savedRep) {
       const mgrSelect = document.getElementById('untappedMgrFilter');
       const repSelect = document.getElementById('untappedRepFilter');
       if (!mgrSelect || !repSelect) return;
-
+      
       const selectedMgrSap = mgrSelect.value;
-      const currentVal = repSelect.value;
-
+      const currentVal = savedRep !== undefined ? savedRep : repSelect.value;
+      
       const regionManagers = hosUserRegion === 'ALL'
         ? allManagers
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
-
+      
       let filteredReps = [];
       if (selectedMgrSap !== 'ALL') {
         filteredReps = allReps.filter(r => r.manager_sap_id === selectedMgrSap);
       } else {
-        const regionManagerSaps = regionManagers.map(m => m.manager_sap_id);
-        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
+        const saps = regionManagers.map(m => m.manager_sap_id);
+        filteredReps = allReps.filter(r => saps.includes(r.manager_sap_id));
       }
-
+      
       repSelect.innerHTML = '<option value="ALL">All Reps</option>' +
         filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-
-      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+      
+      // ✅ Restore the saved rep selection
+      if (currentVal && (currentVal === 'ALL' || filteredReps.some(r => r.territory_code === currentVal))) {
         repSelect.value = currentVal;
       }
+      
+      // Re-render the list
+      renderUntappedList();
     }
 
         function renderUntappedList() {
