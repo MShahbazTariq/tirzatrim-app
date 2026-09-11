@@ -860,7 +860,11 @@
       }
 
       if (tabId === 'analytics') {
-        setTimeout(() => { updateDailyChart(activeFilteredOrders); }, 100);
+        setTimeout(() => { 
+          updateDailyChart(activeFilteredOrders); 
+          renderDoctorSummaryList();       // ✅ ADD THIS
+          calculateExecutiveInsights();    // ✅ AND THIS
+        }, 100);
       }
       if (tabId === 'doctors') {
         window.fetchTerritoryDoctors();
@@ -1798,6 +1802,8 @@
       renderCards();
       renderUntappedList();
       calculateExecutiveInsights();
+      renderDoctorSummaryList();       // ✅ ADD THIS LINE
+      calculateExecutiveInsights();    // ✅ AND THIS ONE
     }
 
     function updateMetrics() {
