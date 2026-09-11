@@ -518,6 +518,89 @@
       </div>
     </div>
 
+          <!-- DOCTOR SUMMARY SECTION (from Head Office) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xl">🩺</div>
+              <div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Doctor Summary List</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Prescriber-wise overview from filtered orders in your territory</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold">Doctors: <span id="doctorTotalCount">0</span></span>
+            <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">Patients: <span id="doctorPatientTotal">0</span></span>
+          </div>
+        </div>
+        <div class="mt-5">
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+            <input id="doctorSummarySearchInput" type="text" oninput="renderDoctorSummaryList()" placeholder="Search Doctor, Clinic, Rep or Patient..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Active Doctors</div>
+          <div id="doctorSummaryCount" class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Total Patients</div>
+          <div id="doctorSummaryPatients" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Avg Patients / Dr</div>
+          <div id="doctorSummaryAverage" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">0</div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Top Prescriber</div>
+          <div id="doctorSummaryTop" class="text-sm font-black text-amber-600 dark:text-amber-400 mt-2 truncate">—</div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 dark:text-white">Prescriber Directory</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Sorted by patient count</p>
+          </div>
+          <span id="doctorShowingLabel" class="text-xs font-bold text-slate-400">Showing 0</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[850px]">
+            <thead class="bg-slate-50 dark:bg-slate-950">
+              <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400">
+                <th class="px-5 py-3 font-bold">#</th>
+                <th class="px-5 py-3 font-bold">Doctor</th>
+                <th class="px-5 py-3 font-bold">Clinic / Hospital</th>
+                <th class="px-5 py-3 font-bold text-center">Patients</th>
+                <th class="px-5 py-3 font-bold">Dose Mix</th>
+                <th class="px-5 py-3 font-bold">Rep</th>
+                <th class="px-5 py-3 font-bold">Latest Order</th>
+              </tr>
+            </thead>
+            <tbody id="doctorSummaryBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+              <tr><td colspan="7" class="px-5 py-12 text-center text-slate-400 text-sm">Loading doctor list...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="doctorPatientPanel" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="text-xs uppercase tracking-wider font-bold text-teal-600 dark:text-teal-400">Selected Prescriber</div>
+            <h3 id="selectedDoctorTitle" class="text-lg font-black text-slate-900 dark:text-white mt-1">—</h3>
+          </div>
+          <button onclick="closeDoctorPatientPanel()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
+        </div>
+        <div id="doctorPatientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5"></div>
+      </div>
+
     <!-- TAB 4: SHARE & LINKS HUB -->
     <div id="view-doctorLink" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-sm">
@@ -2007,7 +2090,7 @@
 
     let currentUntappedDoctors = [];
 
-    function buildDoctorData() {
+        function buildDoctorData() {
       const doctorMap = {};
       activeFilteredOrders.forEach(order => {
         const rawDoctor = (order.doctor_name || '').trim();
@@ -2035,6 +2118,232 @@
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // ✅ Doctor Summary (for Analytics tab)
+    function renderDoctorSummaryList() {
+      const body = document.getElementById('doctorSummaryBody');
+      if (!body) return;
+      const search = (document.getElementById('doctorSummarySearchInput')?.value || '').toLowerCase().trim();
+      const doctors = buildDoctorData();
+      const filteredDoctors = !search ? doctors : doctors.filter(d => {
+        const patientText = d.orders.map(o => [o.patient_name, o.mobile, o.city, o.rep_code].filter(Boolean).join(' ')).join(' ');
+        const repText = Object.keys(d.reps).join(' ');
+        return d.doctor.toLowerCase().includes(search) || d.clinic.toLowerCase().includes(search) || repText.toLowerCase().includes(search) || patientText.toLowerCase().includes(search);
+      });
+
+      const totalDoctors = doctors.length;
+      const totalPatients = activeFilteredOrders.length;
+      const average = totalDoctors > 0 ? (totalPatients / totalDoctors).toFixed(1) : '0';
+      const topDoctor = doctors.length > 0 ? doctors[0] : null;
+
+      document.getElementById('doctorTotalCount').innerText = totalDoctors;
+      document.getElementById('doctorPatientTotal').innerText = totalPatients;
+      document.getElementById('doctorSummaryCount').innerText = totalDoctors;
+      document.getElementById('doctorSummaryPatients').innerText = totalPatients;
+      document.getElementById('doctorSummaryAverage').innerText = average;
+      document.getElementById('doctorSummaryTop').innerText = topDoctor ? `Dr. ${topDoctor.doctor}` : '—';
+      document.getElementById('doctorShowingLabel').innerText = `Showing ${filteredDoctors.length} of ${totalDoctors}`;
+
+      if (filteredDoctors.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="px-5 py-14 text-center"><div class="text-4xl mb-3">🩺</div><div class="text-sm font-bold text-slate-700 dark:text-slate-300">No doctors found</div><div class="text-xs text-slate-400 mt-1">Try changing the date range or search keyword.</div></td></tr>`;
+        return;
+      }
+
+      body.innerHTML = filteredDoctors.map((doctor, index) => {
+        const doseMix = Object.entries(doctor.doses).sort((a, b) => b[1] - a[1]).map(([dose, count]) => `${dose} × ${count}`).join(', ');
+        const reps = Object.entries(doctor.reps).sort((a, b) => b[1] - a[1]).map(([rep, count]) => `${rep}${count > 1 ? ` (${count})` : ''}`).join(', ');
+        const latestDate = doctor.latestOrder ? new Date(doctor.latestOrder.created_at).toLocaleDateString() : '—';
+
+        return `<tr class="doctor-row hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer" onclick="showDoctorPatients(${index})">
+          <td class="px-5 py-4 text-xs font-bold text-slate-400">${index + 1}</td>
+          <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-black text-xs">${index + 1}</div><div><div class="font-bold text-sm text-slate-900 dark:text-white">Dr. ${escapeHtml(doctor.doctor)}</div><div class="text-[11px] text-slate-400 mt-0.5">${doctor.orders.length} patient record${doctor.orders.length > 1 ? 's' : ''}</div></div></div></td>
+          <td class="px-5 py-4"><div class="text-sm font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(doctor.clinic)}</div></td>
+          <td class="px-5 py-4 text-center"><span class="inline-flex min-w-[42px] justify-center px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 font-black text-xs">${doctor.orders.length}</span></td>
+          <td class="px-5 py-4"><div class="text-xs font-semibold text-slate-600 dark:text-slate-300">${escapeHtml(doseMix)}</div></td>
+          <td class="px-5 py-4"><div class="text-xs font-bold text-blue-600 dark:text-blue-400">${escapeHtml(reps)}</div></td>
+          <td class="px-5 py-4"><div class="text-xs font-semibold text-slate-500 dark:text-slate-400">${latestDate}</div><div class="text-[10px] font-mono text-slate-400 mt-1">${doctor.latestOrder?.order_id || ''}</div></td>
+        </tr>`;
+      }).join('');
+
+      window.currentDoctorList = filteredDoctors;
+    }
+
+    function showDoctorPatients(index) {
+      const doctors = window.currentDoctorList || [];
+      const doctor = doctors[index];
+      if (!doctor) return;
+      const panel = document.getElementById('doctorPatientPanel');
+      const title = document.getElementById('selectedDoctorTitle');
+      const list = document.getElementById('doctorPatientList');
+      title.innerText = `Dr. ${doctor.doctor} • ${doctor.clinic}`;
+      list.innerHTML = doctor.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(order => {
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        return `<div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50 dark:bg-slate-950">
+          <div class="flex items-start justify-between gap-3">
+            <div><div class="font-bold text-sm text-slate-900 dark:text-white">👤 ${escapeHtml(order.patient_name || 'Unnamed')} ${order.age ? `(${order.age} yrs)` : ''}</div><div class="text-xs text-slate-400 font-mono mt-1">${escapeHtml(order.mobile || '')}</div></div>
+            <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${isDelivered ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}">${isDelivered ? 'Delivered' : (order.status || 'New')}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+            <div><span class="text-slate-400">Order</span><div class="font-mono font-bold text-slate-700 dark:text-slate-300">${escapeHtml(order.order_id || 'N/A')}</div></div>
+            <div><span class="text-slate-400">Date</span><div class="font-semibold text-slate-700 dark:text-slate-300">${new Date(order.created_at).toLocaleDateString()}</div></div>
+            <div><span class="text-slate-400">Dose</span><div class="font-bold text-emerald-600 dark:text-emerald-400">${escapeHtml(order.prescribed_dose || 'N/A')}</div></div>
+            <div><span class="text-slate-400">Rep</span><div class="font-bold text-blue-600 dark:text-blue-400">${escapeHtml(order.rep_code || 'Direct')}</div></div>
+          </div>
+        </div>`;
+      }).join('');
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeDoctorPatientPanel() {
+      document.getElementById('doctorPatientPanel').classList.add('hidden');
+    }
+
+    // ✅ AI INSIGHTS (Territory Health, Forecast, Anomaly, Untapped)
+    let isUntappedExpanded = false;
+    let currentUntappedDoctors = [];
+
+    function normalizeName(name) {
+      return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function calculateExecutiveInsights() {
+      const total = activeFilteredOrders.length;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ordersThisMonth = rawOrders.filter(o => new Date(o.created_at) >= startOfMonth).length;
+      const daysPassed = Math.max(now.getDate(), 1);
+      const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const forecast = Math.round((ordersThisMonth / daysPassed) * totalDaysInMonth);
+
+      const healthEl = document.getElementById('territoryHealthText');
+      const badgeEl = document.getElementById('territoryHealthBadge');
+      if (healthEl && badgeEl) {
+        if (total === 0) {
+          healthEl.innerText = "No Data";
+          badgeEl.className = "w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "N/A";
+        } else if (forecast >= 20) {
+          healthEl.innerText = "Excellent";
+          badgeEl.className = "w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "A";
+        } else if (forecast >= 10) {
+          healthEl.innerText = "Average";
+          badgeEl.className = "w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "B";
+        } else {
+          healthEl.innerText = "Critical";
+          badgeEl.className = "w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "C";
+        }
+      }
+
+      const last7Days = new Date(); last7Days.setDate(now.getDate() - 7);
+      const prev7Days = new Date(); prev7Days.setDate(now.getDate() - 14);
+      const ordersLast7 = rawOrders.filter(o => new Date(o.created_at) >= last7Days).length;
+      const ordersPrev7 = rawOrders.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+
+      const anomalyText = document.getElementById('anomalyAlertText');
+      if (anomalyText) {
+        if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
+          const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
+          anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
+        } else {
+          anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+        }
+      }
+
+      const daysRemaining = totalDaysInMonth - daysPassed;
+      const dailyAvg = (ordersThisMonth / daysPassed);
+      const el1 = document.getElementById('predictedOrders'); if (el1) el1.innerText = forecast;
+      const el2 = document.getElementById('currentPace'); if (el2) el2.innerText = `${dailyAvg.toFixed(1)}/day`;
+      const el3 = document.getElementById('daysLeft'); if (el3) el3.innerText = `${daysRemaining} days`;
+
+      const pace3 = ordersThisMonth + (daysRemaining * 3);
+      const pace5 = ordersThisMonth + (daysRemaining * 5);
+      const pace7 = ordersThisMonth + (daysRemaining * 7);
+      const pace10 = ordersThisMonth + (daysRemaining * 10);
+      const p3 = document.getElementById('pace3'); if (p3) p3.innerText = `~${pace3}`;
+      const p5 = document.getElementById('pace5'); if (p5) p5.innerText = `~${pace5}`;
+      const p7 = document.getElementById('pace7'); if (p7) p7.innerText = `~${pace7}`;
+      const p10 = document.getElementById('pace10'); if (p10) p10.innerText = `~${pace10}`;
+
+      try {
+        const healthDeliveryEl = document.getElementById('healthDeliveryPct');
+        const healthFeedbackEl = document.getElementById('healthFeedbackPct');
+        const healthRepsEl = document.getElementById('healthActiveReps');
+        const healthTodayEl = document.getElementById('healthNewToday');
+        if (healthDeliveryEl && healthFeedbackEl && healthRepsEl && healthTodayEl) {
+          const deliveredCount = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+          const feedbackCount = activeFilteredOrders.filter(o => cachedFeedbacks[o.id]).length;
+          const uniqueRepsCount = [...new Set(activeFilteredOrders.map(o => o.patient_name).filter(Boolean))].length;
+          const todayOrdersCount = activeFilteredOrders.filter(o => getLocalDateKey(o.created_at) === getLocalDateKey(new Date())).length;
+          healthDeliveryEl.innerText = total > 0 ? Math.round((deliveredCount / total) * 100) : 0;
+          healthFeedbackEl.innerText = total > 0 ? Math.round((feedbackCount / total) * 100) : 0;
+          healthRepsEl.innerText = uniqueRepsCount;
+          healthTodayEl.innerText = todayOrdersCount;
+        }
+      } catch (e) { console.warn("Extra stats skipped:", e); }
+
+      renderUntappedList();
+    }
+
+    function renderUntappedList() {
+      const container = document.getElementById('untappedListContainer');
+      if (!container) return;
+
+      const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(new Date().getDate() - 30);
+      const allDoctorNames = [...new Set(territoryDoctorsList
+        .map(doc => (doc['Doctor Name'] || '').trim())
+        .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
+      )];
+
+      const untappedDoctors = allDoctorNames.filter(doctorName => {
+        const nm = normalizeName(doctorName);
+        const masterWords = nm.split(' ');
+        const hasRecentOrder = activeFilteredOrders.some(o => {
+          const no = normalizeName(o.doctor_name || '');
+          const orderWords = no.split(' ');
+          const matchedWords = masterWords.filter(w => orderWords.includes(w));
+          return matchedWords.length >= 2;
+        });
+        return !hasRecentOrder;
+      });
+
+      currentUntappedDoctors = untappedDoctors;
+
+      if (untappedDoctors.length > 0) {
+        const top5 = isUntappedExpanded ? untappedDoctors : untappedDoctors.slice(0, 5);
+        const remainingCount = untappedDoctors.length - 5;
+        let html = top5.map(doc => `
+          <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
+            <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Untapped</span>
+          </div>
+        `).join('');
+        if (!isUntappedExpanded && remainingCount > 0) {
+          html += `<div class="pt-3 text-center"><button onclick="showAllUntapped()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">👁️ Show All (${remainingCount} more)</button></div>`;
+        } else if (isUntappedExpanded) {
+          html += `<div class="pt-3 text-center"><button onclick="isUntappedExpanded = false; renderUntappedList();" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">↕️ Show Less</button></div>`;
+        }
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this territory have recent prescriptions.</div>`;
+      }
+    }
+
+    function showAllUntapped() { isUntappedExpanded = true; renderUntappedList(); }
+
+    function exportUntappedCSV() {
+      if (currentUntappedDoctors.length === 0) { alert("No untapped doctors to export."); return; }
+      let csv = "Doctor Name,Status\n";
+      currentUntappedDoctors.forEach(doc => { csv += `"Dr. ${doc}","Untapped"\n`; });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Untapped_Doctors_${currentRep?.territory_code || 'Territory'}.csv`;
+      a.click();
     }
 
     function renderCards() {
@@ -2076,9 +2385,7 @@
             <div class="space-y-1.5 text-sm">
               <div class="flex items-center justify-between">
                 <div class="font-bold text-slate-900 dark:text-slate-100 text-base">👤 ${order.patient_name} ${order.age ? `(${order.age} yrs)` : ''}</div>
-                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs font-bold">
-                  📞 Call
-                </a>
+                <a href="tel:${order.mobile}" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs font-bold">📞 Call</a>
               </div>
               <div class="text-slate-400 font-mono text-xs">${order.mobile}</div>
               <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
@@ -2103,67 +2410,36 @@
                 <span class="text-slate-500 dark:text-slate-400">Next Step-Up Target</span>
                 <span class="font-bold text-emerald-600 dark:text-emerald-400">${esc.nextDose}</span>
               </div>
-              ${order.prescription_url ? `
-                <div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right">
-                  <a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a>
-                </div>
-              ` : ''}
-
-              ${order.status === 'Cancelled' && order.cancellation_reason ? `
-                <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2">
-                  <strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}
-                </div>
-              ` : ''}
+              ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Rx Prescription</a></div>` : ''}
+              ${order.status === 'Cancelled' && order.cancellation_reason ? `<div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs mt-2"><strong>❌ Cancellation Reason:</strong> ${order.cancellation_reason}</div>` : ''}
             </div>
 
             <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
               <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                 <span>🚚 Fulfillment Route:</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">
-                    ${isRouted ? routedLabel : '⚠️ Routing Pending'}
-                  </span>
-                  ${isRouted && !isBeingEdited ? `
-                    <button onclick="enableRoutingEdit('${order.id}', '${order.city}')" title="Rectify / Change Routing" class="p-1 px-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs transition-colors">
-                      ✏️
-                    </button>
-                  ` : ''}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">${isRouted ? routedLabel : '⚠️ Routing Pending'}</span>
+                  ${isRouted && !isBeingEdited ? `<button onclick="enableRoutingEdit('${order.id}', '${order.city}')" title="Rectify / Change Routing" class="p-1 px-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs transition-colors">✏️</button>` : ''}
                 </div>
               </div>
 
               ${(!isRouted || isBeingEdited) ? `
                 <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
                   <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="channel-${order.id}" value="MP" ${selectedChan === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline
-                    </label>
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="channel-${order.id}" value="MDS" ${selectedChan === 'MDS' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express
-                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="channel-${order.id}" value="MP" ${selectedChan === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline</label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="channel-${order.id}" value="MDS" ${selectedChan === 'MDS' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MDS', '${order.city}')" class="text-teal-600"> MDS Express</label>
                   </div>
-
                   <div id="mdsContainer-${order.id}" class="${selectedChan === 'MDS' ? '' : 'hidden'} space-y-1.5 pt-1">
                     <select id="mdsSelect-${order.id}" onfocus="window._activeRoutingInteractions=true;" onblur="window._activeRoutingInteractions=false;" onchange="handleMdsSelection('${order.id}', this.value)" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
                       <option value="">Select MDS Partner...</option>
                     </select>
                   </div>
-
                   <div class="flex items-center gap-2 pt-1">
-                    <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="flex-1 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">
-                      🚀 ${isBeingEdited ? 'Save New Route' : 'Save & Update Routing'}
-                    </button>
-                    ${isBeingEdited ? `
-                      <button onclick="cancelRoutingEdit('${order.id}')" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all">
-                        Cancel
-                      </button>
-                    ` : ''}
+                    <button onclick="saveOrderRouting('${order.id}', '${order.city}')" class="flex-1 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-sm transition-all">🚀 ${isBeingEdited ? 'Save New Route' : 'Save & Update Routing'}</button>
+                    ${isBeingEdited ? `<button onclick="cancelRoutingEdit('${order.id}')" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all">Cancel</button>` : ''}
                   </div>
                 </div>
-              ` : `
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 italic pt-0.5">
-                  Route locked. Tap ✏️ above to rectify medium.
-                </div>
-              `}
+              ` : `<div class="text-[11px] text-slate-500 dark:text-slate-400 italic pt-0.5">Route locked. Tap ✏️ above to rectify medium.</div>`}
             </div>
 
             <div class="text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
@@ -2173,19 +2449,13 @@
 
             <div class="space-y-2 pt-1">
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
-                  💬 Inform Status
-                </button>
-                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
-                  ⭐ Ask Feedback
-                </button>
+                <button onclick="sendUpdateWhatsApp('${order.mobile}', '${order.patient_name}', '${order.order_id}', '${order.status}')" class="py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">💬 Inform Status</button>
+                <button onclick="sendFeedbackWhatsApp('${order.mobile}', '${order.patient_name}')" class="py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">⭐ Ask Feedback</button>
               </div>
-
               <button onclick="sendRepEscalationWhatsApp('${order.mobile}', '${order.patient_name}', '${esc.currentDose}', '${esc.nextDose}', '${order.rep_code}')" class="w-full py-2.5 px-2 ${esc.isDue ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'} text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all">
                 <span>🔄</span> Send Step-Up Refill (${esc.currentDose} ➔ ${esc.nextDose})
               </button>
             </div>
-
           </div>
         `;
       }).join('');
@@ -2194,12 +2464,8 @@
         const isRouted = Boolean(order.fulfillment_channel);
         const isBeingEdited = Boolean(window._editingOrders[order.id]);
         if (!isRouted || isBeingEdited) {
-          const selectedChan = window._selectedChannels[order.id] !== undefined 
-            ? window._selectedChannels[order.id] 
-            : (order.fulfillment_channel || '');
-          if (selectedChan === 'MDS') {
-            populateMdsDropdown(order.id, order.city);
-          }
+          const selectedChan = window._selectedChannels[order.id] !== undefined ? window._selectedChannels[order.id] : (order.fulfillment_channel || '');
+          if (selectedChan === 'MDS') populateMdsDropdown(order.id, order.city);
         }
       });
     }
@@ -2207,11 +2473,8 @@
     function formatPakistanMobile(mobile) {
       if (!mobile) return '';
       let cleaned = ('' + mobile).replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        cleaned = '92' + cleaned.substring(1);
-      } else if (!cleaned.startsWith('92')) {
-        cleaned = '92' + cleaned;
-      }
+      if (cleaned.startsWith('0')) cleaned = '92' + cleaned.substring(1);
+      else if (!cleaned.startsWith('92')) cleaned = '92' + cleaned;
       return cleaned;
     }
 
@@ -2219,30 +2482,21 @@
       const formattedNumber = formatPakistanMobile(mobile);
       const encodedText = encodeURIComponent(text);
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      
       if (isMobile) {
-        if (formattedNumber) {
-          window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
-        } else {
-          window.location.href = `whatsapp://send?text=${encodedText}`;
-        }
+        if (formattedNumber) window.location.href = `whatsapp://send?phone=${formattedNumber}&text=${encodedText}`;
+        else window.location.href = `whatsapp://send?text=${encodedText}`;
       } else {
-        if (formattedNumber) {
-          window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
-        } else {
-          window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
-        }
+        if (formattedNumber) window.open(`https://web.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`, '_blank');
+        else window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
       }
     }
 
     function sendUpdateWhatsApp(mobile, name, orderId, status) {
-      const msg = `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. Thank you for choosing TirzaTrim Patient Support.`;
-      openWhatsAppUniversal(mobile, msg);
+      openWhatsAppUniversal(mobile, `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. Thank you for choosing TirzaTrim Patient Support.`);
     }
 
     function sendFeedbackWhatsApp(mobile, name) {
-      const msg = `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim. Please take a moment to rate your delivery and service experience here: https://tirzatrim-app.vercel.app/feedback.html`;
-      openWhatsAppUniversal(mobile, msg);
+      openWhatsAppUniversal(mobile, `Assalam-o-Alaikum ${name}, thank you for choosing TirzaTrim. Please take a moment to rate your delivery and service experience here: https://tirzatrim-app.vercel.app/feedback.html`);
     }
 
     function sendRepEscalationWhatsApp(mobile, name, currentDose, nextDose, repCode) {
@@ -2250,6 +2504,15 @@
       const msg = `Assalam-o-Alaikum ${name},\n\nHope your TirzaTrim (${currentDose}) treatment is going smoothly! You are currently on Week 4 of your 4-week pen cycle.\n\nAs per standard titration guidance, your next recommended step-up dose is *${nextDose}* (subject to your doctor's recommendation).\n\n📲 *1-Click Step-Up Refill Link:*\n${refillLink}\n\nWarm regards,\n${currentRep.full_name} (${currentRep.team_name})\nTirzaTrim Patient Support Care`;
       openWhatsAppUniversal(mobile, msg);
     }
+
+    // Globally expose new functions
+    window.renderDoctorSummaryList = renderDoctorSummaryList;
+    window.showDoctorPatients = showDoctorPatients;
+    window.closeDoctorPatientPanel = closeDoctorPatientPanel;
+    window.calculateExecutiveInsights = calculateExecutiveInsights;
+    window.renderUntappedList = renderUntappedList;
+    window.showAllUntapped = showAllUntapped;
+    window.exportUntappedCSV = exportUntappedCSV;
 
     // Initialize
     checkSession();
