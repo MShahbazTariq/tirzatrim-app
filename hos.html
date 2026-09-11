@@ -8,13 +8,11 @@
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
   
-  <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Notification System -->
   <script src="/notification-center.js"></script>
   <script src="/notification-helper.js"></script>
 
@@ -32,9 +30,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
       
       <div class="flex items-center justify-between">
-        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">
-          🏠 Home
-        </a>
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">🏠 Home</a>
         <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" title="Toggle Theme">
           <span class="theme-icon">🌙</span>
         </button>
@@ -51,14 +47,12 @@
         <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Register HOS</button>
       </div>
 
-      <!-- LOGIN -->
       <form id="loginForm" onsubmit="handleHosLogin(event)" class="space-y-4">
         <div><input type="text" id="loginSap" placeholder="HOS SAP ID (e.g. 1234)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-mono placeholder-slate-400 dark:placeholder-slate-600"></div>
         <div><input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 placeholder-slate-400 dark:placeholder-slate-600"></div>
         <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all">Unlock Regional Dashboard</button>
       </form>
 
-      <!-- SIGNUP -->
       <form id="signupForm" onsubmit="handleHosSignup(event)" class="space-y-3 hidden text-left">
         <div><label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label><input type="text" id="regName" placeholder="e.g. Saqib Rafiq" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"></div>
         <div class="grid grid-cols-2 gap-2">
@@ -139,26 +133,6 @@
       </div>
     </header>
 
-    <!-- KPI STRIP -->
-    <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Regional Patients</div>
-        <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
-        <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
-        <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      </div>
-      <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
-        <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
-      </div>
-    </div>
-
     <!-- APP GRID -->
     <div class="grid grid-cols-3 gap-2.5 pt-1">
       <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-launcher-btn p-3.5 bg-indigo-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all"><span class="text-xl">👥</span><span class="text-xs font-bold">Orders</span></button>
@@ -166,14 +140,111 @@
       <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="tab-launcher-btn p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 transition-all"><span class="text-xl">📊</span><span class="text-xs font-bold">Analytics</span></button>
     </div>
 
-    <!-- TAB 1: ORDERS WITH DATE FILTER -->
+    <!-- TAB 1: ORDERS WITH KPI, DATE FILTER, AI INSIGHTS -->
     <div id="view-orders" class="tab-view-container space-y-4">
-      
+
+      <!-- KPI STRIP -->
+      <div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+        <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Regional Patients</div>
+          <div id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white mt-1">0</div>
+        </div>
+        <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Fulfillment</div>
+          <div id="statProcess" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">0</div>
+        </div>
+        <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Delivered</div>
+          <div id="statDelivered" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="min-w-[140px] flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Avg Rating</div>
+          <div id="statRating" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">5.0 ⭐</div>
+        </div>
+      </div>
+
+      <!-- DATE FILTER -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
+          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
+          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
+          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
+          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all">Month to Date</button>
+          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
+          <div class="flex items-center gap-1 ml-2">
+            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <span class="text-xs text-slate-400">to</span>
+            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
+          </div>
+          <span id="ordersDateBadge" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
+        </div>
+      </div>
+
+      <!-- AI INSIGHTS PANEL -->
+      <div id="aiInsightsPanel" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>🤖</span> Executive AI Insights</h3>
+          <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">Live Analysis</span>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Anomaly Alert</div>
+          <div id="anomalyAlertText" class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1"><span class="text-emerald-600">✅ No anomalies detected.</span></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Territory Health</div>
+                <div id="territoryHealthText" class="text-xl font-black text-slate-900 dark:text-white mt-1">Excellent</div>
+              </div>
+              <div id="territoryHealthBadge" class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg">A</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[10px] font-bold">
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">📦 Delivery: <span id="healthDeliveryPct">0</span>%</span>
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">⭐ Feedback: <span id="healthFeedbackPct">0</span>%</span>
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">👥 Active Reps: <span id="healthActiveReps">0</span></span>
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">🆕 New Today: <span id="healthNewToday">0</span></span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Projected Month-End Orders</div>
+              <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">~<span id="predictedOrders">0</span> Orders</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 grid grid-cols-3 gap-1.5 text-[10px] font-bold">
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600 text-center">Pace: <span id="currentPace">0</span></span>
+              <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600 text-center">Left: <span id="daysLeft">0</span></span>
+              <span class="px-2 py-1.5 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400 text-center">3/d: <span id="pace3">0</span></span>
+              <span class="px-2 py-1.5 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400 text-center">5/d: <span id="pace5">0</span></span>
+              <span class="px-2 py-1.5 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400 text-center">7/d: <span id="pace7">0</span></span>
+              <span class="px-2 py-1.5 bg-blue-50 dark:bg-blue-950/40 rounded text-blue-600 dark:text-blue-400 text-center">10/d: <span id="pace10">0</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 text-sm border-t border-slate-200 dark:border-slate-800 mt-1">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"><span>⚠️</span> Untapped Doctors by Rep</div>
+            <div class="flex items-center gap-2">
+              <select id="untappedRepFilter" onchange="renderUntappedList()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+              </select>
+              <button onclick="exportUntappedCSV()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all">📥 Download CSV</button>
+            </div>
+          </div>
+          <div id="untappedListContainer">
+            <div class="text-slate-400 text-xs">Loading untapped doctors...</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Hierarchy Search Engine -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-          <span>🔍</span> Hierarchy Search Engine (ZSM • Field Rep • Keyword)
-        </div>
+        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2"><span>🔍</span> Hierarchy Search Engine (ZSM • Field Rep • Keyword)</div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <select id="filterManager" onchange="onManagerChange()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
             <option value="ALL">All ZSMs in My Region</option>
@@ -185,40 +256,16 @@
         </div>
       </div>
 
-      <!-- ✅ DATE FILTER -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">📅 Date:</span>
-          <button onclick="setDatePreset('TODAY')" id="ordersBtnToday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Today</button>
-          <button onclick="setDatePreset('YESTERDAY')" id="ordersBtnYesterday" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Yesterday</button>
-          <button onclick="setDatePreset('LAST7')" id="ordersBtn7Days" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Last 7 Days</button>
-          <button onclick="setDatePreset('MTD')" id="ordersBtnMTD" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all">Month to Date</button>
-          <button onclick="setDatePreset('ALL')" id="ordersBtnAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">All Time</button>
-          
-          <div class="flex items-center gap-1 ml-2">
-            <input type="date" id="ordersCalendarFrom" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-            <span class="text-xs text-slate-400">to</span>
-            <input type="date" id="ordersCalendarTo" onchange="onOrdersCustomDate()" class="px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-            <button onclick="onOrdersCustomDate()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all">Apply</button>
-          </div>
-          
-          <span id="ordersDateBadge" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full ml-auto">Month to Date</span>
-        </div>
-      </div>
-
       <!-- Patient Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)
-          </h3>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>👥</span> Enrolled Patient Records (<span id="filteredCount">0</span>)</h3>
           <span id="activeDateScopeTag" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Month to Date</span>
         </div>
         <div id="hosCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">Loading regional records...</div>
         </div>
       </div>
-      
     </div>
 
     <!-- TAB 2: TEAM DOCTOR LIST -->
@@ -262,10 +309,10 @@
       </div>
     </div>
 
-    <!-- TAB 3: ANALYTICS (Date Window Moved Above Graph) -->
+    <!-- TAB 3: ANALYTICS -->
     <div id="view-analytics" class="tab-view-container space-y-4 hidden">
       
-      <!-- ✅ Configure Date Window (Now Above Graph) -->
+      <!-- Configure Date Window -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2"><span>📅</span> Configure Date Window</div>
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
@@ -282,7 +329,7 @@
         <div id="dateScopeBadge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3.5 py-1.5 rounded-xl border border-indigo-500/20 inline-block">Showing: Month to Date</div>
       </div>
 
-      <!-- Graph Card -->
+      <!-- Graph -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>📊</span> Regional Patient Enrollment Trend (Last 14 Days)</h3>
@@ -302,7 +349,6 @@
         </div>
       </div>
 
-      <!-- Doctor Summary Section -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div><div class="flex items-center gap-2"><div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl">🩺</div><div><h3 class="text-lg font-black text-slate-900 dark:text-white">Doctor Summary List</h3><p class="text-xs text-slate-500 dark:text-slate-400">Prescriber-wise regional overview from filtered orders</p></div></div></div>
@@ -352,6 +398,8 @@
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let isUntappedExpanded = false;
+    let currentUntappedDoctors = [];
 
     let currentHosDoctorFilter = "ALL";
     let currentDateScope = "MTD";
@@ -378,6 +426,10 @@
       if (clean.includes('10')) return '10mg';
       if (clean.includes('5')) return '5mg';
       return '5mg';
+    }
+
+    function normalizeName(name) {
+      return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
     }
 
     function getEscalationDetails(createdAt, prescribedDose) {
@@ -453,7 +505,8 @@
         document.getElementById('loginTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       }
     }
-        function getInitials(name) {
+    
+    function getInitials(name) {
       if (!name) return 'HS';
       const parts = name.trim().split(/\s+/);
       if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
@@ -491,6 +544,8 @@
           teamDoctorsData = data;
           populateHosDoctorFilters();
           renderHosTeamDoctorsTable();
+          populateUntappedDropdown();
+          renderUntappedList();
         }
       } catch (err) { console.warn("fetchTeamDoctors error:", err); }
     }
@@ -699,9 +754,6 @@
 
     function onManagerChange() { populateRepDropdown(); applyAllFilters(); }
 
-    // ============================================================
-    // ✅ FIXED: applyAllFilters with proper region filtering
-    // ============================================================
     function applyAllFilters() {
       const managerSap = document.getElementById('filterManager')?.value || 'ALL';
       const repCode = document.getElementById('filterRep')?.value || 'ALL';
@@ -752,6 +804,7 @@
       updateSummaries();
       renderCards();
       renderDoctorList();
+      calculateExecutiveInsights();
     }
 
     function updateMetrics() {
@@ -759,10 +812,14 @@
       const delivered = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
       const inProcess = total - delivered;
 
-      document.getElementById('statTotal').innerText = total;
-      document.getElementById('statProcess').innerText = inProcess;
-      document.getElementById('statDelivered').innerText = delivered;
-      document.getElementById('filteredCount').innerText = total;
+      const statTotal = document.getElementById('statTotal');
+      if (statTotal) statTotal.innerText = total;
+      const statProcess = document.getElementById('statProcess');
+      if (statProcess) statProcess.innerText = inProcess;
+      const statDelivered = document.getElementById('statDelivered');
+      if (statDelivered) statDelivered.innerText = delivered;
+      const filteredCount = document.getElementById('filteredCount');
+      if (filteredCount) filteredCount.innerText = total;
 
       const ratings = activeFilteredOrders.map(o => feedbackMap[o.id]?.overall_rating).filter(r => r > 0);
       if (ratings.length > 0) {
@@ -850,28 +907,35 @@
       });
 
       const sortedPrescribers = Object.entries(prescriberCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      document.getElementById('topDoctorsList').innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
-          <span class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      const topDoctorsList = document.getElementById('topDoctorsList');
+      if (topDoctorsList) {
+        topDoctorsList.innerHTML = sortedPrescribers.length ? sortedPrescribers.map(([prescriber, count], idx) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">#${idx + 1} Dr. ${(prescriber.replace(/^Dr\.?\s*/i, ''))}</span>
+            <span class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 text-xs">${count} Patient${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No doctor records in this date window.</div>';
+      }
 
       const doseCount = {};
       activeFilteredOrders.forEach(o => {
         const dose = o.prescribed_dose || 'Unspecified';
         doseCount[dose] = (doseCount[dose] || 0) + 1;
       });
-      document.getElementById('doseDistributionList').innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
-        <div class="flex items-center justify-between py-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
-          <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
-        </div>
-      `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      const doseDistributionList = document.getElementById('doseDistributionList');
+      if (doseDistributionList) {
+        doseDistributionList.innerHTML = Object.entries(doseCount).length ? Object.entries(doseCount).map(([dose, count]) => `
+          <div class="flex items-center justify-between py-2">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 text-sm">TirzaTrim ${dose}</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 text-xs">${count} Prescription${count > 1 ? 's' : ''}</span>
+          </div>
+        `).join('') : '<div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">No dosage records in this date window.</div>';
+      }
     }
 
     function renderCards() {
       const grid = document.getElementById('hosCardsGrid');
+      if (!grid) return;
       if (activeFilteredOrders.length === 0) {
         grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient records found in your region for the selected filters.</div>';
         return;
@@ -1053,6 +1117,223 @@
       document.getElementById('doctorPatientPanel').classList.add('hidden');
     }
 
+    // ============================================================
+    // AI INSIGHTS: Territory Health, Anomaly, Forecast, Untapped
+    // ============================================================
+    function calculateExecutiveInsights() {
+      const total = activeFilteredOrders.length;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ordersThisMonth = allOrders.filter(o => new Date(o.created_at) >= startOfMonth).length;
+      const daysPassed = Math.max(now.getDate(), 1); 
+      const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const forecast = Math.round((ordersThisMonth / daysPassed) * totalDaysInMonth);
+      
+      const healthEl = document.getElementById('territoryHealthText');
+      const badgeEl = document.getElementById('territoryHealthBadge');
+      
+      if (healthEl && badgeEl) {
+        if (total === 0) {
+          healthEl.innerText = "No Data";
+          badgeEl.className = "w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "N/A";
+        } else if (forecast >= 20) {
+          healthEl.innerText = "Excellent";
+          badgeEl.className = "w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "A";
+        } else if (forecast >= 10) {
+          healthEl.innerText = "Average";
+          badgeEl.className = "w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "B";
+        } else {
+          healthEl.innerText = "Critical";
+          badgeEl.className = "w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg";
+          badgeEl.innerText = "C";
+        }
+      }
+
+      const last7Days = new Date(); last7Days.setDate(now.getDate() - 7);
+      const prev7Days = new Date(); prev7Days.setDate(now.getDate() - 14);
+      const ordersLast7 = allOrders.filter(o => new Date(o.created_at) >= last7Days).length;
+      const ordersPrev7 = allOrders.filter(o => new Date(o.created_at) >= prev7Days && new Date(o.created_at) < last7Days).length;
+
+      const anomalyText = document.getElementById('anomalyAlertText');
+      if (anomalyText) {
+        if (ordersPrev7 > 0 && ordersLast7 < ordersPrev7 * 0.8) {
+          const dropPercent = Math.round(((ordersPrev7 - ordersLast7) / ordersPrev7) * 100);
+          anomalyText.innerHTML = `<span class="text-rose-600">🚨 Volume dropped ${dropPercent}% compared to previous week!</span>`;
+        } else {
+          anomalyText.innerHTML = `<span class="text-emerald-600">✅ Volume stable or growing.</span>`;
+        }
+      }
+
+      const daysRemaining = totalDaysInMonth - daysPassed;
+      const dailyAvg = (ordersThisMonth / daysPassed);
+      const finalForecast = Math.round(dailyAvg * totalDaysInMonth);
+
+      const predictedOrdersEl = document.getElementById('predictedOrders');
+      const currentPaceEl = document.getElementById('currentPace');
+      const daysLeftEl = document.getElementById('daysLeft');
+      
+      if (predictedOrdersEl) predictedOrdersEl.innerText = finalForecast;
+      if (currentPaceEl) currentPaceEl.innerText = `${dailyAvg.toFixed(1)}/day`;
+      if (daysLeftEl) daysLeftEl.innerText = `${daysRemaining} days`;
+
+      const pace3 = ordersThisMonth + (daysRemaining * 3);
+      const pace5 = ordersThisMonth + (daysRemaining * 5);
+      const pace7 = ordersThisMonth + (daysRemaining * 7);
+      const pace10 = ordersThisMonth + (daysRemaining * 10);
+
+      const pace3El = document.getElementById('pace3');
+      const pace5El = document.getElementById('pace5');
+      const pace7El = document.getElementById('pace7');
+      const pace10El = document.getElementById('pace10');
+      
+      if (pace3El) pace3El.innerText = `~${pace3}`;
+      if (pace5El) pace5El.innerText = `~${pace5}`;
+      if (pace7El) pace7El.innerText = `~${pace7}`;
+      if (pace10El) pace10El.innerText = `~${pace10}`;
+
+      try {
+        const healthDeliveryEl = document.getElementById('healthDeliveryPct');
+        const healthFeedbackEl = document.getElementById('healthFeedbackPct');
+        const healthRepsEl = document.getElementById('healthActiveReps');
+        const healthTodayEl = document.getElementById('healthNewToday');
+
+        if (healthDeliveryEl && healthFeedbackEl && healthRepsEl && healthTodayEl) {
+          const deliveredCount = activeFilteredOrders.filter(o => ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(o.status)).length;
+          const feedbackCount = activeFilteredOrders.filter(o => feedbackMap[o.id]).length;
+          const uniqueRepsCount = [...new Set(activeFilteredOrders.map(o => o.rep_code).filter(Boolean))].length;
+          const todayOrdersCount = activeFilteredOrders.filter(o => getLocalDateKey(o.created_at) === getLocalDateKey(new Date())).length;
+
+          const deliveryPct = total > 0 ? Math.round((deliveredCount / total) * 100) : 0;
+          const feedbackPct = total > 0 ? Math.round((feedbackCount / total) * 100) : 0;
+
+          healthDeliveryEl.innerText = deliveryPct;
+          healthFeedbackEl.innerText = feedbackPct;
+          healthRepsEl.innerText = uniqueRepsCount;
+          healthTodayEl.innerText = todayOrdersCount;
+        }
+      } catch (e) { console.warn("Extra stats skipped:", e); }
+    }
+
+    function populateUntappedDropdown() {
+      const select = document.getElementById('untappedRepFilter');
+      if (!select) return;
+
+      const regionManagers = hosUserRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
+      const regionRepCodes = allReps
+        .filter(r => regionManagers.some(m => m.manager_sap_id === r.manager_sap_id))
+        .map(r => r.territory_code);
+
+      const currentVal = select.value;
+      select.innerHTML = '<option value="ALL">All Reps in Region</option>' +
+        allReps.filter(r => regionRepCodes.includes(r.territory_code))
+          .map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+      if (currentVal && regionRepCodes.includes(currentVal)) select.value = currentVal;
+    }
+
+    function renderUntappedList() {
+      const container = document.getElementById('untappedListContainer');
+      if (!container) return;
+
+      const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+
+      let baseDoctors = teamDoctorsData;
+      const regionManagers = hosUserRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
+      const regionRepCodes = allReps
+        .filter(r => regionManagers.some(m => m.manager_sap_id === r.manager_sap_id))
+        .map(r => r.territory_code);
+
+      baseDoctors = baseDoctors.filter(doc => regionRepCodes.includes((doc['Territory ID'] || '').toUpperCase()));
+      if (selectedRep !== 'ALL') {
+        baseDoctors = baseDoctors.filter(doc => (doc['Territory ID'] || '').toUpperCase() === selectedRep.toUpperCase());
+      }
+
+      const allDoctorNames = [...new Set(baseDoctors
+        .map(doc => (doc['Doctor Name'] || '').trim())
+        .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
+      )];
+
+      const untappedDoctors = allDoctorNames.filter(doctorName => {
+        const normalizedMaster = normalizeName(doctorName);
+        const masterWords = normalizedMaster.split(' ');
+        const hasRecentOrder = allOrders.some(o => {
+          const normalizedOrder = normalizeName(o.doctor_name || '');
+          const orderWords = normalizedOrder.split(' ');
+          const matchedWords = masterWords.filter(word => orderWords.includes(word));
+          return matchedWords.length >= 2;
+        });
+        return !hasRecentOrder;
+      });
+
+      currentUntappedDoctors = untappedDoctors;
+
+      if (untappedDoctors.length > 0) {
+        const top5 = isUntappedExpanded ? untappedDoctors : untappedDoctors.slice(0, 5);
+        const remainingCount = untappedDoctors.length - 5;
+
+        let html = top5.map(doc => `
+          <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Dr. ${doc}</span>
+            <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-xs font-bold">Untapped</span>
+          </div>
+        `).join('');
+
+        if (!isUntappedExpanded && remainingCount > 0) {
+          html += `
+            <div class="pt-3 text-center">
+              <button onclick="showAllUntapped()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                👁️ Show All (${remainingCount} more)
+              </button>
+            </div>
+          `;
+        } else if (isUntappedExpanded) {
+          html += `
+            <div class="pt-3 text-center">
+              <button onclick="isUntappedExpanded = false; renderUntappedList();" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                ↕️ Show Less
+              </button>
+            </div>
+          `;
+        }
+
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this region have recent prescriptions.</div>`;
+      }
+    }
+
+    function showAllUntapped() {
+      isUntappedExpanded = true;
+      renderUntappedList();
+    }
+
+    function exportUntappedCSV() {
+      if (currentUntappedDoctors.length === 0) {
+        alert("No untapped doctors to export for this rep.");
+        return;
+      }
+      const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+      const repName = selectedRep === 'ALL' ? 'Region_All' : selectedRep;
+
+      let csv = "Doctor Name,Status\n";
+      currentUntappedDoctors.forEach(doc => {
+        csv += `"Dr. ${doc}","Untapped"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Untapped_Doctors_${repName}.csv`;
+      a.click();
+    }
+
     function initDates() { setDatePreset('MTD'); }
 
     function setDatePreset(type) {
@@ -1065,45 +1346,64 @@
       });
 
       if (type === 'TODAY') {
-        document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const el = document.getElementById('btnDateToday');
+        if (el) el.className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         filterStartDate = getLocalDateKey(today);
         filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Today (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Today";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = "Showing: Today (" + filterStartDate + ")";
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Today";
       } else if (type === 'YESTERDAY') {
-        document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const el = document.getElementById('btnDateYesterday');
+        if (el) el.className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const y = new Date(); y.setDate(y.getDate() - 1);
         filterStartDate = getLocalDateKey(y);
         filterEndDate = getLocalDateKey(y);
-        document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday (" + filterStartDate + ")";
-        document.getElementById('activeDateScopeTag').innerText = "Yesterday";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = "Showing: Yesterday (" + filterStartDate + ")";
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Yesterday";
       } else if (type === 'LAST7') {
-        document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const el = document.getElementById('btnDate7Days');
+        if (el) el.className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const last7 = new Date(); last7.setDate(last7.getDate() - 6);
         filterStartDate = getLocalDateKey(last7);
         filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Last 7 Days";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = `Showing: Last 7 Days (${filterStartDate} to ${filterEndDate})`;
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Last 7 Days";
       } else if (type === 'MTD') {
-        document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const el = document.getElementById('btnDateMTD');
+        if (el) el.className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         filterStartDate = getLocalDateKey(firstDay);
         filterEndDate = getLocalDateKey(today);
-        document.getElementById('dateScopeBadge').innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
-        document.getElementById('activeDateScopeTag').innerText = "Month to Date";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = `Showing: Month to Date (${filterStartDate} to ${filterEndDate})`;
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Month to Date";
       } else if (type === 'ALL') {
-        document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+        const el = document.getElementById('btnDateAll');
+        if (el) el.className = "px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
         filterStartDate = null;
         filterEndDate = null;
-        document.getElementById('dateScopeBadge').innerText = "Showing: All Time (Complete Database)";
-        document.getElementById('activeDateScopeTag').innerText = "All Time";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = "Showing: All Time (Complete Database)";
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "All Time";
       }
 
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
+      const fromInput = document.getElementById('calendarFromDate');
+      const toInput = document.getElementById('calendarToDate');
+      if (fromInput) fromInput.value = filterStartDate || '';
+      if (toInput) toInput.value = filterEndDate || '';
+      syncOrdersDateButtons();
       applyAllFilters();
     }
-        function onCustomDateSelected() {
+
+    function onCustomDateSelected() {
       const from = document.getElementById('calendarFromDate').value;
       const to = document.getElementById('calendarToDate').value;
       if (from && to) {
@@ -1114,54 +1414,31 @@
           const el = document.getElementById(`btnDate${id}`);
           if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = `Showing Custom: ${from} to ${to}`;
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Custom Window";
         applyAllFilters();
       }
     }
 
-    // ============================================================
-    // ORDERS TAB DATE FILTER FUNCTIONS
-    // ============================================================
-
     function syncOrdersDateButtons() {
-      const map = {
-        'TODAY': 'ordersBtnToday',
-        'YESTERDAY': 'ordersBtnYesterday',
-        'LAST7': 'ordersBtn7Days',
-        'MTD': 'ordersBtnMTD',
-        'ALL': 'ordersBtnAll'
-      };
-      
+      const map = { 'TODAY': 'ordersBtnToday', 'YESTERDAY': 'ordersBtnYesterday', 'LAST7': 'ordersBtn7Days', 'MTD': 'ordersBtnMTD', 'ALL': 'ordersBtnAll' };
       const allButtons = ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'];
       allButtons.forEach(id => {
         const btn = document.getElementById(id);
-        if (btn) {
-          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
-        }
+        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
       });
-      
       const activeBtnId = map[currentDateScope];
       if (activeBtnId) {
         const activeBtn = document.getElementById(activeBtnId);
-        if (activeBtn) {
-          activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all";
-        }
+        if (activeBtn) activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all";
       }
-      
       const badge = document.getElementById('ordersDateBadge');
       if (badge) {
-        const scopeMap = {
-          'TODAY': 'Today',
-          'YESTERDAY': 'Yesterday',
-          'LAST7': 'Last 7 Days',
-          'MTD': 'Month to Date',
-          'ALL': 'All Time',
-          'CUSTOM': 'Custom Range'
-        };
+        const scopeMap = { 'TODAY': 'Today', 'YESTERDAY': 'Yesterday', 'LAST7': 'Last 7 Days', 'MTD': 'Month to Date', 'ALL': 'All Time', 'CUSTOM': 'Custom Range' };
         badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
       }
-      
       const fromInput = document.getElementById('ordersCalendarFrom');
       const toInput = document.getElementById('ordersCalendarTo');
       if (fromInput) fromInput.value = filterStartDate || '';
@@ -1171,26 +1448,23 @@
     function onOrdersCustomDate() {
       const from = document.getElementById('ordersCalendarFrom').value;
       const to = document.getElementById('ordersCalendarTo').value;
-      
       if (from && to) {
         filterStartDate = from;
         filterEndDate = to;
         currentDateScope = 'CUSTOM';
-        
         ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
           const el = document.getElementById(`btnDate${id}`);
           if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         });
-        
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        
+        const badge = document.getElementById('dateScopeBadge');
+        if (badge) badge.innerText = `Showing Custom: ${from} to ${to}`;
+        const tag = document.getElementById('activeDateScopeTag');
+        if (tag) tag.innerText = "Custom Window";
         syncOrdersDateButtons();
         applyAllFilters();
       }
     }
 
-    // Override setDatePreset to also update orders tab
     const originalSetDatePreset = setDatePreset;
     setDatePreset = function(type) {
       originalSetDatePreset(type);
@@ -1212,7 +1486,6 @@
       a.click();
     }
 
-    // AUTH HANDLERS
     async function handleHosLogin(e) {
       e.preventDefault();
       const sap = document.getElementById('loginSap').value.trim();
@@ -1243,7 +1516,6 @@
           return;
         }
 
-        // Store session
         sessionStorage.setItem('tt_hos_auth', 'true');
         sessionStorage.setItem('tt_hos_data', JSON.stringify(data));
         hosUserRegion = data.region || 'Central';
@@ -1311,8 +1583,8 @@
         if (window.subscribeDeviceToPush) {
           await window.subscribeDeviceToPush(sapId, 'hos', hosData.region || 'NATIONAL');
           alert(`✅ Phone Linked!\n\nRole: Head of Sales (${hosData.region || 'Regional'})\nScope: ${hosData.team_name || 'Team'}`);
-          if (pill) { pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`; }
-          if (btn) { btn.innerHTML = `<span class="text-base">✅</span> <span>Regional Push Active</span>`; }
+          if (pill) pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Regional Push Active</span>`;
         } else { alert("Notification script initializing. Please refresh and try again."); }
       } catch (err) { alert("Error: " + err.message); }
     }
@@ -1345,34 +1617,15 @@
         document.getElementById('menuSapDisplay').innerText = data.sap_id || 'N/A';
         document.getElementById('menuAvatarBadge').innerText = getInitials(data.full_name);
 
-        // Set region filter in doctor list to match HOS region
         const regionFilter = document.getElementById('hosDoctorRegionFilter');
-        if (regionFilter && data.region) {
-            regionFilter.value = data.region;
-        }
+        if (regionFilter && data.region) regionFilter.value = data.region;
 
-        // ============================================================
-        // ✅ NOTIFICATION CENTER INITIALIZATION
-        // ============================================================
         if (typeof NotificationCenter !== 'undefined') {
-            console.log('🔔 Initializing HOS Notification Center for:', data.sap_id);
-            window.notificationCenter = new NotificationCenter({
-                userId: data.sap_id,
-                userRole: 'hos',
-                pollInterval: 30000
-            });
-        } else {
-            console.warn('⚠️ NotificationCenter not loaded, retrying...');
-            setTimeout(() => {
-                if (typeof NotificationCenter !== 'undefined') {
-                    console.log('🔔 Initializing HOS Notification Center (retry) for:', data.sap_id);
-                    window.notificationCenter = new NotificationCenter({
-                        userId: data.sap_id,
-                        userRole: 'hos',
-                        pollInterval: 30000
-                    });
-                }
-            }, 2000);
+          window.notificationCenter = new NotificationCenter({
+            userId: data.sap_id,
+            userRole: 'hos',
+            pollInterval: 30000
+          });
         }
 
         initDates();
@@ -1390,7 +1643,6 @@
       }
     }
 
-    // Make functions globally accessible
     window.switchTab = switchTab;
     window.setDatePreset = setDatePreset;
     window.onCustomDateSelected = onCustomDateSelected;
@@ -1412,9 +1664,11 @@
     window.renderDoctorList = renderDoctorList;
     window.closeDoctorPatientPanel = closeDoctorPatientPanel;
     window.showDoctorPatients = showDoctorPatients;
+    window.renderUntappedList = renderUntappedList;
+    window.exportUntappedCSV = exportUntappedCSV;
+    window.showAllUntapped = showAllUntapped;
     window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
 
-    // Start
     checkHosSession();
   </script>
 </body>
