@@ -230,15 +230,15 @@
         <div class="pt-2 text-sm border-t border-slate-200 dark:border-slate-800 mt-1">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
             <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"><span>⚠️</span> Untapped Doctors by Rep</div>
-            <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2">
+              <select id="untappedMgrFilter" onchange="populateUntappedRepDropdown()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+                <option value="ALL">All ZSMs in Region</option>
+              </select>
               <select id="untappedRepFilter" onchange="renderUntappedList()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+                <option value="ALL">All Reps</option>
               </select>
               <button onclick="exportUntappedCSV()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all">📥 Download CSV</button>
             </div>
-          </div>
-          <div id="untappedListContainer">
-            <div class="text-slate-400 text-xs">Loading untapped doctors...</div>
-          </div>
         </div>
       </div>
 
@@ -1217,48 +1217,89 @@
       } catch (e) { console.warn("Extra stats skipped:", e); }
     }
 
-    function populateUntappedDropdown() {
-      const select = document.getElementById('untappedRepFilter');
-      if (!select) return;
+        function populateUntappedDropdown() {
+      const mgrSelect = document.getElementById('untappedMgrFilter');
+      if (!mgrSelect) return;
+
+      const currentVal = mgrSelect.value;
+      const regionManagers = hosUserRegion === 'ALL'
+        ? allManagers
+        : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
+
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
+        regionManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
+
+      if (currentVal && regionManagers.some(m => m.manager_sap_id === currentVal)) {
+        mgrSelect.value = currentVal;
+      }
+
+      populateUntappedRepDropdown();
+    }
+
+    function populateUntappedRepDropdown() {
+      const mgrSelect = document.getElementById('untappedMgrFilter');
+      const repSelect = document.getElementById('untappedRepFilter');
+      if (!mgrSelect || !repSelect) return;
+
+      const selectedMgrSap = mgrSelect.value;
+      const currentVal = repSelect.value;
 
       const regionManagers = hosUserRegion === 'ALL'
         ? allManagers
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
-      const regionRepCodes = allReps
-        .filter(r => regionManagers.some(m => m.manager_sap_id === r.manager_sap_id))
-        .map(r => r.territory_code);
 
-      const currentVal = select.value;
-      select.innerHTML = '<option value="ALL">All Reps in Region</option>' +
-        allReps.filter(r => regionRepCodes.includes(r.territory_code))
-          .map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-      if (currentVal && regionRepCodes.includes(currentVal)) select.value = currentVal;
+      let filteredReps = [];
+      if (selectedMgrSap !== 'ALL') {
+        filteredReps = allReps.filter(r => r.manager_sap_id === selectedMgrSap);
+      } else {
+        const regionManagerSaps = regionManagers.map(m => m.manager_sap_id);
+        filteredReps = allReps.filter(r => regionManagerSaps.includes(r.manager_sap_id));
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All Reps</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentVal && filteredReps.some(r => r.territory_code === currentVal)) {
+        repSelect.value = currentVal;
+      }
     }
 
-    function renderUntappedList() {
+        function renderUntappedList() {
       const container = document.getElementById('untappedListContainer');
       if (!container) return;
 
+      const selectedMgrSap = document.getElementById('untappedMgrFilter')?.value || 'ALL';
       const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
 
-      let baseDoctors = teamDoctorsData;
+      // 1. Filter by Region/Manager Hierarchy
       const regionManagers = hosUserRegion === 'ALL'
         ? allManagers
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
-      const regionRepCodes = allReps
-        .filter(r => regionManagers.some(m => m.manager_sap_id === r.manager_sap_id))
-        .map(r => r.territory_code);
-
-      baseDoctors = baseDoctors.filter(doc => regionRepCodes.includes((doc['Territory ID'] || '').toUpperCase()));
-      if (selectedRep !== 'ALL') {
-        baseDoctors = baseDoctors.filter(doc => (doc['Territory ID'] || '').toUpperCase() === selectedRep.toUpperCase());
+      
+      let validManagerSaps = regionManagers.map(m => m.manager_sap_id);
+      if (selectedMgrSap !== 'ALL') {
+        validManagerSaps = [selectedMgrSap];
       }
 
+      let validRepCodes = allReps
+        .filter(r => validManagerSaps.includes(r.manager_sap_id))
+        .map(r => r.territory_code);
+
+      if (selectedRep !== 'ALL') {
+        validRepCodes = [selectedRep];
+      }
+
+      let baseDoctors = teamDoctorsData.filter(doc => 
+        validRepCodes.includes((doc['Territory ID'] || '').toUpperCase())
+      );
+
+      // 2. Get unique doctor names
       const allDoctorNames = [...new Set(baseDoctors
         .map(doc => (doc['Doctor Name'] || '').trim())
         .filter(name => name && name.toLowerCase() !== 'undefined' && name !== '')
       )];
 
+      // 3. Fuzzy Match to find if they've prescribed
       const untappedDoctors = allDoctorNames.filter(doctorName => {
         const normalizedMaster = normalizeName(doctorName);
         const masterWords = normalizedMaster.split(' ');
@@ -1273,6 +1314,7 @@
 
       currentUntappedDoctors = untappedDoctors;
 
+      // 4. Render UI (Top 5 with Show All toggle)
       if (untappedDoctors.length > 0) {
         const top5 = isUntappedExpanded ? untappedDoctors : untappedDoctors.slice(0, 5);
         const remainingCount = untappedDoctors.length - 5;
@@ -1304,7 +1346,7 @@
 
         container.innerHTML = html;
       } else {
-        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this region have recent prescriptions.</div>`;
+        container.innerHTML = `<div class="text-emerald-600 text-xs font-semibold">✅ All doctors in this selection have recent prescriptions.</div>`;
       }
     }
 
@@ -1313,13 +1355,14 @@
       renderUntappedList();
     }
 
-    function exportUntappedCSV() {
+        function exportUntappedCSV() {
       if (currentUntappedDoctors.length === 0) {
-        alert("No untapped doctors to export for this rep.");
+        alert("No untapped doctors to export for this selection.");
         return;
       }
-      const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
-      const repName = selectedRep === 'ALL' ? 'Region_All' : selectedRep;
+      const mgrVal = document.getElementById('untappedMgrFilter')?.value || 'ALL';
+      const repVal = document.getElementById('untappedRepFilter')?.value || 'ALL';
+      const fileTag = repVal !== 'ALL' ? repVal : (mgrVal !== 'ALL' ? 'MGR_' + mgrVal : 'Region_All');
 
       let csv = "Doctor Name,Status\n";
       currentUntappedDoctors.forEach(doc => {
@@ -1330,7 +1373,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Untapped_Doctors_${repName}.csv`;
+      a.download = `Untapped_Doctors_${fileTag}.csv`;
       a.click();
     }
 
@@ -1630,6 +1673,7 @@
 
         initDates();
         window.fetchEverything();
+        populateUntappedDropdown();
         initHQRealtimeSync();
         switchTab('orders');
       } else {
