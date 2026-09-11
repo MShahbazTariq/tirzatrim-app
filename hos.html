@@ -1217,11 +1217,15 @@
       } catch (e) { console.warn("Extra stats skipped:", e); }
     }
 
-        function populateUntappedDropdown() {
+            function populateUntappedDropdown() {
       const mgrSelect = document.getElementById('untappedMgrFilter');
-      if (!mgrSelect) return;
+      const repSelect = document.getElementById('untappedRepFilter');
+      if (!mgrSelect || !repSelect) return;
 
-      const currentVal = mgrSelect.value;
+      // ✅ ALWAYS default to "ALL" on first load (don't preserve previous value)
+      mgrSelect.value = 'ALL';
+      repSelect.value = 'ALL';
+
       const regionManagers = hosUserRegion === 'ALL'
         ? allManagers
         : allManagers.filter(m => (m.region || 'Central') === hosUserRegion);
@@ -1229,11 +1233,8 @@
       mgrSelect.innerHTML = '<option value="ALL">All ZSMs in Region</option>' +
         regionManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
 
-      if (currentVal && regionManagers.some(m => m.manager_sap_id === currentVal)) {
-        mgrSelect.value = currentVal;
-      }
-
       populateUntappedRepDropdown();
+      renderUntappedList();
     }
 
     function populateUntappedRepDropdown() {
