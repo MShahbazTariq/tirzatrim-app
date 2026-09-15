@@ -34,6 +34,11 @@
       <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
         Submit your details and prescription below to start your order.
       </p>
+      <div id="refillBanner" class="hidden pt-2">
+        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/50 px-3 py-1.5 rounded-full">
+          <span>🔄</span> <span id="refillBannerText">Refill Pre-Filled — Just Verify & Submit</span>
+        </span>
+      </div>
     </div>
 
     <form id="patientOrderForm" onsubmit="submitPatientOrder(event)" class="space-y-6">
@@ -59,6 +64,7 @@
           <input type="tel" id="patientMobile" required placeholder="03XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pakistani number, e.g. 03001234567 or 923001234567</p>
           <p id="repAutoDetectHint" class="hidden text-[10px] mt-1"></p>
+          <p id="autoFillHint" class="hidden text-[10px] mt-1"></p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -117,7 +123,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Prescribed Dose *</label>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+              Prescribed Dose * <span id="doseEscalationBadge" class="hidden ml-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">↑ Escalated</span>
+            </label>
             <select id="prescribedDose" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500 transition-all">
               <option value="2.5mg">TirzaTrim 2.5mg</option>
               <option value="5mg" selected>TirzaTrim 5mg</option>
@@ -200,6 +208,28 @@
     const { createClient } = supabase;
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // ============================================================
+    // DOSE ESCALATION MAP
+    // ============================================================
+    const DOSE_ESCALATION = {
+      '2.5mg': '5mg',
+      '5mg': '7.5mg',
+      '7.5mg': '10mg',
+      '10mg': '12.5mg',
+      '12.5mg': '15mg',
+      '15mg': '15mg'  // maintenance — stays at 15mg
+    };
+
+    // Map escalated dose → device (only 5mg, 10mg, 15mg devices exist)
+    const DOSE_TO_DEVICE = {
+      '2.5mg': '5mg Multi-Dose Pen',
+      '5mg': '5mg Multi-Dose Pen',
+      '7.5mg': '10mg Multi-Dose Pen',  // no 7.5 device, use 10mg
+      '10mg': '10mg Multi-Dose Pen',
+      '12.5mg': '15mg Multi-Dose Pen', // no 12.5 device, use 15mg
+      '15mg': '15mg Multi-Dose Pen'
+    };
+
     const PAKISTAN_CLINICS = {
       "Lahore": ["IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)", "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal", "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"],
       "Karachi": ["Aga Khan University Hospital (AKUH)", "Liaquat National Hospital", "South City Hospital", "Ziauddin Hospital (Clifton/North Nazimabad)", "Indus Hospital", "Tabba Heart Institute", "Patel Hospital", "Civil Hospital Karachi", "Jinnah Postgraduate Medical Centre (JPMC)", "OMI Hospital", "National Medical Centre (NMC)", "Hashmanis Hospital", "IDC Karachi"],
@@ -231,14 +261,12 @@
     // ============================================================
     const urlParams = new URLSearchParams(window.location.search);
     let assignedRep = (urlParams.get('rep') || '').trim().toUpperCase();
+    const isRefill = Boolean(urlParams.get('rep') || urlParams.get('mobile') || urlParams.get('dose'));
 
     if (!assignedRep) {
       try {
         const lastRep = sessionStorage.getItem('tt_last_rep_code');
-        if (lastRep) {
-          assignedRep = lastRep;
-          console.log('♻️ Restored rep code from session:', assignedRep);
-        }
+        if (lastRep) assignedRep = lastRep;
       } catch (e) {}
     }
 
@@ -249,118 +277,220 @@
       try { sessionStorage.setItem('tt_last_rep_code', assignedRep); } catch (e) {}
     }
 
+    // URL param pre-fill
     if (urlParams.get('name')) {
       document.getElementById('patientName').value = decodeURIComponent(urlParams.get('name'));
     }
     if (urlParams.get('mobile')) {
       document.getElementById('patientMobile').value = decodeURIComponent(urlParams.get('mobile'));
     }
+
+    // Explicit dose from URL (skip escalation if explicit)
+    let explicitDoseFromUrl = null;
     if (urlParams.get('dose')) {
-      const doseVal = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+      explicitDoseFromUrl = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+      setDoseInSelect(explicitDoseFromUrl, false);
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function setDoseInSelect(doseVal, showEscalationBadge) {
       const doseSelect = document.getElementById('prescribedDose');
+      const badge = document.getElementById('doseEscalationBadge');
+      if (!doseSelect) return;
+
       for (let i = 0; i < doseSelect.options.length; i++) {
-        if (doseSelect.options[i].value.toLowerCase() === doseVal) {
+        if (doseSelect.options[i].value.toLowerCase() === doseVal.toLowerCase()) {
           doseSelect.selectedIndex = i;
           break;
+        }
+      }
+
+      // Also set the device based on dose
+      const deviceVal = DOSE_TO_DEVICE[doseVal];
+      if (deviceVal) {
+        const devSel = document.getElementById('deviceType');
+        for (let i = 0; i < devSel.options.length; i++) {
+          if (devSel.options[i].value === deviceVal) {
+            devSel.selectedIndex = i;
+            break;
+          }
+        }
+      }
+
+      // Show escalation badge
+      if (badge) {
+        if (showEscalationBadge) {
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
         }
       }
     }
 
     // ============================================================
-    // MOBILE-BASED REP AUTO-DETECT (fallback when no ?rep= in URL)
+    // MOBILE-BASED FULL AUTO-FILL FROM HISTORY
     // ============================================================
-    async function lookupPreviousRep(mobileRaw) {
+    async function lookupFullHistory(mobileRaw) {
       const digits = String(mobileRaw || '').replace(/\D/g, '');
       if (digits.length < 10) return null;
 
-      // Build all plausible formats
       let base = digits;
       if (base.startsWith('92')) base = base.substring(2);
       if (base.startsWith('0')) base = base.substring(1);
 
       const formats = [
-        '+92' + base,       // +923134539878
-        '92' + base,        // 923134539878
-        '0' + base          // 03134539878
+        '+92' + base,
+        '92' + base,
+        '0' + base
       ];
 
       try {
         const { data, error } = await client
           .from('orders')
-          .select('rep_code, order_id, created_at')
+          .select('rep_code, order_id, patient_name, age, city, delivery_address, doctor_name, clinic_name, indication, prescribed_dose, device, created_at')
           .in('mobile', formats)
-          .not('rep_code', 'is', null)
-          .neq('rep_code', 'DIRECT')
           .order('created_at', { ascending: false })
           .limit(1);
 
-        if (error) {
-          console.warn('Lookup failed:', error.message);
-          return null;
-        }
-        if (!data || data.length === 0) return null;
-        return data[0].rep_code;
+        if (error || !data || data.length === 0) return null;
+        return data[0];
       } catch (e) {
-        console.warn('Lookup exception:', e.message);
+        console.warn('History lookup failed:', e.message);
         return null;
       }
     }
 
-    function showRepHint(repCode, source) {
+    function applyAutoFill(last, allowDoseEscalation) {
+      if (!last) return false;
+
+      const fillIfEmpty = (id, val) => {
+        if (!val) return;
+        const el = document.getElementById(id);
+        if (el && !el.value) el.value = val;
+      };
+
+      // Fill all fields if empty (don't overwrite URL params)
+      fillIfEmpty('patientName', last.patient_name);
+      fillIfEmpty('patientAge', last.age);
+      fillIfEmpty('patientCity', last.city);
+      fillIfEmpty('patientAddress', last.delivery_address);
+      fillIfEmpty('doctorName', last.doctor_name);
+      fillIfEmpty('clinicName', last.clinic_name);
+
+      // Indication select
+      if (last.indication) {
+        const sel = document.getElementById('patientIndication');
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === last.indication) {
+            sel.selectedIndex = i;
+            break;
+          }
+        }
+      }
+
+      // Rep code
+      if (last.rep_code && last.rep_code !== 'DIRECT') {
+        const repEl = document.getElementById('territoryRepCode');
+        if (!repEl.value || repEl.value === 'DIRECT') {
+          repEl.value = last.rep_code;
+        }
+      }
+
+      // Dose escalation logic
+      if (allowDoseEscalation && !explicitDoseFromUrl) {
+        const lastDose = (last.prescribed_dose || '').toLowerCase().trim();
+        const nextDose = DOSE_ESCALATION[lastDose];
+
+        if (nextDose && nextDose !== lastDose) {
+          // Escalate to next dose
+          setDoseInSelect(nextDose, true);
+          console.log(`💊 Dose escalated: ${lastDose} → ${nextDose}`);
+        } else {
+          // Same dose (maintenance) or unknown
+          setDoseInSelect(lastDose || '5mg', false);
+        }
+      }
+
+      // Fill clinic dropdown suggestions for this city
+      setTimeout(updateClinicSuggestions, 100);
+
+      return true;
+    }
+
+    function showAutoFillHint(message, isEscalation) {
+      const hint = document.getElementById('autoFillHint');
+      if (!hint) return;
+      hint.className = isEscalation 
+        ? "text-[10px] mt-1 text-emerald-600 dark:text-emerald-400 font-semibold"
+        : "text-[10px] mt-1 text-slate-600 dark:text-slate-400";
+      hint.innerText = message;
+      hint.classList.remove('hidden');
+      setTimeout(() => hint.classList.add('hidden'), 10000);
+    }
+
+    function showRepHint(repCode) {
       const hint = document.getElementById('repAutoDetectHint');
       if (!hint) return;
-
       if (repCode && repCode !== 'DIRECT') {
         hint.className = "text-[10px] mt-1 text-emerald-600 dark:text-emerald-400 font-semibold";
-        hint.innerText = `✅ Welcome back! Your previous rep (${repCode}) will handle this order.`;
+        hint.innerText = `✅ Your previous rep (${repCode}) will handle this order.`;
       } else {
         hint.className = "text-[10px] mt-1 text-slate-400 dark:text-slate-500";
         hint.innerText = `ℹ️ First-time order — this will be assigned to our support team.`;
       }
       hint.classList.remove('hidden');
-
-      setTimeout(() => {
-        hint.classList.add('hidden');
-      }, 8000);
+      setTimeout(() => hint.classList.add('hidden'), 8000);
     }
 
-    // Attach listener to mobile input
+    function showRefillBanner() {
+      const banner = document.getElementById('refillBanner');
+      const bannerText = document.getElementById('refillBannerText');
+      if (banner && bannerText) {
+        bannerText.innerText = "Refill Pre-Filled — Just Verify & Submit";
+        banner.classList.remove('hidden');
+      }
+    }
+
+    // ============================================================
+    // ATTACH MOBILE LOOKUP LISTENER
+    // ============================================================
     document.addEventListener('DOMContentLoaded', () => {
       const mobileInput = document.getElementById('patientMobile');
       if (!mobileInput) return;
 
       let lookupTimer = null;
+      const triggerLookup = async () => {
+        const digits = mobileInput.value.replace(/\D/g, '');
+        if (digits.length < 10) return;
+
+        const last = await lookupFullHistory(mobileInput.value);
+        if (!last) return;
+
+        // Apply full auto-fill with escalation
+        applyAutoFill(last, true);
+
+        // Show hints
+        showRepHint(last.rep_code || 'DIRECT');
+        showAutoFillHint(`✅ Welcome back! We pre-filled your details from your last order (${last.order_id}).`, true);
+        showRefillBanner();
+      };
+
       mobileInput.addEventListener('input', () => {
         clearTimeout(lookupTimer);
-        lookupTimer = setTimeout(async () => {
-          const currentRepCode = document.getElementById('territoryRepCode').value.trim().toUpperCase();
-          if (currentRepCode && currentRepCode !== 'DIRECT') return; // URL wins
-
-          const digits = mobileInput.value.replace(/\D/g, '');
-          if (digits.length < 10) return;
-
-          const foundRep = await lookupPreviousRep(mobileInput.value);
-          if (foundRep) {
-            document.getElementById('territoryRepCode').value = foundRep;
-            try { sessionStorage.setItem('tt_last_rep_code', foundRep); } catch (e) {}
-            console.log('🎯 Auto-detected previous rep:', foundRep);
-            showRepHint(foundRep, 'auto');
-          }
-        }, 700); // debounce: wait for user to stop typing
+        lookupTimer = setTimeout(triggerLookup, 700);
       });
 
-      // Also try on blur (in case they paste and click away)
-      mobileInput.addEventListener('blur', async () => {
-        const currentRepCode = document.getElementById('territoryRepCode').value.trim().toUpperCase();
-        if (currentRepCode && currentRepCode !== 'DIRECT') return;
-
-        const foundRep = await lookupPreviousRep(mobileInput.value);
-        if (foundRep) {
-          document.getElementById('territoryRepCode').value = foundRep;
-          try { sessionStorage.setItem('tt_last_rep_code', foundRep); } catch (e) {}
-          showRepHint(foundRep, 'auto');
-        }
+      mobileInput.addEventListener('blur', () => {
+        clearTimeout(lookupTimer);
+        triggerLookup();
       });
+
+      // If URL already has mobile (from refill link), run lookup immediately
+      if (mobileInput.value && mobileInput.value.replace(/\D/g, '').length >= 10) {
+        setTimeout(triggerLookup, 300);
+      }
     });
 
     updateClinicSuggestions();
@@ -383,11 +513,7 @@
     // ============================================================
     async function sendOrderNotifications(order, repCode) {
       try {
-        console.log('📤 Sending notifications for order:', order.order_id);
-        if (repCode === 'DIRECT' || !repCode) {
-          console.log('⏭️ DIRECT order — skipping hierarchy notifications');
-          return;
-        }
+        if (repCode === 'DIRECT' || !repCode) return;
 
         const { data: rep, error: repError } = await client
           .from('reps')
@@ -421,8 +547,7 @@
             await client.from('notifications').insert([{
               user_id: String(userId),
               user_role: userRole,
-              title: title,
-              message: message,
+              title, message,
               type: type || 'order',
               priority: priority || 'high',
               link: link || '/team.html',
@@ -554,6 +679,8 @@
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('successView').classList.add('hidden');
       document.getElementById('whatsappSentBadge').classList.add('hidden');
+      document.getElementById('refillBanner').classList.add('hidden');
+      document.getElementById('doseEscalationBadge').classList.add('hidden');
       document.getElementById('patientOrderForm').classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
