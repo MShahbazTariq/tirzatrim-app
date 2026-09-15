@@ -8,7 +8,6 @@
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
   
-  <!-- Tailwind CSS & Shared Theme Manager -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
   <script src="/broadcast.js"></script>
@@ -19,22 +18,15 @@
 
   <div class="max-w-2xl w-full bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-10 shadow-xl dark:shadow-2xl backdrop-blur-xl space-y-6">
     
-    <!-- Top Header: Badge & Theme Toggle -->
     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
       <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-4 py-1.5 rounded-full border border-teal-500/20">
         TirzaTrim Patient Support Care
       </span>
-      <button 
-        onclick="toggleTheme()" 
-        type="button" 
-        class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1"
-        title="Toggle Theme"
-      >
+      <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1" title="Toggle Theme">
         <span class="theme-icon">🌙</span>
       </button>
     </div>
 
-    <!-- Title Header -->
     <div class="text-center space-y-1.5">
       <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
         TirzaTrim <span class="text-teal-600 dark:text-teal-400">Patient Support</span>
@@ -44,10 +36,8 @@
       </p>
     </div>
 
-    <!-- ORDER FORM -->
     <form id="patientOrderForm" onsubmit="submitPatientOrder(event)" class="space-y-6">
       
-      <!-- 1. PERSONAL DETAILS -->
       <div class="space-y-3">
         <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
           <span>👤</span> 1. PERSONAL DETAILS
@@ -68,6 +58,7 @@
           <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Mobile Number (WhatsApp) *</label>
           <input type="tel" id="patientMobile" required placeholder="03XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pakistani number, e.g. 03001234567 or 923001234567</p>
+          <p id="repAutoDetectHint" class="hidden text-[10px] mt-1"></p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -97,7 +88,6 @@
         </div>
       </div>
 
-      <!-- 2. TREATMENT DETAILS -->
       <div class="space-y-3 pt-2">
         <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
           <span>🩺</span> 2. TREATMENT DETAILS
@@ -155,7 +145,6 @@
         </div>
       </div>
 
-      <!-- 3. WHATSAPP PREFERENCES (NEW) -->
       <div class="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/50 space-y-3">
         <div class="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 flex items-center gap-1.5">
           <span>💬</span> 3. WHATSAPP UPDATES
@@ -164,12 +153,11 @@
           <input type="checkbox" id="whatsappOptIn" checked class="mt-0.5 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer">
           <div class="text-xs">
             <div class="font-semibold text-slate-900 dark:text-white">Send me order updates on WhatsApp</div>
-            <div class="text-slate-500 dark:text-slate-400 mt-0.5">Order confirmations, delivery updates, and refill reminders directly on WhatsApp. You can reply STOP anytime to opt out.</div>
+            <div class="text-slate-500 dark:text-slate-400 mt-0.5">Order confirmations, delivery updates, and refill reminders directly on WhatsApp. Reply STOP anytime to opt out.</div>
           </div>
         </label>
       </div>
 
-      <!-- Submit Action -->
       <div class="pt-2 space-y-3">
         <button type="submit" id="submitBtn" class="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white text-xs md:text-sm font-bold rounded-2xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
           <span>🚀</span>
@@ -180,11 +168,8 @@
 
     </form>
 
-    <!-- SUCCESS CONFIRMATION VIEW -->
     <div id="successView" class="text-center space-y-5 py-6 hidden">
-      <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-3xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-        ✓
-      </div>
+      <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-3xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">✓</div>
       <div class="space-y-1.5">
         <h2 class="text-xl font-black text-slate-900 dark:text-white">Order Received!</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
@@ -216,59 +201,24 @@
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const PAKISTAN_CLINICS = {
-      "Lahore": [
-        "IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", 
-        "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)",
-        "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", 
-        "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal",
-        "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"
-      ],
-      "Karachi": [
-        "Aga Khan University Hospital (AKUH)", "Liaquat National Hospital", "South City Hospital", 
-        "Ziauddin Hospital (Clifton/North Nazimabad)", "Indus Hospital", "Tabba Heart Institute",
-        "Patel Hospital", "Civil Hospital Karachi", "Jinnah Postgraduate Medical Centre (JPMC)",
-        "OMI Hospital", "National Medical Centre (NMC)", "Hashmanis Hospital", "IDC Karachi"
-      ],
-      "Islamabad": [
-        "IDC (Islamabad Diagnostic Centre)", "Shifa International Hospital", "PIMS (Pakistan Institute of Medical Sciences)", 
-        "Kulsum International Hospital", "Maroof International Hospital", "Ali Medical Centre",
-        "PAF Hospital Islamabad", "Quaid-e-Azam International Hospital", "Federal Government Polyclinic Hospital"
-      ],
-      "Rawalpindi": [
-        "IDC Rawalpindi", "Rawalpindi Institute of Cardiology (RIC)", "Holy Family Hospital", 
-        "Benazir Bhutto Hospital (BBH)", "District Headquarter Hospital (DHQ)", "Hearts International Hospital", 
-        "Al-Shifa Trust Eye Hospital", "Bilal Hospital", "Maryam Memorial Hospital"
-      ],
-      "Faisalabad": [
-        "Allied Hospital", "Faisal Hospital", "DHQ Hospital Faisalabad", 
-        "National Hospital Faisalabad", "Mian Muhammad Trust Hospital", "Chiniot General Hospital", "IDC Faisalabad"
-      ],
-      "Multan": [
-        "Nishtar Hospital", "Multan Institute of Cardiology (MIC)", "Bakhtawar Amin Memorial Hospital", 
-        "Mukhtar A. Sheikh Hospital", "Fatima Medical Centre", "IDC Multan"
-      ],
-      "Peshawar": [
-        "Shaukat Khanum Peshawar", "Hayatabad Medical Complex (HMC)", "Khyber Teaching Hospital (KTH)", 
-        "Lady Reading Hospital (LRH)", "Rehman Medical Institute (RMI)", "North West General Hospital", "IDC Peshawar"
-      ]
+      "Lahore": ["IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)", "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal", "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"],
+      "Karachi": ["Aga Khan University Hospital (AKUH)", "Liaquat National Hospital", "South City Hospital", "Ziauddin Hospital (Clifton/North Nazimabad)", "Indus Hospital", "Tabba Heart Institute", "Patel Hospital", "Civil Hospital Karachi", "Jinnah Postgraduate Medical Centre (JPMC)", "OMI Hospital", "National Medical Centre (NMC)", "Hashmanis Hospital", "IDC Karachi"],
+      "Islamabad": ["IDC (Islamabad Diagnostic Centre)", "Shifa International Hospital", "PIMS (Pakistan Institute of Medical Sciences)", "Kulsum International Hospital", "Maroof International Hospital", "Ali Medical Centre", "PAF Hospital Islamabad", "Quaid-e-Azam International Hospital", "Federal Government Polyclinic Hospital"],
+      "Rawalpindi": ["IDC Rawalpindi", "Rawalpindi Institute of Cardiology (RIC)", "Holy Family Hospital", "Benazir Bhutto Hospital (BBH)", "District Headquarter Hospital (DHQ)", "Hearts International Hospital", "Al-Shifa Trust Eye Hospital", "Bilal Hospital", "Maryam Memorial Hospital"],
+      "Faisalabad": ["Allied Hospital", "Faisal Hospital", "DHQ Hospital Faisalabad", "National Hospital Faisalabad", "Mian Muhammad Trust Hospital", "Chiniot General Hospital", "IDC Faisalabad"],
+      "Multan": ["Nishtar Hospital", "Multan Institute of Cardiology (MIC)", "Bakhtawar Amin Memorial Hospital", "Mukhtar A. Sheikh Hospital", "Fatima Medical Centre", "IDC Multan"],
+      "Peshawar": ["Shaukat Khanum Peshawar", "Hayatabad Medical Complex (HMC)", "Khyber Teaching Hospital (KTH)", "Lady Reading Hospital (LRH)", "Rehman Medical Institute (RMI)", "North West General Hospital", "IDC Peshawar"]
     };
 
-    const GENERAL_CLINICS = [
-      "IDC (Islamabad Diagnostic Centre)", "Chughtai Medical Center", "Excel Labs / Medical Center", "Al-Khidmat Clinic"
-    ];
+    const GENERAL_CLINICS = ["IDC (Islamabad Diagnostic Centre)", "Chughtai Medical Center", "Excel Labs / Medical Center", "Al-Khidmat Clinic"];
 
     function updateClinicSuggestions() {
       const city = document.getElementById('patientCity').value.trim();
       const datalist = document.getElementById('clinicSuggestions');
       datalist.innerHTML = "";
-
       let list = PAKISTAN_CLINICS[city] || [];
-      if (list.length === 0) {
-        list = GENERAL_CLINICS;
-      } else {
-        list = [...new Set([...list, ...GENERAL_CLINICS])];
-      }
-
+      if (list.length === 0) list = GENERAL_CLINICS;
+      else list = [...new Set([...list, ...GENERAL_CLINICS])];
       list.forEach(clinic => {
         const opt = document.createElement('option');
         opt.value = clinic;
@@ -282,7 +232,6 @@
     const urlParams = new URLSearchParams(window.location.search);
     let assignedRep = (urlParams.get('rep') || '').trim().toUpperCase();
 
-    // If no rep in URL (e.g. clicked from WhatsApp static button), try to restore from session
     if (!assignedRep) {
       try {
         const lastRep = sessionStorage.getItem('tt_last_rep_code');
@@ -290,13 +239,12 @@
           assignedRep = lastRep;
           console.log('♻️ Restored rep code from session:', assignedRep);
         }
-      } catch (e) { /* sessionStorage may be blocked in some browsers */ }
+      } catch (e) {}
     }
 
     if (!assignedRep) assignedRep = 'DIRECT';
     document.getElementById('territoryRepCode').value = assignedRep;
 
-    // Save for future refill visits
     if (assignedRep && assignedRep !== 'DIRECT') {
       try { sessionStorage.setItem('tt_last_rep_code', assignedRep); } catch (e) {}
     }
@@ -318,188 +266,197 @@
       }
     }
 
+    // ============================================================
+    // MOBILE-BASED REP AUTO-DETECT (fallback when no ?rep= in URL)
+    // ============================================================
+    async function lookupPreviousRep(mobileRaw) {
+      const digits = String(mobileRaw || '').replace(/\D/g, '');
+      if (digits.length < 10) return null;
+
+      // Build all plausible formats
+      let base = digits;
+      if (base.startsWith('92')) base = base.substring(2);
+      if (base.startsWith('0')) base = base.substring(1);
+
+      const formats = [
+        '+92' + base,       // +923134539878
+        '92' + base,        // 923134539878
+        '0' + base          // 03134539878
+      ];
+
+      try {
+        const { data, error } = await client
+          .from('orders')
+          .select('rep_code, order_id, created_at')
+          .in('mobile', formats)
+          .not('rep_code', 'is', null)
+          .neq('rep_code', 'DIRECT')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.warn('Lookup failed:', error.message);
+          return null;
+        }
+        if (!data || data.length === 0) return null;
+        return data[0].rep_code;
+      } catch (e) {
+        console.warn('Lookup exception:', e.message);
+        return null;
+      }
+    }
+
+    function showRepHint(repCode, source) {
+      const hint = document.getElementById('repAutoDetectHint');
+      if (!hint) return;
+
+      if (repCode && repCode !== 'DIRECT') {
+        hint.className = "text-[10px] mt-1 text-emerald-600 dark:text-emerald-400 font-semibold";
+        hint.innerText = `✅ Welcome back! Your previous rep (${repCode}) will handle this order.`;
+      } else {
+        hint.className = "text-[10px] mt-1 text-slate-400 dark:text-slate-500";
+        hint.innerText = `ℹ️ First-time order — this will be assigned to our support team.`;
+      }
+      hint.classList.remove('hidden');
+
+      setTimeout(() => {
+        hint.classList.add('hidden');
+      }, 8000);
+    }
+
+    // Attach listener to mobile input
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileInput = document.getElementById('patientMobile');
+      if (!mobileInput) return;
+
+      let lookupTimer = null;
+      mobileInput.addEventListener('input', () => {
+        clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(async () => {
+          const currentRepCode = document.getElementById('territoryRepCode').value.trim().toUpperCase();
+          if (currentRepCode && currentRepCode !== 'DIRECT') return; // URL wins
+
+          const digits = mobileInput.value.replace(/\D/g, '');
+          if (digits.length < 10) return;
+
+          const foundRep = await lookupPreviousRep(mobileInput.value);
+          if (foundRep) {
+            document.getElementById('territoryRepCode').value = foundRep;
+            try { sessionStorage.setItem('tt_last_rep_code', foundRep); } catch (e) {}
+            console.log('🎯 Auto-detected previous rep:', foundRep);
+            showRepHint(foundRep, 'auto');
+          }
+        }, 700); // debounce: wait for user to stop typing
+      });
+
+      // Also try on blur (in case they paste and click away)
+      mobileInput.addEventListener('blur', async () => {
+        const currentRepCode = document.getElementById('territoryRepCode').value.trim().toUpperCase();
+        if (currentRepCode && currentRepCode !== 'DIRECT') return;
+
+        const foundRep = await lookupPreviousRep(mobileInput.value);
+        if (foundRep) {
+          document.getElementById('territoryRepCode').value = foundRep;
+          try { sessionStorage.setItem('tt_last_rep_code', foundRep); } catch (e) {}
+          showRepHint(foundRep, 'auto');
+        }
+      });
+    });
+
     updateClinicSuggestions();
 
     // ============================================================
-    // MOBILE NUMBER VALIDATION + NORMALIZATION (Pakistani)
+    // MOBILE NUMBER NORMALIZATION
     // ============================================================
     function normalizePakistaniMobile(raw) {
       if (!raw) return null;
       let digits = String(raw).replace(/\D/g, '');
-
-      // Strip leading 00 or +
       if (digits.startsWith('00')) digits = digits.substring(2);
-
-      // Handle various Pakistani formats:
-      // 03001234567 (11 digits) → 923001234567
-      // 3001234567  (10 digits) → 923001234567
-      // 923001234567 (12 digits) → keep
-      if (digits.length === 11 && digits.startsWith('03')) {
-        return '92' + digits.substring(1);
-      }
-      if (digits.length === 10 && digits.startsWith('3')) {
-        return '92' + digits;
-      }
-      if (digits.length === 12 && digits.startsWith('92')) {
-        return digits;
-      }
-
-      return null; // Invalid format
+      if (digits.length === 11 && digits.startsWith('03')) return '92' + digits.substring(1);
+      if (digits.length === 10 && digits.startsWith('3')) return '92' + digits;
+      if (digits.length === 12 && digits.startsWith('92')) return digits;
+      return null;
     }
 
     // ============================================================
-    // SEND NOTIFICATIONS - DIRECT INSERT
+    // SEND NOTIFICATIONS
     // ============================================================
     async function sendOrderNotifications(order, repCode) {
-        try {
-            console.log('📤 Sending notifications for order:', order.order_id);
-            console.log('📤 Rep Code:', repCode);
-
-            if (repCode === 'DIRECT' || !repCode) {
-                console.log('⏭️ DIRECT order — skipping hierarchy notifications');
-                return;
-            }
-            
-            // 1. Get rep details
-            const { data: rep, error: repError } = await client
-                .from('reps')
-                .select('sap_id, manager_sap_id, full_name, team_name, territory_code')
-                .eq('territory_code', repCode)
-                .single();
-
-            if (repError) {
-                console.warn('Could not find rep:', repError.message);
-                return;
-            }
-
-            console.log('✅ Rep found:', rep.full_name, 'SAP:', rep.sap_id, 'Manager:', rep.manager_sap_id);
-
-            // 2. Get manager's region
-            let region = 'Central';
-            if (rep.manager_sap_id) {
-                const { data: manager, error: mgrError } = await client
-                    .from('managers')
-                    .select('region')
-                    .eq('manager_sap_id', rep.manager_sap_id)
-                    .maybeSingle();
-                
-                if (!mgrError && manager) {
-                    region = manager.region || 'Central';
-                }
-            }
-            console.log('✅ Region:', region);
-
-            // 3. Get HOS for this region
-            let hosSapId = null;
-            const { data: hosData, error: hosError } = await client
-                .from('hos_users')
-                .select('sap_id')
-                .eq('region', region)
-                .maybeSingle();
-
-            if (!hosError && hosData) {
-                hosSapId = hosData.sap_id;
-                console.log('✅ HOS found for region:', region, 'SAP:', hosSapId);
-            } else {
-                console.log('⚠️ No HOS found for region:', region);
-            }
-
-            // 4. Function to create notification - DIRECT INSERT
-            const createNotification = async (userId, userRole, title, message, type, priority, link) => {
-                if (!userId) {
-                    console.warn('❌ No userId provided for', userRole);
-                    return;
-                }
-                try {
-                    console.log(`📝 Creating notification for ${userRole} (${userId})...`);
-                    
-                    const { data, error: notifError } = await client
-                        .from('notifications')
-                        .insert([{
-                            user_id: String(userId),
-                            user_role: userRole,
-                            title: title,
-                            message: message,
-                            type: type || 'order',
-                            priority: priority || 'high',
-                            link: link || '/team.html',
-                            is_read: false,
-                            created_at: new Date().toISOString()
-                        }])
-                        .select();
-
-                    if (notifError) {
-                        console.error('❌ Notification error for', userId, ':', notifError);
-                    } else {
-                        console.log('✅ Notification sent to:', userId, '(', userRole, ')', 'ID:', data?.[0]?.id);
-                    }
-                    return data;
-                } catch (e) {
-                    console.error('❌ Notification exception:', e);
-                }
-            };
-
-            // 5. Send notifications to ALL levels
-
-            // 5a. REP (Team)
-            if (rep.sap_id) {
-                await createNotification(
-                    rep.sap_id,
-                    'rep',
-                    `📦 New Order: ${order.order_id}`,
-                    `Patient ${order.patient_name} submitted a new order for ${order.prescribed_dose || '5mg'}`,
-                    'order',
-                    'high',
-                    '/team.html'
-                );
-            }
-
-            // 5b. MANAGER / ZSM (Admin)
-            if (rep.manager_sap_id) {
-                await createNotification(
-                    rep.manager_sap_id,
-                    'zsm',
-                    `📦 New Order: ${order.order_id}`,
-                    `Patient ${order.patient_name} (${repCode}) ordered ${order.prescribed_dose || '5mg'} in ${region}`,
-                    'order',
-                    'high',
-                    '/admin.html'
-                );
-            }
-
-            // 5c. HOS (Head of Sales)
-            if (hosSapId) {
-                await createNotification(
-                    hosSapId,
-                    'hos',
-                    `📦 New Order: ${order.order_id}`,
-                    `Patient ${order.patient_name} (${repCode}) in ${region} region ordered ${order.prescribed_dose || '5mg'}`,
-                    'order',
-                    'medium',
-                    '/hos.html'
-                );
-            }
-
-            // 5d. HEAD OFFICE (Always send to HO_MASTER)
-            await createNotification(
-                'HO_MASTER',
-                'ho',
-                `📦 New National Order: ${order.order_id}`,
-                `Patient ${order.patient_name} (${repCode}) in ${order.city || 'Pakistan'} ordered ${order.prescribed_dose || '5mg'}`,
-                'order',
-                'medium',
-                '/headoffice.html'
-            );
-
-            console.log('✅ All notifications sent!');
-
-        } catch (notifyError) {
-            console.error('❌ Notification error:', notifyError);
+      try {
+        console.log('📤 Sending notifications for order:', order.order_id);
+        if (repCode === 'DIRECT' || !repCode) {
+          console.log('⏭️ DIRECT order — skipping hierarchy notifications');
+          return;
         }
+
+        const { data: rep, error: repError } = await client
+          .from('reps')
+          .select('sap_id, manager_sap_id, full_name, team_name, territory_code')
+          .eq('territory_code', repCode)
+          .single();
+
+        if (repError) { console.warn('Could not find rep:', repError.message); return; }
+
+        let region = 'Central';
+        if (rep.manager_sap_id) {
+          const { data: manager } = await client
+            .from('managers')
+            .select('region')
+            .eq('manager_sap_id', rep.manager_sap_id)
+            .maybeSingle();
+          if (manager) region = manager.region || 'Central';
+        }
+
+        let hosSapId = null;
+        const { data: hosData } = await client
+          .from('hos_users')
+          .select('sap_id')
+          .eq('region', region)
+          .maybeSingle();
+        if (hosData) hosSapId = hosData.sap_id;
+
+        const createNotification = async (userId, userRole, title, message, type, priority, link) => {
+          if (!userId) return;
+          try {
+            await client.from('notifications').insert([{
+              user_id: String(userId),
+              user_role: userRole,
+              title: title,
+              message: message,
+              type: type || 'order',
+              priority: priority || 'high',
+              link: link || '/team.html',
+              is_read: false,
+              created_at: new Date().toISOString()
+            }]);
+          } catch (e) { console.error('Notification exception:', e); }
+        };
+
+        if (rep.sap_id) {
+          await createNotification(rep.sap_id, 'rep', `📦 New Order: ${order.order_id}`,
+            `Patient ${order.patient_name} submitted a new order for ${order.prescribed_dose || '5mg'}`,
+            'order', 'high', '/team.html');
+        }
+        if (rep.manager_sap_id) {
+          await createNotification(rep.manager_sap_id, 'zsm', `📦 New Order: ${order.order_id}`,
+            `Patient ${order.patient_name} (${repCode}) ordered ${order.prescribed_dose || '5mg'} in ${region}`,
+            'order', 'high', '/admin.html');
+        }
+        if (hosSapId) {
+          await createNotification(hosSapId, 'hos', `📦 New Order: ${order.order_id}`,
+            `Patient ${order.patient_name} (${repCode}) in ${region} region ordered ${order.prescribed_dose || '5mg'}`,
+            'order', 'medium', '/hos.html');
+        }
+        await createNotification('HO_MASTER', 'ho', `📦 New National Order: ${order.order_id}`,
+          `Patient ${order.patient_name} (${repCode}) in ${order.city || 'Pakistan'} ordered ${order.prescribed_dose || '5mg'}`,
+          'order', 'medium', '/headoffice.html');
+      } catch (notifyError) {
+        console.error('❌ Notification error:', notifyError);
+      }
     }
 
     // ============================================================
-    // SUBMIT ORDER FUNCTION - COMPLETE
+    // SUBMIT ORDER
     // ============================================================
     async function submitPatientOrder(e) {
       e.preventDefault();
@@ -512,7 +469,6 @@
       statusMsg.classList.remove('hidden');
       submitBtn.disabled = true;
 
-      // Get form values
       const patient_name = document.getElementById('patientName').value.trim();
       const age = parseInt(document.getElementById('patientAge').value) || null;
       const mobileRaw = document.getElementById('patientMobile').value.trim();
@@ -526,7 +482,6 @@
       const rep_code = document.getElementById('territoryRepCode').value.trim().toUpperCase() || 'DIRECT';
       const whatsapp_opted_in = document.getElementById('whatsappOptIn').checked;
 
-      // Validate mobile number
       const mobile = normalizePakistaniMobile(mobileRaw);
       if (!mobile) {
         statusMsg.className = "text-xs text-center font-medium text-rose-500";
@@ -536,51 +491,32 @@
       }
 
       statusMsg.innerText = "Submitting order details...";
-
       const order_id = `TT-${Math.floor(100000 + Math.random() * 900000)}`;
 
       let prescription_url = null;
       const fileInput = document.getElementById('prescriptionFile');
 
       try {
-        // Upload prescription file if selected
         if (fileInput.files.length > 0) {
           const file = fileInput.files[0];
           const fileExt = file.name.split('.').pop();
           const fileName = `${order_id}-${Date.now()}.${fileExt}`;
-          
           const { error: uploadErr } = await client.storage
             .from('prescriptions')
             .upload(fileName, file);
-
           if (!uploadErr) {
-            const { data: publicUrlData } = client.storage
-              .from('prescriptions')
-              .getPublicUrl(fileName);
+            const { data: publicUrlData } = client.storage.from('prescriptions').getPublicUrl(fileName);
             prescription_url = publicUrlData?.publicUrl || null;
           }
         }
 
-        // Store normalized mobile (92XXXXXXXXXX) — Edge Function will add + prefix
         const orderData = {
-          order_id,
-          patient_name,
-          age,
-          mobile: mobile,                 // normalized 923XXXXXXXXX
-          city,
-          delivery_address,
-          doctor_name,
-          clinic_name,
-          indication,
-          prescribed_dose,
-          device,
-          rep_code,
-          prescription_url,
-          status: 'New Patient',
+          order_id, patient_name, age, mobile, city, delivery_address,
+          doctor_name, clinic_name, indication, prescribed_dose, device,
+          rep_code, prescription_url, status: 'New Patient',
           whatsapp_opted_in: whatsapp_opted_in
         };
 
-        // Insert order into database
         const { data: insertedOrder, error: insertErr } = await client
           .from('orders')
           .insert([orderData])
@@ -590,18 +526,14 @@
         if (insertErr) throw insertErr;
 
         console.log('✅ Order inserted:', insertedOrder);
-
-        // Send in-app notifications to hierarchy
         await sendOrderNotifications(insertedOrder || orderData, rep_code);
 
-        // Show WhatsApp badge if opted in
         if (whatsapp_opted_in) {
           document.getElementById('whatsappSentBadge').classList.remove('hidden');
         } else {
           document.getElementById('whatsappSentBadge').classList.add('hidden');
         }
 
-        // Show success view
         document.getElementById('patientOrderForm').classList.add('hidden');
         document.getElementById('generatedOrderId').innerText = order_id;
         document.getElementById('successView').classList.remove('hidden');
@@ -620,7 +552,6 @@
       document.getElementById('whatsappOptIn').checked = true;
       document.getElementById('submissionStatus').classList.add('hidden');
       document.getElementById('submitBtn').disabled = false;
-
       document.getElementById('successView').classList.add('hidden');
       document.getElementById('whatsappSentBadge').classList.add('hidden');
       document.getElementById('patientOrderForm').classList.remove('hidden');
@@ -631,7 +562,7 @@
       window.close();
       setTimeout(() => {
         document.body.innerHTML = `
-          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 font-sans text-center transition-colors duration-200">
+          <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 font-sans text-center">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-3 shadow-xl">
               <div class="text-3xl text-emerald-600 dark:text-emerald-400">✓</div>
               <h3 class="text-base font-bold text-slate-900 dark:text-white">Order Submitted Successfully</h3>
