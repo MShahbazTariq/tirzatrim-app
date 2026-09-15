@@ -220,15 +220,15 @@
       '15mg': '15mg'  // maintenance — stays at 15mg
     };
 
-    // Map escalated dose → device (only 5mg, 10mg, 15mg devices exist)
-    const DOSE_TO_DEVICE = {
-      '2.5mg': '5mg Multi-Dose Pen',
-      '5mg': '5mg Multi-Dose Pen',
-      '7.5mg': '10mg Multi-Dose Pen',  // no 7.5 device, use 10mg
-      '10mg': '10mg Multi-Dose Pen',
-      '12.5mg': '15mg Multi-Dose Pen', // no 12.5 device, use 15mg
-      '15mg': '15mg Multi-Dose Pen'
-    };
+    // ✅ CORRECTED DEVICE MAPPING (based on business rules)
+const DOSE_TO_DEVICE = {
+  '2.5mg': '5mg Multi-Dose Pen',    // 20mg total → covers 2.5mg cycle + escalation
+  '5mg':   '10mg Multi-Dose Pen',   // 40mg total → covers 5mg cycle + escalation
+  '7.5mg': '10mg Multi-Dose Pen',   // 40mg total → covers 7.5mg cycle
+  '10mg':  '10mg Multi-Dose Pen',   // 40mg total → covers 10mg cycle
+  '12.5mg':'15mg Multi-Dose Pen',   // 60mg total → covers 12.5mg cycle
+  '15mg':  '15mg Multi-Dose Pen'    // 60mg total → maintenance
+};
 
     const PAKISTAN_CLINICS = {
       "Lahore": ["IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)", "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal", "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"],
