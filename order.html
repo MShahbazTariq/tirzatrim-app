@@ -285,12 +285,15 @@
       document.getElementById('patientMobile').value = decodeURIComponent(urlParams.get('mobile'));
     }
 
-    // Explicit dose from URL (skip escalation if explicit)
-    let explicitDoseFromUrl = null;
-    if (urlParams.get('dose')) {
-      explicitDoseFromUrl = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
-      setDoseInSelect(explicitDoseFromUrl, false);
-    }
+    // Store URL dose as fallback, but let history escalation override it
+let explicitDoseFromUrl = null;
+if (urlParams.get('dose')) {
+  explicitDoseFromUrl = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+  setDoseInSelect(explicitDoseFromUrl, false);
+}
+
+// Flag: whether auto-fill has run (to allow escalation to override URL dose)
+let historyAutoFilled = false;
 
     // ============================================================
     // HELPERS
@@ -398,20 +401,22 @@
         }
       }
 
-      // Dose escalation logic
-      if (allowDoseEscalation && !explicitDoseFromUrl) {
-        const lastDose = (last.prescribed_dose || '').toLowerCase().trim();
-        const nextDose = DOSE_ESCALATION[lastDose];
+      // Dose escalation logic — ALWAYS based on last order's dose
+// (URL dose is ignored for returning patients because it's the OLD dose)
+if (allowDoseEscalation) {
+  const lastDose = (last.prescribed_dose || '').toLowerCase().trim();
+  const nextDose = DOSE_ESCALATION[lastDose];
 
-        if (nextDose && nextDose !== lastDose) {
-          // Escalate to next dose
-          setDoseInSelect(nextDose, true);
-          console.log(`💊 Dose escalated: ${lastDose} → ${nextDose}`);
-        } else {
-          // Same dose (maintenance) or unknown
-          setDoseInSelect(lastDose || '5mg', false);
-        }
-      }
+  if (nextDose && nextDose !== lastDose) {
+    // Escalate to next dose
+    setDoseInSelect(nextDose, true);
+    console.log(`💊 Dose escalated: ${lastDose} → ${nextDose} (was URL: ${explicitDoseFromUrl || 'none'})`);
+  } else if (lastDose) {
+    // Maintenance dose (already at 15mg)
+    setDoseInSelect(lastDose, false);
+  }
+  historyAutoFilled = true;
+}
 
       // Fill clinic dropdown suggestions for this city
       setTimeout(updateClinicSuggestions, 100);
