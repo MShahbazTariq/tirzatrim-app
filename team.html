@@ -2054,15 +2054,8 @@
                 <span>🔄</span> Send Step-Up Refill (${esc.currentDose} ➔ ${esc.nextDose})
               </button>
             </div>
-            
-              <div class="relative">
-                <button id="btn-refill-${order.id}" onclick="sendAutoRefill('${order.id}', '${order.mobile}', '${(order.patient_name || '').replace(/'/g, "\\'")}', '${esc.currentDose}', '${esc.nextDose}', '${order.rep_code || ''}')" class="w-full py-2.5 px-2 ${esc.isDue ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'} text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all">
-                  <span class="btn-label"><span>🔄</span> Send Step-Up Refill (${esc.currentDose} ➔ ${esc.nextDose})</span>
-                </button>
-                <button onclick="manualRefill('${order.mobile}', '${(order.patient_name || '').replace(/'/g, "\\'")}', '${esc.currentDose}', '${esc.nextDose}', '${order.rep_code || ''}')" title="Open WhatsApp manually" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-700 hover:bg-slate-600 text-white text-[10px] flex items-center justify-center border border-slate-600">📱</button>
-              </div>
-            </div>
           </div>
+          
         `;
       }).join('');
 
