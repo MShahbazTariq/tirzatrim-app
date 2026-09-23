@@ -492,8 +492,9 @@
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+window.supabaseClient = window.supabaseClient
+  || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const client = window.supabaseClient;
     let currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
     let rawOrders = [];
     let territoryDoctorsList = [];
@@ -996,150 +997,148 @@
       }, 5000);
     }
 
-    function checkSession() {
-      if (currentRep && currentRep.territory_code) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-        
-        document.getElementById('repNameDisplay').innerText = currentRep.full_name;
-        document.getElementById('repTCodeDisplay').innerText = currentRep.territory_code;
-        document.getElementById('repTeamDisplay').innerText = currentRep.team_name || 'Team';
+    async function checkSession() {
+  // Restore from sessionStorage if not already in memory
+  if (!currentRep) {
+    currentRep = JSON.parse(sessionStorage.getItem('tt_current_rep') || 'null');
+  }
 
-        document.getElementById('menuUserName').innerText = currentRep.full_name;
-        document.getElementById('menuAvatarBadge').innerText = getInitials(currentRep.full_name);
-        document.getElementById('menuTCodeDisplay').innerText = currentRep.territory_code;
-        document.getElementById('menuSapDisplay').innerText = currentRep.sap_id;
-        
-        initDates();
-        window.fetchRepOrders();
-        window.fetchTerritoryDoctors();
-        initRepRealtimeSync();
-        
-        if (currentRep && currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
-          window.notificationCenter = new NotificationCenter({
-            userId: currentRep.sap_id,
-            userRole: 'rep',
-            pollInterval: 30000
-          });
-        }
-      } else {
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
-      }
-    }
-
-    async function handleRepSignup(e) {
-      e.preventDefault();
-      const err = document.getElementById('authErrorMsg');
-      err.classList.add('hidden');
-
-      const full_name = document.getElementById('regName').value.trim();
-      const team_name = document.getElementById('regTeam').value.trim().toUpperCase();
-      const territory_code = document.getElementById('regTCode').value.trim().toUpperCase();
-      const sap_id = document.getElementById('regSap').value.trim();
-      const manager_sap_id = document.getElementById('regManagerSap').value.trim();
-      const password = document.getElementById('regPassword').value;
-
-      try {
-        const { data, error } = await client
-          .from('reps')
-          .insert([{ full_name, team_name, territory_code, sap_id, manager_sap_id, password }])
-          .select();
-
-        if (error) {
-          if (error.message.includes('unique')) {
-            throw new Error(`Territory code '${territory_code}' is already registered. Please log in.`);
-          }
-          throw error;
-        }
-
-        currentRep = data[0];
-        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
-        checkSession();
-      } catch (ex) {
-        err.innerText = ex.message;
-        err.classList.remove('hidden');
-      }
-    }
-
-    async function handleRepLogin(e) {
-      e.preventDefault();
-      const err = document.getElementById('authErrorMsg');
-      err.classList.add('hidden');
-
-      const tcode = document.getElementById('loginTCode').value.trim();
-      const pass = document.getElementById('loginPassword').value.trim();
-
-      try {
-        const { data, error } = await client
-          .from('reps')
-          .select('*')
-          .ilike('territory_code', tcode)
-          .eq('password', pass)
-          .limit(1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          throw new Error('Invalid Territory Code or Password.');
-        }
-
-        currentRep = data[0];
-        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
-        checkSession();
-      } catch (ex) {
-        err.innerText = ex.message;
-        err.classList.remove('hidden');
-      }
-    }
-
-    function handleRepLogout() {
-      if (realtimeChannel) {
-        client.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-      if (repPollingInterval) {
-        clearInterval(repPollingInterval);
-        repPollingInterval = null;
-      }
+  // Verify Supabase still has an active session
+  if (currentRep && currentRep.user_id) {
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) {
       sessionStorage.removeItem('tt_current_rep');
       currentRep = null;
-      checkSession();
     }
+  }
 
-    async function registerRepMobilePush() {
-      const btn = document.getElementById('menuPushBtn');
-      const pill = document.getElementById('menuPushStatusPill');
+  if (currentRep && currentRep.territory_code) {
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('dashboardContent').classList.remove('hidden');
 
-      try {
-        if (!('Notification' in window)) {
-          alert("Push notifications are not supported on this browser.");
-          return;
-        }
+    document.getElementById('repNameDisplay').innerText = currentRep.full_name;
+    document.getElementById('repTCodeDisplay').innerText = currentRep.territory_code;
+    document.getElementById('repTeamDisplay').innerText = currentRep.team_name || 'Team';
 
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          alert("⚠️ Notification permission was blocked. Please enable permissions in your browser settings.");
-          return;
-        }
+    document.getElementById('menuUserName').innerText = currentRep.full_name;
+    document.getElementById('menuAvatarBadge').innerText = getInitials(currentRep.full_name);
+    document.getElementById('menuTCodeDisplay').innerText = currentRep.territory_code;
+    document.getElementById('menuSapDisplay').innerText = currentRep.sap_id;
 
-        const sapId = currentRep ? currentRep.sap_id : 'REP_USER';
-        const tCode = currentRep ? currentRep.territory_code : '';
+    initDates();
+    window.fetchRepOrders();
+    window.fetchTerritoryDoctors();
+    initRepRealtimeSync();
 
-        if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(sapId, 'rep', tCode);
-          alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${sapId}\nTerritory: ${tCode}\n\nYou will receive real-time alerts for your territory orders.`);
-          if (pill) {
-            pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Push Active`;
-          }
-          if (btn) {
-            btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
-          }
-        }
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+    if (currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
+      window.notificationCenter = new NotificationCenter({
+        userId: currentRep.sap_id,
+        userRole: 'rep',
+        pollInterval: 30000
+      });
     }
+  } else {
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('dashboardContent').classList.add('hidden');
+  }
+}
 
+    async function handleRepSignup(e) {
+  e.preventDefault();
+  const err = document.getElementById('authErrorMsg');
+  err.classList.add('hidden');
+
+  const full_name      = document.getElementById('regName').value.trim();
+  const team_name      = document.getElementById('regTeam').value.trim().toUpperCase();
+  const territory_code = document.getElementById('regTCode').value.trim().toUpperCase();
+  const sap_id         = document.getElementById('regSap').value.trim();
+  const manager_sap_id = document.getElementById('regManagerSap').value.trim();
+  const password       = document.getElementById('regPassword').value;
+
+  if (password.length < 6) {
+    err.innerText = 'Password must be at least 6 characters.';
+    err.classList.remove('hidden');
+    return;
+  }
+
+  const email = territory_code.toLowerCase().replace(/[^a-z0-9]/g, '') + '@tirzatrim.local';
+
+  try {
+    const { data: existing } = await client
+      .from('reps').select('id')
+      .ilike('territory_code', territory_code).maybeSingle();
+
+    if (existing) throw new Error(`Territory code '${territory_code}' is already registered. Please log in.`);
+
+    const { data: authData, error: authErr } = await client.auth.signUp({
+      email, password,
+      options: { data: { territory_code, full_name, team_name, sap_id } }
+    });
+
+    if (authErr) throw authErr;
+    if (!authData.user) throw new Error('Signup failed. Please try again.');
+
+    const { error: dbErr } = await client.from('reps').insert([{
+      user_id: authData.user.id,
+      full_name, team_name, territory_code, sap_id, manager_sap_id
+    }]);
+    if (dbErr) throw dbErr;
+
+    currentRep = { user_id: authData.user.id, full_name, team_name, territory_code, sap_id, manager_sap_id };
+    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+    checkSession();
+  } catch (ex) {
+    err.innerText = ex.message || 'Signup failed.';
+    err.classList.remove('hidden');
+  }
+}
+
+    async function handleRepLogin(e) {
+  e.preventDefault();
+  const err = document.getElementById('authErrorMsg');
+  err.classList.add('hidden');
+
+  const tcode = document.getElementById('loginTCode').value.trim().toUpperCase();
+  const pass  = document.getElementById('loginPassword').value;  // NO trim!
+
+  if (!tcode || !pass) {
+    err.innerText = 'Please enter both Territory Code and Password.';
+    err.classList.remove('hidden');
+    return;
+  }
+
+  const email = tcode.toLowerCase().replace(/[^a-z0-9]/g, '') + '@tirzatrim.local';
+
+  try {
+    const { data: authData, error: authErr } = await client.auth.signInWithPassword({
+      email, password: pass
+    });
+
+    if (authErr) throw new Error('Invalid Territory Code or Password.');
+
+    const { data: profile, error: profileErr } = await client
+      .from('reps').select('*').eq('user_id', authData.user.id).single();
+
+    if (profileErr || !profile) throw new Error('Profile not found. Contact support.');
+
+    currentRep = profile;
+    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+    checkSession();
+  } catch (ex) {
+    err.innerText = ex.message || 'Login failed.';
+    err.classList.remove('hidden');
+  }
+}
+    
+    async function handleRepLogout() {
+  await client.auth.signOut();
+  if (realtimeChannel) { client.removeChannel(realtimeChannel); realtimeChannel = null; }
+  if (repPollingInterval) { clearInterval(repPollingInterval); repPollingInterval = null; }
+  sessionStorage.removeItem('tt_current_rep');
+  currentRep = null;
+  checkSession();
+}
+    
     function copyMyPatientLink() {
       const link = `https://tirzatrim-app.vercel.app/order.html?rep=${encodeURIComponent(currentRep.territory_code)}`;
       navigator.clipboard.writeText(link);
