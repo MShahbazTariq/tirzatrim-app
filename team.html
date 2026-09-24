@@ -605,41 +605,11 @@
     }
 
     function tryOpenNotifCenter() {
-  // Try every plausible opening method in order
-  try {
-    if (window.notificationCenter && typeof window.notificationCenter.open === 'function') {
-      window.notificationCenter.open();
-      return;
-    }
-    if (window.notificationCenter && typeof window.notificationCenter.toggle === 'function') {
-      window.notificationCenter.toggle();
-      return;
-    }
-    if (typeof window.openNotificationCenter === 'function') {
-      window.openNotificationCenter();
-      return;
-    }
-    if (typeof window.showNotificationCenter === 'function') {
-      window.showNotificationCenter();
-      return;
-    }
-    if (typeof window.toggleNotificationCenter === 'function') {
-      window.toggleNotificationCenter();
-      return;
-    }
-    // Last resort: try to toggle the DOM element directly
-    const panel = document.getElementById('notificationCenter') || 
-                  document.getElementById('notification-center') ||
-                  document.querySelector('.notification-center-panel');
-    if (panel) {
-      panel.classList.toggle('hidden');
-      return;
-    }
-    console.warn('No notification center opener found. Check notification-center.js for the correct method name.');
-    alert('Notification center is loading. Please try again in a moment.');
-  } catch (e) {
-    console.error('Error opening notification center:', e);
+  if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
+    window.notificationCenter.toggleDropdown();
+    return;
   }
+  console.warn('notificationCenter.toggleDropdown not available yet.');
 }
 window.tryOpenNotifCenter = tryOpenNotifCenter;
 
