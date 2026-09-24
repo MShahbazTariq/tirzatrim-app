@@ -150,6 +150,7 @@
         <button id="menuPushBtn" onclick="registerRepMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
         <button onclick="window.fetchRepOrders(); window.fetchTerritoryDoctors(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Territory Data</span></button>
         <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
+        <button onclick="openProfileModal(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">👤</span> <span>My Profile</span></button>
         <button onclick="openChangePasswordModal(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔑</span> <span>Change My Password</span></button>
       </div>
     </div>
@@ -2509,7 +2510,7 @@ function renderAvatar(url) {
 }
 window.handleAvatarUpload = handleAvatarUpload;
 window.renderAvatar = renderAvatar;
-    // ============================================================
+// ============================================================
 // PROFILE MODAL — Open / Close / Save
 // ============================================================
 
