@@ -1109,11 +1109,11 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
 
         if (currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
           window.notificationCenter = new NotificationCenter({
-            userId: currentRep.sap_id,
-            userRole: 'rep',
-            pollInterval: 30000
-            badgeId: 'navNotifBadge'
-          });
+  userId: currentRep.sap_id,
+  userRole: 'rep',
+  pollInterval: 30000,
+  badgeId: 'navNotifBadge'      // ← make sure there's a comma AFTER pollInterval
+});
         }
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
