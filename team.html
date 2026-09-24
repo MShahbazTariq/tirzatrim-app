@@ -33,42 +33,29 @@
   <!-- FIXED TOP NAVIGATION -->
   <nav id="topNavBar" class="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-4 py-3 hidden">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-
-      <!-- LEFT: Logo -->
       <a href="/" class="flex items-center gap-2 select-none">
         <span class="text-xl font-black italic tracking-tight text-[#0284c7] leading-none">
           Tirza<span class="text-slate-900 dark:text-white not-italic ml-0.5">Trim</span>
         </span>
       </a>
-
-      <!-- RIGHT: Action Icons -->
       <div class="flex items-center gap-1.5">
-
-        <!-- Refresh -->
         <button onclick="window.fetchRepOrders(); window.fetchTerritoryDoctors();" title="Refresh Data"
           class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <span class="text-lg">🔄</span>
         </button>
-
-        <!-- Theme Toggle -->
         <button onclick="toggleTheme()" title="Toggle Theme"
           class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <span class="theme-icon text-lg">🌙</span>
         </button>
-
-        <!-- Notification Bell -->
         <button onclick="tryOpenNotifCenter()" title="Notifications"
           class="relative w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <span class="text-lg">🔔</span>
           <span id="navNotifBadge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
         </button>
-
-        <!-- Profile Avatar -->
-        <button onclick="openSideMenu()" title="Profile & Settings" class="relative w-10 h-10 rounded-full bg-teal-600 text-white font-black text-xs shadow-md uppercase flex items-center justify-center hover:ring-2 hover:ring-teal-500/50 transition-all overflow-hidden">
-  <img id="navAvatarImg" class="hidden w-full h-full object-cover" alt="">
-  <span id="navAvatarBadge">TS</span>
-</button>
-
+        <button onclick="openProfileModal()" title="My Profile" class="relative w-10 h-10 rounded-full bg-teal-600 text-white font-black text-xs shadow-md uppercase flex items-center justify-center hover:ring-2 hover:ring-teal-500/50 transition-all overflow-hidden">
+          <img id="navAvatarImg" class="hidden w-full h-full object-cover" alt="">
+          <span id="navAvatarBadge">TS</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -78,28 +65,24 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
       <div class="flex items-center justify-between">
         <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">🏠 Home</a>
-        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1" title="Toggle Theme">
+        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1">
           <span class="theme-icon">🌙</span>
         </button>
       </div>
-
       <div class="space-y-2 pt-2">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">💼</div>
         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Territory Rep Hub</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400">Sign in to track orders or register your territory code</p>
       </div>
-
       <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
         <button id="loginTabBtn" onclick="showAuthTab('login')" class="py-2 rounded-lg bg-teal-600 text-white shadow-sm transition-all">Rep Login</button>
         <button id="signupTabBtn" onclick="showAuthTab('signup')" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">New Registration</button>
       </div>
-
       <form id="loginForm" onsubmit="handleRepLogin(event)" class="space-y-4">
         <div><input type="text" id="loginTCode" placeholder="Territory Code (e.g. QL2.1)" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold uppercase text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 font-mono"></div>
         <div><input type="password" id="loginPassword" placeholder="Enter Password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600"></div>
         <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-600/20 transition-all">Unlock My Territory</button>
       </form>
-
       <form id="signupForm" onsubmit="handleRepSignup(event)" class="space-y-3 hidden text-left">
         <div><label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label><input type="text" id="regName" placeholder="e.g. Talha Saadat" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
         <div class="grid grid-cols-2 gap-2">
@@ -116,50 +99,6 @@
       <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
-
-  <!-- EXECUTIVE SLIDE-OVER DRAWER -->
-  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
-  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
-    <div class="space-y-6">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div class="flex items-center gap-2"><span class="text-xl">⚙️</span><span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">Rep Settings</span></div>
-        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold text-sm">✕</button>
-      </div>
-
-      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-        <div class="flex items-center gap-3">
-          <div class="relative">
-  <button onclick="document.getElementById('avatarFileInput').click()" class="relative w-10 h-10 rounded-2xl bg-teal-600 text-white font-black text-xs flex items-center justify-center shadow-md uppercase overflow-hidden group">
-    <img id="menuAvatarImg" class="hidden w-full h-full object-cover" alt="">
-    <span id="menuAvatarBadge">TS</span>
-    <span class="absolute inset-0 bg-black/60 text-white text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">📷</span>
-  </button>
-  <input type="file" id="avatarFileInput" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden">
-</div>
-          <div><div id="menuUserName" class="text-sm font-bold text-slate-900 dark:text-white">Talha Saadat</div><div class="text-xs text-slate-500 dark:text-slate-400">Territory Field Representative</div></div>
-        </div>
-        <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-          <span class="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold border border-teal-500/20">Code: <span id="menuTCodeDisplay">QL2.1</span></span>
-          <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">SAP: <span id="menuSapDisplay">7585</span></span>
-          <span id="menuPushStatusPill" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Push Ready</span>
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">Field Utilities</div>
-        <button id="menuPushBtn" onclick="registerRepMobilePush()" class="w-full px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
-        <button onclick="window.fetchRepOrders(); window.fetchTerritoryDoctors(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Territory Data</span></button>
-        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
-        <button onclick="openProfileModal(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">👤</span> <span>My Profile</span></button>
-        <button onclick="openChangePasswordModal(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔑</span> <span>Change My Password</span></button>
-      </div>
-    </div>
-
-    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">🏠 <span>Back to Main Portal</span></a>
-      <button onclick="handleRepLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">🚪 <span>Secure Logout</span></button>
-    </div>
-  </aside>
 
   <!-- MAIN DASHBOARD CONTENT -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
@@ -225,12 +164,10 @@
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>🤖</span> Territory AI Insights</h3>
           <span class="text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full">Live Analysis</span>
         </div>
-
         <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
           <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Anomaly Alert</div>
           <div id="anomalyAlertText" class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1"><span class="text-emerald-600">✅ No anomalies detected.</span></div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
             <div class="flex items-center justify-between">
@@ -244,7 +181,6 @@
               <span class="px-2 py-1.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-600">🆕 New Today: <span id="healthNewToday">0</span></span>
             </div>
           </div>
-
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
             <div><div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Projected Month-End Orders</div><div class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">~<span id="predictedOrders">0</span> Orders</div></div>
             <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 grid grid-cols-3 gap-1.5 text-[10px] font-bold">
@@ -257,7 +193,6 @@
             </div>
           </div>
         </div>
-
         <div class="pt-2 text-sm border-t border-slate-200 dark:border-slate-800 mt-1">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
             <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"><span>⚠️</span> Untapped Doctors (by Rep)</div>
@@ -298,7 +233,6 @@
 
     <div id="view-doctors" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-3xl space-y-4 shadow-sm">
-
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>🩺</span> Territory Doctor Tracker & Visit Planner</h3>
@@ -316,7 +250,6 @@
             <button onclick="toggleDeleteMode()" id="deleteModeBtn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all">🗑️ Delete</button>
           </div>
         </div>
-
         <div class="flex flex-wrap gap-2 pt-1 pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
           <button onclick="setDoctorFilter('ALL')" id="filterBtn-ALL" class="px-3 py-1.5 rounded-xl font-bold bg-teal-600 text-white shadow-sm transition-all">All Doctors</button>
           <button onclick="setDoctorFilter('CLASS_A')" id="filterBtn-CLASS_A" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">A Class</button>
@@ -328,7 +261,6 @@
           <button onclick="setDoctorFilter('FP')" id="filterBtn-FP" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Frequent Prescriber (FP)</button>
           <button onclick="setDoctorFilter('BOC')" id="filterBtn-BOC" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all">Brand of Choice (BOC)</button>
         </div>
-
         <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -393,7 +325,6 @@
         </div>
       </div>
 
-      <!-- Doctor Summary List — at END of Analytics tab -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -535,7 +466,7 @@
     <button onclick="switchTab('doctors')" id="bottomNav-doctors" class="bottom-nav-item flex flex-col items-center text-slate-400"><span class="text-lg">📋</span><span class="text-xs font-medium">Docs</span></button>
     <button onclick="switchTab('analytics')" id="bottomNav-analytics" class="bottom-nav-item flex flex-col items-center text-slate-400"><span class="text-lg">📊</span><span class="text-xs font-medium">Analytics</span></button>
     <button onclick="switchTab('doctorLink')" id="bottomNav-doctorLink" class="bottom-nav-item flex flex-col items-center text-slate-400"><span class="text-lg">🔗</span><span class="text-xs font-medium">Hub</span></button>
-    <button onclick="openSideMenu()" class="bottom-nav-item flex flex-col items-center text-slate-400"><span class="text-lg">⚙️</span><span class="text-xs font-medium">Settings</span></button>
+    <button onclick="openProfileModal()" class="bottom-nav-item flex flex-col items-center text-slate-400"><span class="text-lg">⚙️</span><span class="text-xs font-medium">Settings</span></button>
   </nav>
 
   <!-- CHANGE PASSWORD MODAL -->
@@ -564,19 +495,15 @@
     </div>
   </div>
 
-  <!-- ============================================ -->
   <!-- PROFILE MODAL -->
-  <!-- ============================================ -->
   <div id="profileModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
 
-      <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">👤 My Profile</h3>
         <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
       </div>
 
-      <!-- Avatar + Upload -->
       <div class="flex flex-col items-center gap-3 pb-2">
         <div class="relative">
           <button onclick="document.getElementById('profileAvatarInput').click()" class="relative w-24 h-24 rounded-3xl bg-teal-600 text-white font-black text-3xl flex items-center justify-center shadow-lg uppercase overflow-hidden group">
@@ -589,16 +516,13 @@
         <p class="text-xs text-slate-500 dark:text-slate-400">Click the avatar to change your picture</p>
       </div>
 
-      <!-- Form Fields -->
       <form onsubmit="saveProfile(event)" class="space-y-3 text-xs">
 
-        <!-- Read-only email -->
         <div>
           <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1">Login Email (read-only)</label>
           <input type="text" id="profEmail" readonly class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed font-mono">
         </div>
 
-        <!-- Full Name -->
         <div>
           <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name *</label>
           <input type="text" id="profFullName" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500">
@@ -626,21 +550,32 @@
           </div>
         </div>
 
-        <!-- Member Since -->
         <div>
           <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1">Member Since</label>
           <input type="text" id="profCreatedAt" readonly class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed">
         </div>
 
-        <!-- Error message -->
         <p id="profError" class="text-xs text-rose-500 font-medium hidden"></p>
 
-        <!-- Action Buttons -->
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="openChangePasswordModal(); closeProfileModal();" class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all">🔑 Change Password</button>
           <button type="submit" class="flex-1 py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">💾 Save Changes</button>
         </div>
       </form>
+
+      <!-- Field Utilities Footer -->
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Field Utilities</div>
+        <button onclick="registerRepMobilePush()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all">
+          <span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>
+        </button>
+        <button onclick="window.fetchRepOrders(); window.fetchTerritoryDoctors(); alert('✅ Territory data refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors">
+          <span class="text-base">🔄</span> <span>Refresh Territory Data</span>
+        </button>
+        <button onclick="handleRepLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+          <span class="text-base">🚪</span> <span>Secure Logout</span>
+        </button>
+      </div>
 
     </div>
   </div>
@@ -694,13 +629,13 @@
     }
 
     function tryOpenNotifCenter() {
-  if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
-    window.notificationCenter.toggleDropdown();
-    return;
-  }
-  console.warn('notificationCenter.toggleDropdown not available yet.');
-}
-window.tryOpenNotifCenter = tryOpenNotifCenter;
+      if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
+        window.notificationCenter.toggleDropdown();
+        return;
+      }
+      console.warn('notificationCenter.toggleDropdown not available yet.');
+    }
+    window.tryOpenNotifCenter = tryOpenNotifCenter;
 
     function getEscalationDetails(createdAt, prescribedDose) {
       const orderDate = new Date(createdAt);
@@ -710,16 +645,6 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
       const doseKey = normalizeDoseKey(currentDose);
       const nextDose = TITRATION_MAP[doseKey] || '7.5mg';
       return { isDue: daysElapsed >= 21, daysElapsed, currentDose, nextDose };
-    }
-
-    function openSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.remove('hidden');
-      document.getElementById('sideMenuDrawer').classList.remove('translate-x-full');
-    }
-
-    function closeSideMenu() {
-      document.getElementById('sideMenuOverlay').classList.add('hidden');
-      document.getElementById('sideMenuDrawer').classList.add('translate-x-full');
     }
 
     function switchTab(tabId) {
@@ -1186,11 +1111,7 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
         document.getElementById('repTCodeDisplay').innerText = currentRep.territory_code;
         document.getElementById('repTeamDisplay').innerText = currentRep.team_name || 'Team';
 
-        document.getElementById('menuUserName').innerText = currentRep.full_name;
-        document.getElementById('menuAvatarBadge').innerText = getInitials(currentRep.full_name);
         renderAvatar(currentRep.avatar_url || null);
-        document.getElementById('menuTCodeDisplay').innerText = currentRep.territory_code;
-        document.getElementById('menuSapDisplay').innerText = currentRep.sap_id;
 
         initDates();
         window.fetchRepOrders();
@@ -1199,11 +1120,11 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
 
         if (currentRep.sap_id && typeof NotificationCenter !== 'undefined') {
           window.notificationCenter = new NotificationCenter({
-  userId: currentRep.sap_id,
-  userRole: 'rep',
-  pollInterval: 30000,
-  badgeId: 'navNotifBadge'      // ← make sure there's a comma AFTER pollInterval
-});
+            userId: currentRep.sap_id,
+            userRole: 'rep',
+            pollInterval: 30000,
+            badgeId: 'navNotifBadge'
+          });
         }
       } else {
         document.getElementById('authScreen').classList.remove('hidden');
@@ -2433,6 +2354,163 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
       }
     }
 
+    async function handleAvatarUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) return alert('Please select an image file.');
+      if (file.size > 2 * 1024 * 1024) return alert('Image must be smaller than 2 MB.');
+
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) return alert('You must be logged in.');
+
+      try {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const path = `${user.id}/avatar.${ext}`;
+        const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true });
+        if (upErr) throw upErr;
+
+        const { data: urlData } = client.storage.from('avatars').getPublicUrl(path);
+        await client.from('reps').update({ avatar_url: urlData.publicUrl }).eq('user_id', user.id);
+
+        currentRep.avatar_url = urlData.publicUrl;
+        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+        renderAvatar(`${urlData.publicUrl}?t=${Date.now()}`);
+        alert('✅ Profile picture updated!');
+      } catch (err) {
+        alert('Upload failed: ' + err.message);
+      }
+    }
+
+    function renderAvatar(url) {
+      const navImg = document.getElementById('navAvatarImg');
+      const navInit = document.getElementById('navAvatarBadge');
+      if (url) {
+        if (navImg) { navImg.src = url; navImg.classList.remove('hidden'); }
+        if (navInit) navInit.classList.add('hidden');
+      } else {
+        if (navImg) navImg.classList.add('hidden');
+        if (navInit) navInit.classList.remove('hidden');
+      }
+    }
+
+    function openProfileModal() {
+      if (!currentRep) return;
+
+      document.getElementById('profFullName').value = currentRep.full_name || '';
+      document.getElementById('profTeam').value = currentRep.team_name || '';
+      document.getElementById('profTerritory').value = currentRep.territory_code || '';
+      document.getElementById('profSapId').value = currentRep.sap_id || '';
+      document.getElementById('profManagerSap').value = currentRep.manager_sap_id || '';
+      document.getElementById('profEmail').value = (currentRep.territory_code || '').toLowerCase().replace(/[^a-z0-9]/g, '') + '@tirzatrim.local';
+
+      if (currentRep.created_at) {
+        document.getElementById('profCreatedAt').value = new Date(currentRep.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      } else {
+        document.getElementById('profCreatedAt').value = '—';
+      }
+
+      const img = document.getElementById('profileAvatarImg');
+      const initials = document.getElementById('profileAvatarInitials');
+      if (currentRep.avatar_url) {
+        img.src = currentRep.avatar_url + '?t=' + Date.now();
+        img.classList.remove('hidden');
+        initials.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        initials.classList.remove('hidden');
+        initials.innerText = getInitials(currentRep.full_name);
+      }
+
+      const modal = document.getElementById('profileModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.getElementById('profError').classList.add('hidden');
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      const err = document.getElementById('profError');
+      err.classList.add('hidden');
+
+      const newFullName = document.getElementById('profFullName').value.trim();
+      const newTeam = document.getElementById('profTeam').value.trim().toUpperCase();
+      const newManagerSap = document.getElementById('profManagerSap').value.trim();
+
+      if (!newFullName || !newTeam || !newManagerSap) {
+        err.innerText = 'All fields are required.';
+        err.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const { error } = await client
+          .from('reps')
+          .update({
+            full_name: newFullName,
+            team_name: newTeam,
+            manager_sap_id: newManagerSap
+          })
+          .eq('user_id', currentRep.user_id);
+
+        if (error) throw error;
+
+        currentRep.full_name = newFullName;
+        currentRep.team_name = newTeam;
+        currentRep.manager_sap_id = newManagerSap;
+        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+
+        document.getElementById('repNameDisplay').innerText = newFullName;
+        document.getElementById('repTeamDisplay').innerText = newTeam;
+        document.getElementById('navAvatarBadge').innerText = getInitials(newFullName);
+
+        alert('✅ Profile updated successfully!');
+        closeProfileModal();
+      } catch (ex) {
+        err.innerText = ex.message || 'Failed to save profile.';
+        err.classList.remove('hidden');
+      }
+    }
+
+    async function handleProfileAvatarUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) return alert('Please select an image file.');
+      if (file.size > 2 * 1024 * 1024) return alert('Image must be smaller than 2 MB.');
+
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) return alert('You must be logged in.');
+
+      try {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const path = `${user.id}/avatar.${ext}`;
+        const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true });
+        if (upErr) throw upErr;
+
+        const { data: urlData } = client.storage.from('avatars').getPublicUrl(path);
+        await client.from('reps').update({ avatar_url: urlData.publicUrl }).eq('user_id', user.id);
+
+        currentRep.avatar_url = urlData.publicUrl;
+        sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+
+        renderAvatar(`${urlData.publicUrl}?t=${Date.now()}`);
+        const modalImg = document.getElementById('profileAvatarImg');
+        const modalInit = document.getElementById('profileAvatarInitials');
+        if (modalImg) { modalImg.src = urlData.publicUrl + '?t=' + Date.now(); modalImg.classList.remove('hidden'); }
+        if (modalInit) modalInit.classList.add('hidden');
+
+        alert('✅ Profile picture updated!');
+      } catch (err) {
+        alert('Upload failed: ' + err.message);
+      }
+    }
+
     // Globally expose
     window.renderDoctorSummaryList = renderDoctorSummaryList;
     window.showDoctorPatients = showDoctorPatients;
@@ -2451,8 +2529,13 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
     window.closeChangePasswordModal = closeChangePasswordModal;
     window.submitPasswordChange = submitPasswordChange;
     window.updateNavNotifBadge = updateNavNotifBadge;
+    window.handleAvatarUpload = handleAvatarUpload;
+    window.renderAvatar = renderAvatar;
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+    window.saveProfile = saveProfile;
+    window.handleProfileAvatarUpload = handleProfileAvatarUpload;
 
-    // Poll nav badge every 5 seconds
     setInterval(() => {
       if (!currentRep) return;
       if (window.notificationCenter && typeof window.notificationCenter.unreadCount !== 'undefined') {
@@ -2460,194 +2543,9 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
       }
     }, 5000);
 
-    // Boot the app
     checkSession();
     checkGlobalBroadcast('team');
-
-    async function handleAvatarUpload(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) return alert('Please select an image file.');
-  if (file.size > 2 * 1024 * 1024) return alert('Image must be smaller than 2 MB.');
-
-  const { data: { user } } = await client.auth.getUser();
-  if (!user) return alert('You must be logged in.');
-
-  try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const path = `${user.id}/avatar.${ext}`;
-    const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true });
-    if (upErr) throw upErr;
-
-    const { data: urlData } = client.storage.from('avatars').getPublicUrl(path);
-    await client.from('reps').update({ avatar_url: urlData.publicUrl }).eq('user_id', user.id);
-
-    currentRep.avatar_url = urlData.publicUrl;
-    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
-    renderAvatar(`${urlData.publicUrl}?t=${Date.now()}`);
-    alert('✅ Profile picture updated!');
-  } catch (err) {
-    alert('Upload failed: ' + err.message);
-  }
-}
-
-function renderAvatar(url) {
-  const navImg = document.getElementById('navAvatarImg');
-  const navInit = document.getElementById('navAvatarBadge');
-  const menuImg = document.getElementById('menuAvatarImg');
-  const menuInit = document.getElementById('menuAvatarBadge');
-  if (url) {
-    if (navImg) { navImg.src = url; navImg.classList.remove('hidden'); }
-    if (navInit) navInit.classList.add('hidden');
-    if (menuImg) { menuImg.src = url; menuImg.classList.remove('hidden'); }
-    if (menuInit) menuInit.classList.add('hidden');
-  } else {
-    if (navImg) navImg.classList.add('hidden');
-    if (navInit) navInit.classList.remove('hidden');
-    if (menuImg) menuImg.classList.add('hidden');
-    if (menuInit) menuInit.classList.remove('hidden');
-  }
-}
-window.handleAvatarUpload = handleAvatarUpload;
-window.renderAvatar = renderAvatar;
-// ============================================================
-// PROFILE MODAL — Open / Close / Save
-// ============================================================
-
-function openProfileModal() {
-  if (!currentRep) return;
-
-  // Prefill all fields
-  document.getElementById('profFullName').value = currentRep.full_name || '';
-  document.getElementById('profTeam').value = currentRep.team_name || '';
-  document.getElementById('profTerritory').value = currentRep.territory_code || '';
-  document.getElementById('profSapId').value = currentRep.sap_id || '';
-  document.getElementById('profManagerSap').value = currentRep.manager_sap_id || '';
-  document.getElementById('profEmail').value = (currentRep.territory_code || '').toLowerCase().replace(/[^a-z0-9]/g, '') + '@tirzatrim.local';
-
-  // Member since
-  if (currentRep.created_at) {
-    document.getElementById('profCreatedAt').value = new Date(currentRep.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  } else {
-    document.getElementById('profCreatedAt').value = '—';
-  }
-
-  // Avatar in the modal
-  const img = document.getElementById('profileAvatarImg');
-  const initials = document.getElementById('profileAvatarInitials');
-  if (currentRep.avatar_url) {
-    img.src = currentRep.avatar_url + '?t=' + Date.now();
-    img.classList.remove('hidden');
-    initials.classList.add('hidden');
-  } else {
-    img.classList.add('hidden');
-    initials.classList.remove('hidden');
-    initials.innerText = getInitials(currentRep.full_name);
-  }
-
-  // Show the modal
-  const modal = document.getElementById('profileModal');
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-
-  // Clear errors
-  document.getElementById('profError').classList.add('hidden');
-}
-
-function closeProfileModal() {
-  const modal = document.getElementById('profileModal');
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-}
-
-async function saveProfile(e) {
-  e.preventDefault();
-  const err = document.getElementById('profError');
-  err.classList.add('hidden');
-
-  const newFullName = document.getElementById('profFullName').value.trim();
-  const newTeam = document.getElementById('profTeam').value.trim().toUpperCase();
-  const newManagerSap = document.getElementById('profManagerSap').value.trim();
-
-  if (!newFullName || !newTeam || !newManagerSap) {
-    err.innerText = 'All fields are required.';
-    err.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    const { error } = await client
-      .from('reps')
-      .update({
-        full_name: newFullName,
-        team_name: newTeam,
-        manager_sap_id: newManagerSap
-      })
-      .eq('user_id', currentRep.user_id);
-
-    if (error) throw error;
-
-    // Update in-memory rep + session
-    currentRep.full_name = newFullName;
-    currentRep.team_name = newTeam;
-    currentRep.manager_sap_id = newManagerSap;
-    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
-
-    // Refresh UI
-    document.getElementById('repNameDisplay').innerText = newFullName;
-    document.getElementById('repTeamDisplay').innerText = newTeam;
-    document.getElementById('menuUserName').innerText = newFullName;
-    document.getElementById('menuAvatarBadge').innerText = getInitials(newFullName);
-    document.getElementById('navAvatarBadge').innerText = getInitials(newFullName);
-
-    alert('✅ Profile updated successfully!');
-    closeProfileModal();
-  } catch (ex) {
-    err.innerText = ex.message || 'Failed to save profile.';
-    err.classList.remove('hidden');
-  }
-}
-
-async function handleProfileAvatarUpload(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) return alert('Please select an image file.');
-  if (file.size > 2 * 1024 * 1024) return alert('Image must be smaller than 2 MB.');
-
-  const { data: { user } } = await client.auth.getUser();
-  if (!user) return alert('You must be logged in.');
-
-  try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const path = `${user.id}/avatar.${ext}`;
-    const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true });
-    if (upErr) throw upErr;
-
-    const { data: urlData } = client.storage.from('avatars').getPublicUrl(path);
-    await client.from('reps').update({ avatar_url: urlData.publicUrl }).eq('user_id', user.id);
-
-    currentRep.avatar_url = urlData.publicUrl;
-    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
-
-    // Update nav + drawer + profile modal
-    renderAvatar(`${urlData.publicUrl}?t=${Date.now()}`);
-    const modalImg = document.getElementById('profileAvatarImg');
-    const modalInit = document.getElementById('profileAvatarInitials');
-    if (modalImg) { modalImg.src = urlData.publicUrl + '?t=' + Date.now(); modalImg.classList.remove('hidden'); }
-    if (modalInit) modalInit.classList.add('hidden');
-
-    alert('✅ Profile picture updated!');
-  } catch (err) {
-    alert('Upload failed: ' + err.message);
-  }
-}
-
-window.openProfileModal = openProfileModal;
-window.closeProfileModal = closeProfileModal;
-window.saveProfile = saveProfile;
-window.handleProfileAvatarUpload = handleProfileAvatarUpload;
   </script>
-  <!-- Hidden anchor for NotificationCenter library — prevents auto-injected bell -->
-<div id="notificationCenter"></div>
+  <div id="notificationCenter"></div>
 </body>
 </html>
