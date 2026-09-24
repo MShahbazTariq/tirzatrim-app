@@ -1112,6 +1112,7 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
             userId: currentRep.sap_id,
             userRole: 'rep',
             pollInterval: 30000
+            badgeId: 'navNotifBadge'
           });
         }
       } else {
@@ -2373,5 +2374,7 @@ window.tryOpenNotifCenter = tryOpenNotifCenter;
     checkSession();
     checkGlobalBroadcast('team');
   </script>
+  <!-- Hidden anchor for NotificationCenter library — prevents auto-injected bell -->
+<div id="notificationCenter"></div>
 </body>
 </html>
