@@ -9,47 +9,34 @@ class NotificationCenter {
         this.containerId = options.containerId || 'notificationCenter';
         this.badgeId = options.badgeId || 'notificationBadge';
         this.dropdownId = options.dropdownId || 'notificationDropdown';
+        this.useExternalBell = options.useExternalBell !== undefined ? options.useExternalBell : true; // ← NEW
         this.notifications = [];
         this.unreadCount = 0;
         this.isOpen = false;
         this.channel = null;
         this.currentFilter = 'all';
         this.supabaseClient = null;
-        
+
         // Get Supabase client
         this.getSupabaseClient();
     }
 
     getSupabaseClient() {
-        // Try to get the existing Supabase client
-        if (window.supabase && window.supabase.createClient) {
-            // Check if there's already a client instance
-            const existingClient = window._supabaseClient || null;
-            if (existingClient) {
-                this.supabaseClient = existingClient;
-                this.init();
-                return;
-            }
-            
-            // Create new client using the same config
-            const url = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-            const key = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-            this.supabaseClient = supabase.createClient(url, key);
-            window._supabaseClient = this.supabaseClient;
+        // Reuse the shared client created in team.html (avoids Multiple GoTrueClient warning)
+        if (window.supabaseClient) {
+            this.supabaseClient = window.supabaseClient;
             this.init();
-        } else {
-            // Wait for Supabase to load
-            const checkSupabase = setInterval(() => {
-                if (window.supabase && window.supabase.createClient) {
-                    clearInterval(checkSupabase);
-                    const url = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-                    const key = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
-                    this.supabaseClient = supabase.createClient(url, key);
-                    window._supabaseClient = this.supabaseClient;
-                    this.init();
-                }
-            }, 500);
+            return;
         }
+
+        // Fallback: wait for it to be created
+        const checkClient = setInterval(() => {
+            if (window.supabaseClient) {
+                clearInterval(checkClient);
+                this.supabaseClient = window.supabaseClient;
+                this.init();
+            }
+        }, 200);
     }
 
     async init() {
@@ -58,7 +45,7 @@ class NotificationCenter {
             setTimeout(() => this.getSupabaseClient(), 1000);
             return;
         }
-        
+
         this.createNotificationUI();
         await this.fetchNotifications();
         this.subscribeToRealtime();
@@ -66,7 +53,9 @@ class NotificationCenter {
     }
 
     createNotificationUI() {
+        // If external bell mode is on (default), only inject the dropdown — no bell.
         let container = document.getElementById(this.containerId);
+
         if (!container) {
             container = document.createElement('div');
             container.id = this.containerId;
@@ -75,63 +64,67 @@ class NotificationCenter {
             header.appendChild(container);
         }
 
-        container.innerHTML = `
-            <button onclick="window.notificationCenter.toggleDropdown()" 
-                    class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" 
+        // Build the dropdown HTML. If useExternalBell is true, omit the library's own bell.
+        const bellButtonHTML = this.useExternalBell ? '' : `
+            <button onclick="window.notificationCenter.toggleDropdown()"
+                    class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                     id="notificationBellBtn"
                     title="Notifications">
                 <span class="text-xl">🔔</span>
-                <span id="${this.badgeId}" 
+                <span id="${this.badgeId}"
                       class="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center hidden">
                     0
                 </span>
             </button>
-            
-            <div id="${this.dropdownId}" 
-                 class="hidden fixed sm:absolute right-0 mt-2 w-[95vw] sm:w-[420px] max-h-[85vh] sm:max-h-[500px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50">
-                
+        `;
+
+        container.innerHTML = `
+            ${bellButtonHTML}
+            <div id="${this.dropdownId}"
+                 class="hidden fixed right-2 sm:right-4 top-16 sm:top-16 w-[95vw] sm:w-[420px] max-h-[85vh] sm:max-h-[500px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-[60]">
+
                 <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
                     <span class="font-bold text-sm text-slate-900 dark:text-white">Notifications</span>
                     <div class="flex items-center gap-2">
-                        <button onclick="window.notificationCenter.markAllAsRead()" 
+                        <button onclick="window.notificationCenter.markAllAsRead()"
                                 class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                             Mark all read
                         </button>
-                        <button onclick="window.notificationCenter.clearAll()" 
+                        <button onclick="window.notificationCenter.clearAll()"
                                 class="text-xs text-rose-500 hover:text-rose-600 transition-colors">
                             Clear all
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="flex gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-800 text-xs overflow-x-auto">
-                    <button onclick="window.notificationCenter.filterNotifications('all')" 
-                            data-filter="all" 
+                    <button onclick="window.notificationCenter.filterNotifications('all')"
+                            data-filter="all"
                             class="filter-btn px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold transition-all whitespace-nowrap">
                         All
                     </button>
-                    <button onclick="window.notificationCenter.filterNotifications('order')" 
-                            data-filter="order" 
+                    <button onclick="window.notificationCenter.filterNotifications('order')"
+                            data-filter="order"
                             class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         📦 Orders
                     </button>
-                    <button onclick="window.notificationCenter.filterNotifications('feedback')" 
-                            data-filter="feedback" 
+                    <button onclick="window.notificationCenter.filterNotifications('feedback')"
+                            data-filter="feedback"
                             class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         ⭐ Feedback
                     </button>
-                    <button onclick="window.notificationCenter.filterNotifications('broadcast')" 
-                            data-filter="broadcast" 
+                    <button onclick="window.notificationCenter.filterNotifications('broadcast')"
+                            data-filter="broadcast"
                             class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         📢 Broadcast
                     </button>
-                    <button onclick="window.notificationCenter.filterNotifications('system')" 
-                            data-filter="system" 
+                    <button onclick="window.notificationCenter.filterNotifications('system')"
+                            data-filter="system"
                             class="filter-btn px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
                         ⚙️ System
                     </button>
                 </div>
-                
+
                 <div id="notificationList" class="overflow-y-auto max-h-[60vh] sm:max-h-[340px] divide-y divide-slate-100 dark:divide-slate-800">
                     <div class="px-4 py-8 text-center text-slate-400 text-sm">
                         No notifications yet
@@ -164,7 +157,7 @@ class NotificationCenter {
             this.unreadCount = this.notifications.filter(n => !n.is_read).length;
             this.updateBadge();
             this.renderNotifications();
-            
+
             return this.notifications;
         } catch (err) {
             console.warn('Error fetching notifications:', err);
@@ -179,7 +172,6 @@ class NotificationCenter {
         }
 
         try {
-            // Clean up existing channel
             if (this.channel) {
                 try {
                     this.supabaseClient.removeChannel(this.channel);
@@ -189,7 +181,6 @@ class NotificationCenter {
                 this.channel = null;
             }
 
-            // Create new channel
             this.channel = this.supabaseClient
                 .channel(`notifications-${this.userId}`)
                 .on(
@@ -235,8 +226,22 @@ class NotificationCenter {
     toggleDropdown() {
         this.isOpen = !this.isOpen;
         const dropdown = document.getElementById(this.dropdownId);
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
+        if (!dropdown) return;
+
+        dropdown.classList.toggle('hidden');
+
+        // Close when clicking outside
+        if (this.isOpen) {
+            setTimeout(() => {
+                const closeHandler = (e) => {
+                    if (!dropdown.contains(e.target) && !e.target.closest('#topNavBar')) {
+                        dropdown.classList.add('hidden');
+                        this.isOpen = false;
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                document.addEventListener('click', closeHandler);
+            }, 10);
         }
     }
 
@@ -264,15 +269,15 @@ class NotificationCenter {
             <div class="notification-item px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${!notification.is_read ? 'bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-emerald-500' : ''}"
                  onclick="window.notificationCenter.markAsRead('${notification.id}')"
                  data-id="${notification.id}">
-                
+
                 <div class="flex items-start gap-3">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-sm text-slate-900 dark:text-white truncate">
                                 ${this.escapeHtml(notification.title)}
                             </span>
-                            ${notification.priority === 'high' ? 
-                                `<span class="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 text-[10px] font-bold">URGENT</span>` : 
+                            ${notification.priority === 'high' ?
+                                `<span class="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 text-[10px] font-bold">URGENT</span>` :
                                 ''}
                         </div>
                         <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">
@@ -286,14 +291,14 @@ class NotificationCenter {
                                 ${notification.type}
                             </span>
                         </div>
-                        ${notification.link ? 
+                        ${notification.link ?
                             `<a href="${notification.link}" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline mt-1 inline-block">
                                 View Details →
-                            </a>` : 
+                            </a>` :
                             ''}
                     </div>
-                    ${!notification.is_read ? 
-                        `<span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-2"></span>` : 
+                    ${!notification.is_read ?
+                        `<span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-2"></span>` :
                         ''}
                 </div>
             </div>
@@ -395,13 +400,13 @@ class NotificationCenter {
 
     showToast(notification) {
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
-        
+
         const toast = document.createElement('div');
         toast.className = `flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg animate-slide-in max-w-sm`;
         toast.innerHTML = `
             <span class="text-2xl">
-                ${notification.type === 'order' ? '📦' : 
-                  notification.type === 'feedback' ? '⭐' : 
+                ${notification.type === 'order' ? '📦' :
+                  notification.type === 'feedback' ? '⭐' :
                   notification.type === 'broadcast' ? '📢' : '🔔'}
             </span>
             <div class="flex-1 min-w-0">
@@ -410,9 +415,9 @@ class NotificationCenter {
             </div>
             <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">✕</button>
         `;
-        
+
         toastContainer.appendChild(toast);
-        
+
         setTimeout(() => {
             if (toast.parentElement) {
                 toast.remove();
@@ -447,12 +452,12 @@ class NotificationCenter {
         const date = new Date(timestamp);
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
-        
+
         if (diff < 60) return 'Just now';
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
         if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-        
+
         return date.toLocaleDateString();
     }
 
