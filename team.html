@@ -57,7 +57,7 @@
         </button>
 
         <!-- Notification Bell -->
-        <button onclick="openNotificationCenter && openNotificationCenter();" title="Notifications"
+        <button onclick="tryOpenNotifCenter()" title="Notifications"
           class="relative w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
           <span class="text-lg">🔔</span>
           <span id="navNotifBadge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
@@ -603,6 +603,45 @@
       if (clean.includes('5')) return '5mg';
       return '5mg';
     }
+
+    function tryOpenNotifCenter() {
+  // Try every plausible opening method in order
+  try {
+    if (window.notificationCenter && typeof window.notificationCenter.open === 'function') {
+      window.notificationCenter.open();
+      return;
+    }
+    if (window.notificationCenter && typeof window.notificationCenter.toggle === 'function') {
+      window.notificationCenter.toggle();
+      return;
+    }
+    if (typeof window.openNotificationCenter === 'function') {
+      window.openNotificationCenter();
+      return;
+    }
+    if (typeof window.showNotificationCenter === 'function') {
+      window.showNotificationCenter();
+      return;
+    }
+    if (typeof window.toggleNotificationCenter === 'function') {
+      window.toggleNotificationCenter();
+      return;
+    }
+    // Last resort: try to toggle the DOM element directly
+    const panel = document.getElementById('notificationCenter') || 
+                  document.getElementById('notification-center') ||
+                  document.querySelector('.notification-center-panel');
+    if (panel) {
+      panel.classList.toggle('hidden');
+      return;
+    }
+    console.warn('No notification center opener found. Check notification-center.js for the correct method name.');
+    alert('Notification center is loading. Please try again in a moment.');
+  } catch (e) {
+    console.error('Error opening notification center:', e);
+  }
+}
+window.tryOpenNotifCenter = tryOpenNotifCenter;
 
     function getEscalationDetails(createdAt, prescribedDose) {
       const orderDate = new Date(createdAt);
