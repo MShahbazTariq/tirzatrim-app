@@ -2509,6 +2509,142 @@ function renderAvatar(url) {
 }
 window.handleAvatarUpload = handleAvatarUpload;
 window.renderAvatar = renderAvatar;
+    // ============================================================
+// PROFILE MODAL — Open / Close / Save
+// ============================================================
+
+function openProfileModal() {
+  if (!currentRep) return;
+
+  // Prefill all fields
+  document.getElementById('profFullName').value = currentRep.full_name || '';
+  document.getElementById('profTeam').value = currentRep.team_name || '';
+  document.getElementById('profTerritory').value = currentRep.territory_code || '';
+  document.getElementById('profSapId').value = currentRep.sap_id || '';
+  document.getElementById('profManagerSap').value = currentRep.manager_sap_id || '';
+  document.getElementById('profEmail').value = (currentRep.territory_code || '').toLowerCase().replace(/[^a-z0-9]/g, '') + '@tirzatrim.local';
+
+  // Member since
+  if (currentRep.created_at) {
+    document.getElementById('profCreatedAt').value = new Date(currentRep.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  } else {
+    document.getElementById('profCreatedAt').value = '—';
+  }
+
+  // Avatar in the modal
+  const img = document.getElementById('profileAvatarImg');
+  const initials = document.getElementById('profileAvatarInitials');
+  if (currentRep.avatar_url) {
+    img.src = currentRep.avatar_url + '?t=' + Date.now();
+    img.classList.remove('hidden');
+    initials.classList.add('hidden');
+  } else {
+    img.classList.add('hidden');
+    initials.classList.remove('hidden');
+    initials.innerText = getInitials(currentRep.full_name);
+  }
+
+  // Show the modal
+  const modal = document.getElementById('profileModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  // Clear errors
+  document.getElementById('profError').classList.add('hidden');
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById('profileModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const err = document.getElementById('profError');
+  err.classList.add('hidden');
+
+  const newFullName = document.getElementById('profFullName').value.trim();
+  const newTeam = document.getElementById('profTeam').value.trim().toUpperCase();
+  const newManagerSap = document.getElementById('profManagerSap').value.trim();
+
+  if (!newFullName || !newTeam || !newManagerSap) {
+    err.innerText = 'All fields are required.';
+    err.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const { error } = await client
+      .from('reps')
+      .update({
+        full_name: newFullName,
+        team_name: newTeam,
+        manager_sap_id: newManagerSap
+      })
+      .eq('user_id', currentRep.user_id);
+
+    if (error) throw error;
+
+    // Update in-memory rep + session
+    currentRep.full_name = newFullName;
+    currentRep.team_name = newTeam;
+    currentRep.manager_sap_id = newManagerSap;
+    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+
+    // Refresh UI
+    document.getElementById('repNameDisplay').innerText = newFullName;
+    document.getElementById('repTeamDisplay').innerText = newTeam;
+    document.getElementById('menuUserName').innerText = newFullName;
+    document.getElementById('menuAvatarBadge').innerText = getInitials(newFullName);
+    document.getElementById('navAvatarBadge').innerText = getInitials(newFullName);
+
+    alert('✅ Profile updated successfully!');
+    closeProfileModal();
+  } catch (ex) {
+    err.innerText = ex.message || 'Failed to save profile.';
+    err.classList.remove('hidden');
+  }
+}
+
+async function handleProfileAvatarUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return alert('Please select an image file.');
+  if (file.size > 2 * 1024 * 1024) return alert('Image must be smaller than 2 MB.');
+
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return alert('You must be logged in.');
+
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${user.id}/avatar.${ext}`;
+    const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true });
+    if (upErr) throw upErr;
+
+    const { data: urlData } = client.storage.from('avatars').getPublicUrl(path);
+    await client.from('reps').update({ avatar_url: urlData.publicUrl }).eq('user_id', user.id);
+
+    currentRep.avatar_url = urlData.publicUrl;
+    sessionStorage.setItem('tt_current_rep', JSON.stringify(currentRep));
+
+    // Update nav + drawer + profile modal
+    renderAvatar(`${urlData.publicUrl}?t=${Date.now()}`);
+    const modalImg = document.getElementById('profileAvatarImg');
+    const modalInit = document.getElementById('profileAvatarInitials');
+    if (modalImg) { modalImg.src = urlData.publicUrl + '?t=' + Date.now(); modalImg.classList.remove('hidden'); }
+    if (modalInit) modalInit.classList.add('hidden');
+
+    alert('✅ Profile picture updated!');
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  }
+}
+
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.saveProfile = saveProfile;
+window.handleProfileAvatarUpload = handleProfileAvatarUpload;
   </script>
   <!-- Hidden anchor for NotificationCenter library — prevents auto-injected bell -->
 <div id="notificationCenter"></div>
