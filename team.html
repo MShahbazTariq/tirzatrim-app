@@ -1309,10 +1309,19 @@
     }
 
     function enableRoutingEdit(orderId, city) {
-      window._activeRoutingInteractions = true;
-      window._editingOrders[orderId] = true;
-      renderCards();
+  // Block editing for terminal statuses
+  const order = activeFilteredOrders.find(o => String(o.id) === String(orderId));
+  if (order) {
+    const blocked = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'];
+    if (blocked.includes(order.status)) {
+      alert('⚠️ This order has already been ' + order.status + '.\n\nRouting cannot be changed at this stage.');
+      return;
     }
+  }
+  window._activeRoutingInteractions = true;
+  window._editingOrders[orderId] = true;
+  renderCards();
+}
 
     function cancelRoutingEdit(orderId) {
       delete window._editingOrders[orderId];
@@ -1322,11 +1331,21 @@
       renderCards();
     }
 
-    async function saveOrderRouting(orderId, city) {
+        async function saveOrderRouting(orderId, city) {
       const channelEl = document.querySelector(`input[name="channel-${orderId}"]:checked`);
       if (!channelEl) {
         alert("Please select a fulfillment channel (M&P Helpline or MDS Express).");
         return;
+      }
+
+      // 🔒 Safety net — block routing changes on terminal-status orders
+      const existingOrder = activeFilteredOrders.find(o => String(o.id) === String(orderId));
+      if (existingOrder) {
+        const blocked = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'];
+        if (blocked.includes(existingOrder.status)) {
+          alert('⚠️ Cannot change routing — order is already ' + existingOrder.status + '.');
+          return;
+        }
       }
 
       const channel = channelEl.value;
@@ -2033,6 +2052,7 @@
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched' || order.status === 'Out for Delivery';
         const isCancelled = order.status === 'Cancelled';
+        const isTerminalStatus = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'].includes(order.status); // ← NEW
 
         const isRouted = Boolean(order.fulfillment_channel);
         const isBeingEdited = Boolean(window._editingOrders[order.id]);
@@ -2099,11 +2119,15 @@
                 <span>🚚 Fulfillment Route:</span>
                 <div class="flex items-center gap-1.5">
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isRouted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}">${isRouted ? routedLabel : '⚠️ Routing Pending'}</span>
-                  ${isRouted && !isBeingEdited ? `<button onclick="enableRoutingEdit('${order.id}', '${order.city}')" title="Rectify / Change Routing" class="p-1 px-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs transition-colors">✏️</button>` : ''}
+                  ${isRouted && !isBeingEdited && !isTerminalStatus ? `<button onclick="enableRoutingEdit('${order.id}', '${order.city}')" title="Rectify / Change Routing" class="p-1 px-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs transition-colors">✏️</button>` : ''}
                 </div>
               </div>
 
-              ${(!isRouted || isBeingEdited) ? `
+              ${isTerminalStatus ? `
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 italic pt-0.5 flex items-center gap-1.5">
+                  <span>🔒</span> <span>Route locked — order is ${order.status.toLowerCase()}</span>
+                </div>
+              ` : (!isRouted || isBeingEdited) ? `
                 <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-800/80">
                   <div class="flex items-center gap-4 font-semibold text-slate-800 dark:text-slate-200">
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="channel-${order.id}" value="MP" ${selectedChan === 'MP' ? 'checked' : ''} onclick="handleChannelChoice('${order.id}', 'MP', '${order.city}')" class="text-teal-600"> M&P Helpline</label>
@@ -2129,9 +2153,15 @@
 
             <div class="space-y-2 pt-1">
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="manualWhatsApp('${order.mobile}', '${(order.patient_name || '').replace(/'/g, "\\'")}', '${order.order_id}', '${order.status || ''}')" class="w-full py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
-                  💬 Inform Status
-                </button>
+                ${isTerminalStatus ? `
+                  <div class="w-full py-2.5 px-2 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1 cursor-not-allowed opacity-60" title="Disabled after dispatch">
+                    💬 Inform Status
+                  </div>
+                ` : `
+                  <button onclick="manualWhatsApp('${order.mobile}', '${(order.patient_name || '').replace(/'/g, "\\'")}', '${order.order_id}', '${order.status || ''}')" class="w-full py-2.5 px-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-1 transition-all">
+                    💬 Inform Status
+                  </button>
+                `}
                 <button onclick="manualFeedback('${order.mobile}', '${(order.patient_name || '').replace(/'/g, "\\'")}')" class="w-full py-2.5 px-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20 flex items-center justify-center gap-1 transition-all">
                   ⭐ Ask Feedback
                 </button>
