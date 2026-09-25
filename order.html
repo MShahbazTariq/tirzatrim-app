@@ -7,7 +7,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
   <script src="/broadcast.js"></script>
@@ -17,7 +17,7 @@
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 flex items-center justify-center transition-colors duration-200">
 
   <div class="max-w-2xl w-full bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-10 shadow-xl dark:shadow-2xl backdrop-blur-xl space-y-6">
-    
+
     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
       <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-4 py-1.5 rounded-full border border-teal-500/20">
         TirzaTrim Patient Support Care
@@ -42,10 +42,10 @@
     </div>
 
     <form id="patientOrderForm" onsubmit="submitPatientOrder(event)" class="space-y-6">
-      
+
       <div class="space-y-3">
         <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
-          <span>👤</span> 1. PERSONAL DETAILS
+          <span>👤</span> PERSONAL DETAILS
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -60,7 +60,7 @@
         </div>
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Mobile Number (WhatsApp) *</label>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Mobile Number *</label>
           <input type="tel" id="patientMobile" required placeholder="03XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-mono outline-none focus:border-teal-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all">
           <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pakistani number, e.g. 03001234567 or 923001234567</p>
           <p id="repAutoDetectHint" class="hidden text-[10px] mt-1"></p>
@@ -96,7 +96,7 @@
 
       <div class="space-y-3 pt-2">
         <div class="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
-          <span>🩺</span> 2. TREATMENT DETAILS
+          <span>🩺</span> TREATMENT DETAILS
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -153,19 +153,6 @@
         </div>
       </div>
 
-      <div class="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/50 space-y-3">
-        <div class="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 flex items-center gap-1.5">
-          <span>💬</span> 3. WHATSAPP UPDATES
-        </div>
-        <label class="flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" id="whatsappOptIn" checked class="mt-0.5 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer">
-          <div class="text-xs">
-            <div class="font-semibold text-slate-900 dark:text-white">Send me order updates on WhatsApp</div>
-            <div class="text-slate-500 dark:text-slate-400 mt-0.5">Order confirmations, delivery updates, and refill reminders directly on WhatsApp. Reply STOP anytime to opt out.</div>
-          </div>
-        </label>
-      </div>
-
       <div class="pt-2 space-y-3">
         <button type="submit" id="submitBtn" class="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white text-xs md:text-sm font-bold rounded-2xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
           <span>🚀</span>
@@ -183,11 +170,6 @@
         <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
           Your order ID is <strong id="generatedOrderId" class="text-teal-600 dark:text-teal-400 font-mono text-sm">TT-XXXXX</strong>. Our patient support team will contact you shortly.
         </p>
-        <div id="whatsappSentBadge" class="hidden pt-2">
-          <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-3 py-1.5 rounded-full">
-            <span>📱</span> WhatsApp confirmation sent to your number
-          </span>
-        </div>
       </div>
 
       <div class="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
@@ -217,18 +199,17 @@
       '7.5mg': '10mg',
       '10mg': '12.5mg',
       '12.5mg': '15mg',
-      '15mg': '15mg'  // maintenance — stays at 15mg
+      '15mg': '15mg'
     };
 
-    // ✅ CORRECTED DEVICE MAPPING (based on business rules)
-const DOSE_TO_DEVICE = {
-  '2.5mg': '5mg Multi-Dose Pen',    // 20mg total → covers 2.5mg cycle + escalation
-  '5mg':   '10mg Multi-Dose Pen',   // 40mg total → covers 5mg cycle + escalation
-  '7.5mg': '10mg Multi-Dose Pen',   // 40mg total → covers 7.5mg cycle
-  '10mg':  '10mg Multi-Dose Pen',   // 40mg total → covers 10mg cycle
-  '12.5mg':'15mg Multi-Dose Pen',   // 60mg total → covers 12.5mg cycle
-  '15mg':  '15mg Multi-Dose Pen'    // 60mg total → maintenance
-};
+    const DOSE_TO_DEVICE = {
+      '2.5mg': '5mg Multi-Dose Pen',
+      '5mg':   '10mg Multi-Dose Pen',
+      '7.5mg': '10mg Multi-Dose Pen',
+      '10mg':  '10mg Multi-Dose Pen',
+      '12.5mg':'15mg Multi-Dose Pen',
+      '15mg':  '15mg Multi-Dose Pen'
+    };
 
     const PAKISTAN_CLINICS = {
       "Lahore": ["IDC (Islamabad Diagnostic Centre)", "Doctors Hospital & Medical Center", "Hameed Latif Hospital", "National Hospital DHA", "Shaukat Khanum Memorial Hospital", "Fatima Memorial Hospital (FMH)", "Services Hospital", "Mayo Hospital", "Jinnah Hospital", "Sheikh Zayed Hospital", "Surgimed Hospital", "Mid City Hospital", "Omar Hospital & Cardiac Centre", "Farooq Hospital Westwood/Allama Iqbal", "Chughtai Medical Center", "Akram Medical Complex", "Evercare Hospital", "PAF Hospital"],
@@ -277,7 +258,6 @@ const DOSE_TO_DEVICE = {
       try { sessionStorage.setItem('tt_last_rep_code', assignedRep); } catch (e) {}
     }
 
-    // URL param pre-fill
     if (urlParams.get('name')) {
       document.getElementById('patientName').value = decodeURIComponent(urlParams.get('name'));
     }
@@ -285,15 +265,13 @@ const DOSE_TO_DEVICE = {
       document.getElementById('patientMobile').value = decodeURIComponent(urlParams.get('mobile'));
     }
 
-    // Store URL dose as fallback, but let history escalation override it
-let explicitDoseFromUrl = null;
-if (urlParams.get('dose')) {
-  explicitDoseFromUrl = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
-  setDoseInSelect(explicitDoseFromUrl, false);
-}
+    let explicitDoseFromUrl = null;
+    if (urlParams.get('dose')) {
+      explicitDoseFromUrl = decodeURIComponent(urlParams.get('dose')).replace(/\s+/g, '').toLowerCase();
+      setDoseInSelect(explicitDoseFromUrl, false);
+    }
 
-// Flag: whether auto-fill has run (to allow escalation to override URL dose)
-let historyAutoFilled = false;
+    let historyAutoFilled = false;
 
     // ============================================================
     // HELPERS
@@ -310,7 +288,6 @@ let historyAutoFilled = false;
         }
       }
 
-      // Also set the device based on dose
       const deviceVal = DOSE_TO_DEVICE[doseVal];
       if (deviceVal) {
         const devSel = document.getElementById('deviceType');
@@ -322,7 +299,6 @@ let historyAutoFilled = false;
         }
       }
 
-      // Show escalation badge
       if (badge) {
         if (showEscalationBadge) {
           badge.classList.remove('hidden');
@@ -343,11 +319,7 @@ let historyAutoFilled = false;
       if (base.startsWith('92')) base = base.substring(2);
       if (base.startsWith('0')) base = base.substring(1);
 
-      const formats = [
-        '+92' + base,
-        '92' + base,
-        '0' + base
-      ];
+      const formats = ['+92' + base, '92' + base, '0' + base];
 
       try {
         const { data, error } = await client
@@ -374,7 +346,6 @@ let historyAutoFilled = false;
         if (el && !el.value) el.value = val;
       };
 
-      // Fill all fields if empty (don't overwrite URL params)
       fillIfEmpty('patientName', last.patient_name);
       fillIfEmpty('patientAge', last.age);
       fillIfEmpty('patientCity', last.city);
@@ -382,7 +353,6 @@ let historyAutoFilled = false;
       fillIfEmpty('doctorName', last.doctor_name);
       fillIfEmpty('clinicName', last.clinic_name);
 
-      // Indication select
       if (last.indication) {
         const sel = document.getElementById('patientIndication');
         for (let i = 0; i < sel.options.length; i++) {
@@ -393,7 +363,6 @@ let historyAutoFilled = false;
         }
       }
 
-      // Rep code
       if (last.rep_code && last.rep_code !== 'DIRECT') {
         const repEl = document.getElementById('territoryRepCode');
         if (!repEl.value || repEl.value === 'DIRECT') {
@@ -401,33 +370,27 @@ let historyAutoFilled = false;
         }
       }
 
-      // Dose escalation logic — ALWAYS based on last order's dose
-// (URL dose is ignored for returning patients because it's the OLD dose)
-if (allowDoseEscalation) {
-  const lastDose = (last.prescribed_dose || '').toLowerCase().trim();
-  const nextDose = DOSE_ESCALATION[lastDose];
+      if (allowDoseEscalation) {
+        const lastDose = (last.prescribed_dose || '').toLowerCase().trim();
+        const nextDose = DOSE_ESCALATION[lastDose];
 
-  if (nextDose && nextDose !== lastDose) {
-    // Escalate to next dose
-    setDoseInSelect(nextDose, true);
-    console.log(`💊 Dose escalated: ${lastDose} → ${nextDose} (was URL: ${explicitDoseFromUrl || 'none'})`);
-  } else if (lastDose) {
-    // Maintenance dose (already at 15mg)
-    setDoseInSelect(lastDose, false);
-  }
-  historyAutoFilled = true;
-}
+        if (nextDose && nextDose !== lastDose) {
+          setDoseInSelect(nextDose, true);
+          console.log(`💊 Dose escalated: ${lastDose} → ${nextDose}`);
+        } else if (lastDose) {
+          setDoseInSelect(lastDose, false);
+        }
+        historyAutoFilled = true;
+      }
 
-      // Fill clinic dropdown suggestions for this city
       setTimeout(updateClinicSuggestions, 100);
-
       return true;
     }
 
     function showAutoFillHint(message, isEscalation) {
       const hint = document.getElementById('autoFillHint');
       if (!hint) return;
-      hint.className = isEscalation 
+      hint.className = isEscalation
         ? "text-[10px] mt-1 text-emerald-600 dark:text-emerald-400 font-semibold"
         : "text-[10px] mt-1 text-slate-600 dark:text-slate-400";
       hint.innerText = message;
@@ -473,10 +436,7 @@ if (allowDoseEscalation) {
         const last = await lookupFullHistory(mobileInput.value);
         if (!last) return;
 
-        // Apply full auto-fill with escalation
         applyAutoFill(last, true);
-
-        // Show hints
         showRepHint(last.rep_code || 'DIRECT');
         showAutoFillHint(`✅ Welcome back! We pre-filled your details from your last order (${last.order_id}).`, true);
         showRefillBanner();
@@ -492,7 +452,6 @@ if (allowDoseEscalation) {
         triggerLookup();
       });
 
-      // If URL already has mobile (from refill link), run lookup immediately
       if (mobileInput.value && mobileInput.value.replace(/\D/g, '').length >= 10) {
         setTimeout(triggerLookup, 300);
       }
@@ -514,7 +473,7 @@ if (allowDoseEscalation) {
     }
 
     // ============================================================
-    // SEND NOTIFICATIONS
+    // SEND NOTIFICATIONS (in-app + push)
     // ============================================================
     async function sendOrderNotifications(order, repCode) {
       try {
@@ -590,7 +549,7 @@ if (allowDoseEscalation) {
     // ============================================================
     async function submitPatientOrder(e) {
       e.preventDefault();
-      
+
       const statusMsg = document.getElementById('submissionStatus');
       const submitBtn = document.getElementById('submitBtn');
 
@@ -610,7 +569,6 @@ if (allowDoseEscalation) {
       const prescribed_dose = document.getElementById('prescribedDose').value;
       const device = document.getElementById('deviceType').value;
       const rep_code = document.getElementById('territoryRepCode').value.trim().toUpperCase() || 'DIRECT';
-      const whatsapp_opted_in = document.getElementById('whatsappOptIn').checked;
 
       const mobile = normalizePakistaniMobile(mobileRaw);
       if (!mobile) {
@@ -643,8 +601,7 @@ if (allowDoseEscalation) {
         const orderData = {
           order_id, patient_name, age, mobile, city, delivery_address,
           doctor_name, clinic_name, indication, prescribed_dose, device,
-          rep_code, prescription_url, status: 'New Patient',
-          whatsapp_opted_in: whatsapp_opted_in
+          rep_code, prescription_url, status: 'New Patient'
         };
 
         const { data: insertedOrder, error: insertErr } = await client
@@ -657,12 +614,6 @@ if (allowDoseEscalation) {
 
         console.log('✅ Order inserted:', insertedOrder);
         await sendOrderNotifications(insertedOrder || orderData, rep_code);
-
-        if (whatsapp_opted_in) {
-          document.getElementById('whatsappSentBadge').classList.remove('hidden');
-        } else {
-          document.getElementById('whatsappSentBadge').classList.add('hidden');
-        }
 
         document.getElementById('patientOrderForm').classList.add('hidden');
         document.getElementById('generatedOrderId').innerText = order_id;
@@ -679,11 +630,9 @@ if (allowDoseEscalation) {
     function resetForAnotherOrder() {
       document.getElementById('patientOrderForm').reset();
       document.getElementById('territoryRepCode').value = assignedRep;
-      document.getElementById('whatsappOptIn').checked = true;
       document.getElementById('submissionStatus').classList.add('hidden');
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('successView').classList.add('hidden');
-      document.getElementById('whatsappSentBadge').classList.add('hidden');
       document.getElementById('refillBanner').classList.add('hidden');
       document.getElementById('doseEscalationBadge').classList.add('hidden');
       document.getElementById('patientOrderForm').classList.remove('hidden');
