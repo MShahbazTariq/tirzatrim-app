@@ -136,7 +136,7 @@
 
         <form onsubmit="handleOtpVerify(event)" class="space-y-3 text-left">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Verification Code *</label>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Verification Code *</label>
             <input type="text" id="otpCode" placeholder="00000000" inputmode="numeric" maxlength="8" pattern="[0-9]{6,8}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
           <button type="submit" id="otpBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Verify & Access Portal</button>
@@ -184,7 +184,7 @@
         <form onsubmit="handlePasswordReset(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Reset Code *</label>
-            <input type="text" id="resetOtp" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-lg font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-sky-500">
+            <input type="text" id="resetOtp" placeholder="00000000" inputmode="numeric" maxlength="8" pattern="[0-9]{6,8}" required class="...">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password *</label>
@@ -637,7 +637,7 @@
       e.preventDefault();
       if (!pendingSignup) { showAuthView('signup'); return; }
       const code = document.getElementById('otpCode').value.trim();
-      if (!/^\d{6}$/.test(code)) { showAuthError('Please enter the 6-digit code.'); return; }
+      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the verification code from your email.'); return; }
 
       setBtnLoading('otpBtn', true, 'Verify & Access Portal');
       try {
@@ -755,7 +755,7 @@
       const confirm = document.getElementById('resetNewPasswordConfirm').value;
 
       if (!email) { showAuthError('Session expired. Please try again.'); showAuthView('forgot'); return; }
-      if (!/^\d{6}$/.test(code)) { showAuthError('Please enter the 6-digit code.'); return; }
+      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the verification code from your email.'); return; }
       if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
       if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
 
