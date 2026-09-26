@@ -57,12 +57,22 @@
       <div class="space-y-2 pt-2">
         <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">🩺</div>
         <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Physician Portal Login</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Enter Doctor Name and City to view your referred patient feed</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Start typing your name — we'll suggest matches from our records</p>
       </div>
 
       <form onsubmit="handleDoctorLookup(event)" class="space-y-4 text-left">
-        <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name *</label><input type="text" id="lookupDrName" placeholder="e.g. Dr. Muhammad Ali" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500"></div>
-        <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">City *</label><input type="text" id="lookupCity" placeholder="e.g. Lahore" value="Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500"></div>
+        <div class="relative">
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name *</label>
+          <input type="text" id="lookupDrName" placeholder="Start typing... e.g. Nau" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <div id="drNameSuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+        </div>
+
+        <div class="relative">
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">City *</label>
+          <input type="text" id="lookupCity" placeholder="e.g. Lahore" value="Lahore" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <div id="citySuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+        </div>
+
         <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Access Clinical Feed</button>
       </form>
       <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden">Please enter valid doctor name and city.</p>
@@ -92,6 +102,7 @@
           <span id="doctorNameDisplay" class="text-slate-900 dark:text-white">Doctor Name</span>
           <span class="text-[#0284c7]">Clinical • Patient Tracking Hub</span>
         </div>
+        <div id="fuzzyMatchNote" class="hidden mt-2 text-xs text-sky-600 dark:text-sky-400 font-semibold"></div>
       </div>
     </header>
 
@@ -180,12 +191,10 @@
   <!-- PROFILE MODAL -->
   <div id="profileModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">🩺 My Profile</h3>
         <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
       </div>
-
       <div class="flex flex-col items-center gap-3 pb-2">
         <div class="w-24 h-24 rounded-3xl bg-white dark:bg-slate-800 border-2 border-sky-500/30 shadow-lg flex items-center justify-center p-3">
           <img src="/logo.png" alt="TirzaTrim" class="w-full h-full object-contain">
@@ -199,18 +208,15 @@
           </div>
         </div>
       </div>
-
       <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Session Info</div>
         <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Role</span><span class="font-bold text-slate-800 dark:text-slate-200">Prescribing Doctor</span></div>
         <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Access</span><span class="font-bold text-sky-600 dark:text-sky-400">Read-Only Clinical Feed</span></div>
         <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">City Scope</span><span id="profileCityScope" class="font-bold text-slate-800 dark:text-slate-200">—</span></div>
       </div>
-
       <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <button onclick="switchDoctorProfile();" class="w-full px-4 py-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 text-sm font-bold flex items-center justify-center gap-2 border border-sky-500/20 shadow-sm transition-all"><span class="text-base">🔄</span> <span>Switch Doctor Profile</span></button>
       </div>
-
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Clinical Utilities</div>
         <button id="menuPushBtn" onclick="registerDoctorMobilePush()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
@@ -236,11 +242,145 @@
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
+    let allDoctorSuggestions = []; // { doctor_name, city, order_count }
+    let fuzzyMatchInfo = null;
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
 
+    // ============================================================
+    // FUZZY NAME MATCHING UTILITIES
+    // ============================================================
+    function normalizeDoctorName(name) {
+      if (!name) return '';
+      return String(name)
+        .toLowerCase()
+        .replace(/^dr\.?\s*/i, '')
+        .replace(/[^a-z\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function tokenizeName(name) {
+      return normalizeDoctorName(name)
+        .split(' ')
+        .filter(w => w.length >= 2);  // ignore single letters like "J"
+    }
+
+    function countSharedTokens(tokens1, tokens2) {
+      let count = 0;
+      const used = new Set();
+      tokens1.forEach(t1 => {
+        for (let i = 0; i < tokens2.length; i++) {
+          if (!used.has(i) && tokens2[i] === t1) {
+            count++;
+            used.add(i);
+            break;
+          }
+        }
+      });
+      return count;
+    }
+
+    /**
+     * Returns true if the two doctor names likely refer to the same person.
+     * Requires at least 2 shared words OR 1 shared word if both names are 1-word.
+     */
+    function isSameDoctorName(nameA, nameB) {
+      const tokensA = tokenizeName(nameA);
+      const tokensB = tokenizeName(nameB);
+
+      if (tokensA.length === 0 || tokensB.length === 0) return false;
+
+      const shared = countSharedTokens(tokensA, tokensB);
+      const minTokens = Math.min(tokensA.length, tokensB.length);
+
+      if (minTokens === 1) {
+        // If either name is a single word, require that word to match exactly
+        return shared >= 1 && tokensA[0] === tokensB[0];
+      }
+      // Otherwise require at least 2 shared tokens
+      return shared >= 2;
+    }
+
+    function cityMatches(cityA, cityB) {
+      if (!cityA || !cityB) return true; // treat missing city as wildcard
+      return cityA.toLowerCase().trim() === cityB.toLowerCase().trim();
+    }
+
+    // ============================================================
+    // AUTOCOMPLETE ENGINE
+    // ============================================================
+    async function loadDoctorSuggestions() {
+      try {
+        const { data, error } = await client.rpc('get_distinct_doctors');
+        if (error) { console.warn('Suggestion load error:', error); return; }
+        allDoctorSuggestions = (data || []).map(row => ({
+          doctor_name: row.doctor_name,
+          city: row.city || '',
+          order_count: Number(row.order_count) || 0
+        }));
+      } catch (err) {
+        console.warn('Suggestion load exception:', err);
+      }
+    }
+
+    function showDrNameSuggestions(query) {
+      const box = document.getElementById('drNameSuggestions');
+      if (!box) return;
+      const q = (query || '').toLowerCase().trim();
+      if (!q) { box.classList.add('hidden'); return; }
+
+      const tokens = q.split(/\s+/).filter(Boolean);
+
+      // Filter: every typed token must appear somewhere in the doctor name or city
+      const matches = allDoctorSuggestions.filter(s => {
+        const haystack = (s.doctor_name + ' ' + s.city).toLowerCase();
+        return tokens.every(tok => haystack.includes(tok));
+      });
+
+      if (matches.length === 0) {
+        box.innerHTML = `<div class="px-4 py-3 text-xs text-slate-500 italic">No match in our records yet — you can still log in with your name.</div>`;
+        box.classList.remove('hidden');
+        return;
+      }
+
+      // Sort: name matches first, then by name alphabetically
+      matches.sort((a, b) => {
+        const aName = normalizeDoctorName(a.doctor_name);
+        const bName = normalizeDoctorName(b.doctor_name);
+        const aStarts = aName.startsWith(tokens[0]);
+        const bStarts = bName.startsWith(tokens[0]);
+        if (aStarts !== bStarts) return aStarts ? -1 : 1;
+        return aName.localeCompare(bName);
+      });
+
+      box.innerHTML = matches.slice(0, 20).map(s => `
+        <div onclick="pickDoctorSuggestion('${s.doctor_name.replace(/'/g, "\\'")}', '${s.city.replace(/'/g, "\\'")}')"
+             class="px-4 py-2.5 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-base flex-shrink-0">🩺</span>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-slate-900 dark:text-white truncate">${s.doctor_name}</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">${s.city}</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20 flex-shrink-0">${s.order_count} record${s.order_count > 1 ? 's' : ''}</span>
+        </div>
+      `).join('');
+      box.classList.remove('hidden');
+    }
+
+    function pickDoctorSuggestion(name, city) {
+      document.getElementById('lookupDrName').value = name;
+      document.getElementById('lookupCity').value = city;
+      document.getElementById('drNameSuggestions').classList.add('hidden');
+    }
+
+    // ============================================================
+    // NOTIFICATION CENTER OPENER
+    // ============================================================
     function tryOpenNotifCenter() {
       if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
         window.notificationCenter.toggleDropdown();
@@ -250,6 +390,9 @@
     }
     window.tryOpenNotifCenter = tryOpenNotifCenter;
 
+    // ============================================================
+    // TAB SWITCHING
+    // ============================================================
     function switchTab(tabId) {
       document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
       const activeContainer = document.getElementById(`view-${tabId}`);
@@ -278,6 +421,9 @@
       }
     }
 
+    // ============================================================
+    // PROFILE MODAL
+    // ============================================================
     function openProfileModal() {
       if (!targetDoctorName) return;
       document.getElementById('profileDoctorName').innerText = targetDoctorName;
@@ -299,6 +445,9 @@
       handleDoctorLogout();
     }
 
+    // ============================================================
+    // DATE UTILITIES
+    // ============================================================
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
       const year = d.getFullYear();
@@ -345,6 +494,9 @@
 
     function renderStars(rating) { if (!rating) return ''; return '⭐'.repeat(rating); }
 
+    // ============================================================
+    // AUTH — LOOKUP, LOGOUT, SESSION
+    // ============================================================
     function handleDoctorLookup(e) {
       e.preventDefault();
       const val = document.getElementById('lookupDrName').value.trim();
@@ -362,6 +514,7 @@
       sessionStorage.removeItem('tt_current_city');
       targetDoctorName = '';
       targetCity = '';
+      fuzzyMatchInfo = null;
       checkDoctorSession();
     }
 
@@ -388,32 +541,96 @@
       }
     }
 
+    // ============================================================
+    // FUZZY-MATCH DOCTOR ORDER FETCH
+    // ============================================================
     window.fetchDoctorOrders = async function() {
       if (!targetDoctorName) return;
-      const cleanInput = targetDoctorName.replace(/^dr\.?\s*/i, '').trim();
-      const keywords = cleanInput.split(/\s+/).filter(w => w.length > 1);
-      let query = client.from('orders').select('*');
-      if (keywords.length > 0) {
-        const conditions = keywords.map(kw => `doctor_name.ilike.%${kw}%`).join(',');
-        query = query.or(conditions);
-      } else {
-        query = query.ilike('doctor_name', `%${cleanInput}%`);
+
+      // Fetch ALL orders with a lightweight query, then fuzzy-filter client-side.
+      // This guarantees we find matches even when the input spelling differs.
+      const { data: orders, error: orderErr } = await client
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (orderErr) {
+        console.error("Error loading doctor orders:", orderErr.message);
+        return;
       }
-      if (targetCity && targetCity.toLowerCase() !== 'all') {
-        query = query.ilike('city', `%${targetCity.trim()}%`);
-      }
-      const { data: orders, error: orderErr } = await query.order('created_at', { ascending: false });
-      if (orderErr) { console.error("Error loading doctor orders:", orderErr.message); return; }
-      allOrders = orders || [];
+
+      const rawOrders = orders || [];
+
+      // Find all orders whose doctor name fuzzy-matches the target
+      const matchedOrders = rawOrders.filter(o => {
+        if (!o.doctor_name) return false;
+
+        // Step 1: name token match
+        const nameOK = isSameDoctorName(targetDoctorName, o.doctor_name);
+        if (!nameOK) return false;
+
+        // Step 2: city filter (only if user provided one)
+        if (targetCity && targetCity.toLowerCase() !== 'all') {
+          if (!cityMatches(targetCity, o.city)) return false;
+        }
+        return true;
+      });
+
+      allOrders = matchedOrders;
+
+      // Build a small note about how many spelling variants were merged
+      const distinctNames = [...new Set(matchedOrders.map(o => (o.doctor_name || '').trim()))];
+      const distinctCities = [...new Set(matchedOrders.map(o => (o.city || '').trim()))];
+      fuzzyMatchInfo = {
+        orderCount: matchedOrders.length,
+        variantCount: distinctNames.length,
+        cityCount: distinctCities.length,
+        variants: distinctNames
+      };
+      renderFuzzyMatchNote();
+
       if (allOrders.length > 0) {
         const orderIds = allOrders.map(o => o.id);
-        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
+        const { data: feedbacks } = await client
+          .from('feedback')
+          .select('*')
+          .in('order_id', orderIds);
         feedbackMap = {};
         (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
-      } else feedbackMap = {};
+      } else {
+        feedbackMap = {};
+      }
+
       applyAllFilters();
     };
 
+    function renderFuzzyMatchNote() {
+      const note = document.getElementById('fuzzyMatchNote');
+      if (!note || !fuzzyMatchInfo) { if (note) note.classList.add('hidden'); return; }
+
+      if (fuzzyMatchInfo.orderCount === 0) {
+        note.classList.add('hidden');
+        return;
+      }
+
+      let msg = '';
+      if (fuzzyMatchInfo.variantCount > 1) {
+        msg = `📋 Showing ${fuzzyMatchInfo.orderCount} order${fuzzyMatchInfo.orderCount > 1 ? 's' : ''} matching ${fuzzyMatchInfo.variantCount} spelling variation${fuzzyMatchInfo.variantCount > 1 ? 's' : ''} of your name:`;
+        const preview = fuzzyMatchInfo.variants.slice(0, 3).map(v => `"${v}"`).join(', ');
+        msg += ' ' + preview + (fuzzyMatchInfo.variants.length > 3 ? '…' : '');
+      } else {
+        msg = `📋 Showing ${fuzzyMatchInfo.orderCount} order${fuzzyMatchInfo.orderCount > 1 ? 's' : ''} matched to your profile.`;
+      }
+      if (fuzzyMatchInfo.cityCount > 1) {
+        msg += ` (Across ${fuzzyMatchInfo.cityCount} cities)`;
+      }
+      note.innerText = msg;
+      note.classList.remove('hidden');
+    }
+
+    // ============================================================
+    // FILTERS + RENDER
+    // ============================================================
     function applyAllFilters() {
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
@@ -472,7 +689,10 @@
 
     function renderCards() {
       const grid = document.getElementById('doctorCardsGrid');
-      if (activeFilteredOrders.length === 0) { grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient fulfillment records found for this scope.</div>'; return; }
+      if (activeFilteredOrders.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500 text-sm">No patient fulfillment records found for this scope.</div>';
+        return;
+      }
       grid.innerHTML = activeFilteredOrders.map(order => {
         const fb = feedbackMap[order.id];
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
@@ -492,7 +712,7 @@
             <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs leading-relaxed">📍 <strong>${order.city}:</strong> ${order.delivery_address || 'Home delivery address registered'}</div>
           </div>
           <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-1.5 text-xs">
-            <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Doctor</span><span class="font-bold text-sky-600 dark:text-sky-300 text-sm">Dr. ${actualDoctor.replace(/^dr\.?\s*/i, '')}</span></div>
+            <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Doctor</span><span class="font-bold text-sky-600 dark:text-sky-300 text-sm">${actualDoctor}</span></div>
             <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Clinic</span><span class="font-semibold text-slate-700 dark:text-slate-300">${order.clinic_name || 'Designated Clinic'}</span></div>
             <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Prescribed Therapy</span><span class="font-bold text-slate-800 dark:text-slate-200">TirzaTrim ${order.prescribed_dose || '5mg'} (${order.device || 'Multi-Dose Pen'})</span></div>
             ${order.prescription_url ? `<div class="border-t border-slate-200 dark:border-slate-800 pt-1.5 text-right"><a href="${order.prescription_url}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">📄 View Attached Rx</a></div>` : ''}
@@ -506,6 +726,9 @@
       }).join('');
     }
 
+    // ============================================================
+    // PUSH NOTIFICATIONS
+    // ============================================================
     async function registerDoctorMobilePush() {
       const btn = document.getElementById('menuPushBtn');
       try {
@@ -520,6 +743,42 @@
       } catch (err) { alert("Error: " + err.message); }
     }
 
+    // ============================================================
+    // AUTOCOMPLETE WIRING (input listeners)
+    // ============================================================
+    function wireAutocomplete() {
+      const drInput = document.getElementById('lookupDrName');
+      const cityInput = document.getElementById('lookupCity');
+      const drBox = document.getElementById('drNameSuggestions');
+      const cityBox = document.getElementById('citySuggestions');
+
+      drInput.addEventListener('input', () => {
+        showDrNameSuggestions(drInput.value);
+      });
+      drInput.addEventListener('focus', () => {
+        if (drInput.value) showDrNameSuggestions(drInput.value);
+      });
+
+      cityInput.addEventListener('input', () => {
+        const q = cityInput.value.toLowerCase().trim();
+        if (!q) { cityBox.classList.add('hidden'); return; }
+        const cities = [...new Set(allDoctorSuggestions.map(s => s.city).filter(Boolean))];
+        const matches = cities.filter(c => c.toLowerCase().includes(q));
+        if (matches.length === 0) { cityBox.classList.add('hidden'); return; }
+        cityBox.innerHTML = matches.slice(0, 10).map(c => `
+          <div onclick="document.getElementById('lookupCity').value='${c.replace(/'/g, "\\'")}'; document.getElementById('citySuggestions').classList.add('hidden');"
+               class="px-4 py-2 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-xs font-semibold text-slate-800 dark:text-slate-200">${c}</div>
+        `).join('');
+        cityBox.classList.remove('hidden');
+      });
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!drInput.contains(e.target) && !drBox.contains(e.target)) drBox.classList.add('hidden');
+        if (!cityInput.contains(e.target) && !cityBox.contains(e.target)) cityBox.classList.add('hidden');
+      });
+    }
+
     window.switchTab = switchTab;
     window.setDatePreset = setDatePreset;
     window.onCustomDateSelected = onCustomDateSelected;
@@ -529,9 +788,15 @@
     window.closeProfileModal = closeProfileModal;
     window.switchDoctorProfile = switchDoctorProfile;
     window.registerDoctorMobilePush = registerDoctorMobilePush;
+    window.pickDoctorSuggestion = pickDoctorSuggestion;
     window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
 
-    checkDoctorSession();
+    // Boot
+    (async () => {
+      await loadDoctorSuggestions();
+      wireAutocomplete();
+      checkDoctorSession();
+    })();
     if (typeof checkGlobalBroadcast === 'function') checkGlobalBroadcast('doctor');
   </script>
 </body>
