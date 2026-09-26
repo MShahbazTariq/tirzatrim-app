@@ -67,7 +67,10 @@
         <form onsubmit="handleDoctorLogin(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name or Email *</label>
+          <div class="relative">
             <input type="text" id="loginIdentifier" placeholder="e.g. Nauman or dr.nauman@gmail.com" autocomplete="username" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <div id="loginSuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+        </div>
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
@@ -380,6 +383,7 @@
     let activeFilteredOrders = [];
     let chartInstance = null;
     let allDoctorSuggestions = [];
+    let allRegisteredDoctors = []; // { doctor_name, city, email }
     let fuzzyMatchInfo = null;
     let pendingSignup = null; // { name, city, email, password }
     let otpTimerInterval = null;
@@ -465,6 +469,63 @@
         }));
       } catch (err) { console.warn('Suggestion load exception:', err); }
     }
+
+    async function loadRegisteredDoctors() {
+  try {
+    const { data, error } = await client.rpc('get_registered_doctors');
+    if (error) { console.warn('Registered doctors load error:', error); return; }
+    allRegisteredDoctors = (data || []).map(row => ({
+      doctor_name: row.doctor_name,
+      city: row.city || '',
+      email: row.email || ''
+    }));
+  } catch (err) { console.warn('Registered doctors load exception:', err); }
+}
+
+function showLoginSuggestions(query) {
+  const box = document.getElementById('loginSuggestions');
+  if (!box) return;
+  const q = (query || '').toLowerCase().trim();
+  if (!q || q.includes('@')) { box.classList.add('hidden'); return; }
+
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const matches = allRegisteredDoctors.filter(s => {
+    const haystack = (s.doctor_name + ' ' + s.city).toLowerCase();
+    return tokens.every(tok => haystack.includes(tok));
+  });
+
+  if (matches.length === 0) { box.classList.add('hidden'); return; }
+
+  matches.sort((a, b) => {
+    const aName = normalizeDoctorName(a.doctor_name);
+    const bName = normalizeDoctorName(b.doctor_name);
+    const aStarts = aName.startsWith(tokens[0]);
+    const bStarts = bName.startsWith(tokens[0]);
+    if (aStarts !== bStarts) return aStarts ? -1 : 1;
+    return aName.localeCompare(bName);
+  });
+
+  box.innerHTML = matches.slice(0, 20).map(s => `
+    <div onclick="pickLoginSuggestion('${s.doctor_name.replace(/'/g, "\\'")}')"
+         class="px-4 py-2.5 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-base flex-shrink-0">🩺</span>
+        <div class="min-w-0">
+          <div class="text-xs font-bold text-slate-900 dark:text-white truncate">${s.doctor_name}</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400">${s.city}</div>
+        </div>
+      </div>
+      <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0">✓ Registered</span>
+    </div>
+  `).join('');
+  box.classList.remove('hidden');
+}
+
+function pickLoginSuggestion(name) {
+  document.getElementById('loginIdentifier').value = name;
+  document.getElementById('loginSuggestions').classList.add('hidden');
+}
+window.pickLoginSuggestion = pickLoginSuggestion;
 
     function showDrNameSuggestions(query) {
       const box = document.getElementById('drNameSuggestions');
@@ -1198,37 +1259,49 @@
       const cityInput = document.getElementById('signupCity');
       const drBox = document.getElementById('drNameSuggestions');
       const cityBox = document.getElementById('citySuggestions');
-      if (!drInput || !cityInput) return;
 
-      drInput.addEventListener('input', () => showDrNameSuggestions(drInput.value));
-      drInput.addEventListener('focus', () => { if (drInput.value) showDrNameSuggestions(drInput.value); });
+      if (drInput && drBox) {
+        drInput.addEventListener('input', () => showDrNameSuggestions(drInput.value));
+        drInput.addEventListener('focus', () => { if (drInput.value) showDrNameSuggestions(drInput.value); });
+      }
 
-      cityInput.addEventListener('input', () => {
-        const q = cityInput.value.toLowerCase().trim();
-        if (!q) { cityBox.classList.add('hidden'); return; }
-        const cities = [...new Set(allDoctorSuggestions.map(s => s.city).filter(Boolean))];
-        const matches = cities.filter(c => c.toLowerCase().includes(q));
-        if (matches.length === 0) { cityBox.classList.add('hidden'); return; }
-        cityBox.innerHTML = matches.slice(0, 10).map(c => `
-          <div onclick="document.getElementById('signupCity').value='${c.replace(/'/g, "\\'")}'; document.getElementById('citySuggestions').classList.add('hidden');"
-               class="px-4 py-2 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-xs font-semibold text-slate-800 dark:text-slate-200">${c}</div>
-        `).join('');
-        cityBox.classList.remove('hidden');
-      });
+      if (cityInput && cityBox) {
+        cityInput.addEventListener('input', () => {
+          const q = cityInput.value.toLowerCase().trim();
+          if (!q) { cityBox.classList.add('hidden'); return; }
+          const cities = [...new Set(allDoctorSuggestions.map(s => s.city).filter(Boolean))];
+          const matches = cities.filter(c => c.toLowerCase().includes(q));
+          if (matches.length === 0) { cityBox.classList.add('hidden'); return; }
+          cityBox.innerHTML = matches.slice(0, 10).map(c => `
+            <div onclick="document.getElementById('signupCity').value='${c.replace(/'/g, "\\'")}'; document.getElementById('citySuggestions').classList.add('hidden');"
+                 class="px-4 py-2 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-xs font-semibold text-slate-800 dark:text-slate-200">${c}</div>
+          `).join('');
+          cityBox.classList.remove('hidden');
+        });
+      }
+
+      // ============== NEW: Login identifier autocomplete ==============
+      const loginInput = document.getElementById('loginIdentifier');
+      const loginBox = document.getElementById('loginSuggestions');
+      if (loginInput && loginBox) {
+        loginInput.addEventListener('input', () => showLoginSuggestions(loginInput.value));
+        loginInput.addEventListener('focus', () => { if (loginInput.value) showLoginSuggestions(loginInput.value); });
+      }
+      // ================================================================
 
       document.addEventListener('click', (e) => {
-        if (!drInput.contains(e.target) && !drBox.contains(e.target)) drBox.classList.add('hidden');
-        if (!cityInput.contains(e.target) && !cityBox.contains(e.target)) cityBox.classList.add('hidden');
+        if (drInput && drBox && !drInput.contains(e.target) && !drBox.contains(e.target)) drBox.classList.add('hidden');
+        if (cityInput && cityBox && !cityInput.contains(e.target) && !cityBox.contains(e.target)) cityBox.classList.add('hidden');
+        if (loginInput && loginBox && !loginInput.contains(e.target) && !loginBox.contains(e.target)) loginBox.classList.add('hidden');
       });
     }
-
-    window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
 
     // ============================================================
     // BOOT
     // ============================================================
     (async () => {
       await loadDoctorSuggestions();
+      await loadRegisteredDoctors();
       wireAutocomplete();
       await checkDoctorSession();
     })();
