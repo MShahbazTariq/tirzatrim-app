@@ -644,10 +644,44 @@
       note.classList.remove('hidden');
     }
 
+        function renderTimelinePreview() {
+      const previewEl = document.getElementById('timelinePatientPreview');
+      const countEl = document.getElementById('timelineCountBadge');
+      if (!previewEl || !countEl) return;
+
+      countEl.innerText = `${activeFilteredOrders.length} Patient${activeFilteredOrders.length !== 1 ? 's' : ''}`;
+
+      if (activeFilteredOrders.length === 0) {
+        previewEl.innerHTML = '<div class="text-slate-400 dark:text-slate-500 py-3 text-center text-xs italic">No patient records in this window.</div>';
+        return;
+      }
+
+      previewEl.innerHTML = activeFilteredOrders.slice(0, 5).map(order => {
+        const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
+        const isCancelled = order.status === 'Cancelled';
+        const isDispatched = order.status === 'Dispatched';
+        const pill = isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New')));
+
+        return `
+          <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-slate-900 dark:text-white truncate">👤 ${order.patient_name || 'Patient'}</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-0.5">${order.order_id || ''} · ${new Date(order.created_at).toLocaleDateString()}</div>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${isCancelled ? 'bg-rose-500/10 text-rose-600' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600' : (isDispatched ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200 dark:bg-slate-800 text-sky-600 dark:text-sky-400'))} flex-shrink-0">${pill}</span>
+          </div>
+        `;
+      }).join('');
+
+      if (activeFilteredOrders.length > 5) {
+        previewEl.innerHTML += `<div class="text-[10px] text-center text-slate-500 pt-1">+ ${activeFilteredOrders.length - 5} more in Patient Feed</div>`;
+      }
+    }
+
     // ============================================================
     // FILTERS + RENDER
     // ============================================================
-    function applyAllFilters() {
+        function applyAllFilters() {
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
       const matchedOrders = allOrders.filter(o => {
@@ -665,6 +699,7 @@
       updateDailyChart(matchedOrders);
       updateSummaries();
       renderCards();
+      renderTimelinePreview();
     }
 
     function updateMetrics() {
