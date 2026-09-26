@@ -160,7 +160,7 @@
       </div>
     </div>
 
-    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+        <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-2"><span>📅</span> Configure Date Window</div>
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
@@ -176,9 +176,19 @@
         </div>
         <div id="dateScopeBadge" class="text-sm font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-3.5 py-1.5 rounded-xl border border-sky-500/20 inline-block">Showing: Month to Date</div>
       </div>
-    </div>
 
-  </div>
+      <!-- Patient preview in Timeline tab -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>👥</span> Patient Records in This Window</h3>
+          <span id="timelineCountBadge" class="px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-bold border border-sky-500/20">0 Patients</span>
+        </div>
+        <div id="timelinePatientPreview" class="space-y-2">
+          <div class="text-slate-400 dark:text-slate-500 py-2 text-center text-xs">Loading...</div>
+        </div>
+        <button onclick="switchTab('orders')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">→ View Full Patient Feed</button>
+      </div>
+    </div>
 
   <!-- BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
