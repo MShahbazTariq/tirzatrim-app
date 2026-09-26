@@ -437,6 +437,21 @@
       return { isDue: daysElapsed >= 21, daysElapsed, currentDose, nextDose };
     }
 
+    function showAuthTab(type) {
+  document.getElementById('authErrorMsg').classList.add('hidden');
+  if (type === 'login') {
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('signupForm').classList.add('hidden');
+    document.getElementById('loginTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+    document.getElementById('signupTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+  } else {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('signupForm').classList.remove('hidden');
+    document.getElementById('signupTabBtn').className = "py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
+    document.getElementById('loginTabBtn').className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+  }
+}
+
     function getInitials(name) {
       if (!name) return 'HS';
       const parts = name.trim().split(/\s+/);
