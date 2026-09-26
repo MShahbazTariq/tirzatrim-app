@@ -403,7 +403,7 @@
     // ============================================================
     // TAB SWITCHING
     // ============================================================
-    function switchTab(tabId) {
+        function switchTab(tabId) {
       document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
       const activeContainer = document.getElementById(`view-${tabId}`);
       if (activeContainer) activeContainer.classList.remove('hidden');
@@ -429,6 +429,12 @@
       if (tabId === 'analytics' && activeFilteredOrders.length > 0) {
         setTimeout(() => updateDailyChart(activeFilteredOrders), 100);
       }
+      if (tabId === 'datescope') {
+        setTimeout(() => renderTimelinePreview(), 50);
+      }
+
+      // Auto-scroll to top so user sees the switched tab content
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ============================================================
