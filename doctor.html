@@ -46,7 +46,9 @@
     </div>
   </nav>
 
-  <!-- PHYSICIAN LOOKUP AUTH SCREEN -->
+  <!-- ============================================================ -->
+  <!-- AUTH SCREEN — MULTI-VIEW (Login / Signup / OTP / Forgot)     -->
+  <!-- ============================================================ -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
       <div class="flex items-center justify-between">
@@ -54,32 +56,158 @@
         <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200"><span class="theme-icon">🌙</span></button>
       </div>
 
-      <div class="space-y-2 pt-2">
-        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">🩺</div>
-        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Physician Portal Login</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Start typing your name — we'll suggest matches from our records</p>
+      <!-- ==================== VIEW 1: LOGIN ==================== -->
+      <div id="authView-login" class="space-y-5">
+        <div class="space-y-2 pt-2">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">🩺</div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Physician Portal Login</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Sign in with your name or email</p>
+        </div>
+
+        <form onsubmit="handleDoctorLogin(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name or Email *</label>
+            <input type="text" id="loginIdentifier" placeholder="e.g. Nauman or dr.nauman@gmail.com" autocomplete="username" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <button type="submit" id="loginBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Access Clinical Feed</button>
+        </form>
+
+        <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="showAuthView('forgot')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">Forgot password?</button>
+          <button onclick="showAuthView('signup')" class="text-sky-600 dark:text-sky-400 font-bold">New? Create Account →</button>
+        </div>
       </div>
 
-      <form onsubmit="handleDoctorLookup(event)" class="space-y-4 text-left">
-        <div class="relative">
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name *</label>
-          <input type="text" id="lookupDrName" placeholder="Start typing... e.g. Nau" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
-          <div id="drNameSuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+      <!-- ==================== VIEW 2: SIGNUP ==================== -->
+      <div id="authView-signup" class="space-y-5 hidden">
+        <div class="space-y-2 pt-2">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">📝</div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Physician Registration</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Start typing your name — we'll suggest matches from our records</p>
         </div>
 
-        <div class="relative">
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1">City *</label>
-          <input type="text" id="lookupCity" placeholder="e.g. Lahore" value="Lahore" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
-          <div id="citySuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+        <form onsubmit="handleDoctorSignup(event)" class="space-y-3 text-left">
+          <div class="relative">
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Doctor Name *</label>
+            <input type="text" id="signupDrName" placeholder="Start typing... e.g. Nau" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+            <div id="drNameSuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+          </div>
+
+          <div class="relative">
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">City *</label>
+            <input type="text" id="signupCity" placeholder="e.g. Lahore" autocomplete="off" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-sky-500">
+            <div id="citySuggestions" class="hidden absolute z-50 left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl"></div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Email Address *</label>
+            <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password * (min 6 chars)</label>
+            <input type="password" id="signupPassword" placeholder="••••••••" autocomplete="new-password" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm Password *</label>
+            <input type="password" id="signupPasswordConfirm" placeholder="••••••••" autocomplete="new-password" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+
+          <button type="submit" id="signupBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Send Verification Code</button>
+        </form>
+
+        <div class="text-xs pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+          <button onclick="showAuthView('login')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">← Back to Login</button>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 3: OTP VERIFY ==================== -->
+      <div id="authView-otp" class="space-y-5 hidden">
+        <div class="space-y-2 pt-2">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">📧</div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Verify Your Email</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">We sent a 6-digit code to<br><span id="otpEmailDisplay" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
         </div>
 
-        <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Access Clinical Feed</button>
-      </form>
-      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden">Please enter valid doctor name and city.</p>
+        <form onsubmit="handleOtpVerify(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Verification Code *</label>
+            <input type="text" id="otpCode" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <button type="submit" id="otpBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Verify & Access Portal</button>
+        </form>
+
+        <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+          <span id="otpTimer" class="text-slate-500 dark:text-slate-400 font-mono">Code expires in 9:59</span>
+          <button onclick="resendOtp()" class="text-sky-600 dark:text-sky-400 font-bold">Resend Code</button>
+        </div>
+
+        <div class="text-xs pt-1 border-t border-slate-100 dark:border-slate-800 text-center">
+          <button onclick="showAuthView('signup')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">← Change email</button>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 4: FORGOT PASSWORD ==================== -->
+      <div id="authView-forgot" class="space-y-5 hidden">
+        <div class="space-y-2 pt-2">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">🔑</div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Reset Password</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Enter your email — we'll send a reset code</p>
+        </div>
+
+        <form onsubmit="handleForgotPassword(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Your Email Address *</label>
+            <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <button type="submit" id="forgotBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Send Reset Code</button>
+        </form>
+
+        <div class="text-xs pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+          <button onclick="showAuthView('login')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">← Back to Login</button>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 5: RESET PASSWORD ==================== -->
+      <div id="authView-reset" class="space-y-5 hidden">
+        <div class="space-y-2 pt-2">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-2xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400">🔐</div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Set New Password</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Enter the code we sent to your email + your new password</p>
+        </div>
+
+        <form onsubmit="handlePasswordReset(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Reset Code *</label>
+            <input type="text" id="resetOtp" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-lg font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password *</label>
+            <input type="password" id="resetNewPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm New Password *</label>
+            <input type="password" id="resetNewPasswordConfirm" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          </div>
+          <button type="submit" id="resetBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Set New Password</button>
+        </form>
+
+        <div class="text-xs pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+          <button onclick="showAuthView('login')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">← Back to Login</button>
+        </div>
+      </div>
+
+      <!-- Error message shared across all views -->
+      <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
 
-  <!-- MAIN DASHBOARD CONTENT -->
+  <!-- MAIN DASHBOARD CONTENT (unchanged) -->
   <div id="dashboardContent" class="max-w-7xl mx-auto space-y-5 hidden">
 
     <header class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center">
@@ -160,7 +288,7 @@
       </div>
     </div>
 
-        <div id="view-datescope" class="tab-view-container space-y-4 hidden">
+    <div id="view-datescope" class="tab-view-container space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
         <div class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-2"><span>📅</span> Configure Date Window</div>
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">
@@ -177,7 +305,6 @@
         <div id="dateScopeBadge" class="text-sm font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-3.5 py-1.5 rounded-xl border border-sky-500/20 inline-block">Showing: Month to Date</div>
       </div>
 
-      <!-- Patient preview in Timeline tab -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>👥</span> Patient Records in This Window</h3>
@@ -189,6 +316,8 @@
         <button onclick="switchTab('orders')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all">→ View Full Patient Feed</button>
       </div>
     </div>
+
+  </div>
 
   <!-- BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-2.5 flex items-center justify-around md:hidden">
@@ -220,19 +349,16 @@
       </div>
       <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Session Info</div>
-        <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Role</span><span class="font-bold text-slate-800 dark:text-slate-200">Prescribing Doctor</span></div>
+        <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Email</span><span id="profileEmail" class="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[60%]">—</span></div>
+        <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Role</span><span class="font-bold text-slate-800 dark:text-slate-200">Prescribing Doctor</span></div>
         <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Access</span><span class="font-bold text-sky-600 dark:text-sky-400">Read-Only Clinical Feed</span></div>
-        <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">City Scope</span><span id="profileCityScope" class="font-bold text-slate-800 dark:text-slate-200">—</span></div>
-      </div>
-      <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-        <button onclick="switchDoctorProfile();" class="w-full px-4 py-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 text-sm font-bold flex items-center justify-center gap-2 border border-sky-500/20 shadow-sm transition-all"><span class="text-base">🔄</span> <span>Switch Doctor Profile</span></button>
       </div>
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Clinical Utilities</div>
         <button id="menuPushBtn" onclick="registerDoctorMobilePush()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
         <button onclick="window.fetchDoctorOrders(); closeProfileModal(); alert('✅ Patient feed refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Patient Feed</span></button>
         <button onclick="toggleTheme()" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
-        <button onclick="handleDoctorLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Switch Doctor Profile</span></button>
+        <button onclick="handleDoctorLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Logout</span></button>
       </div>
     </div>
   </div>
@@ -244,83 +370,89 @@
     window.supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const client = window.supabaseClient;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let targetDoctorName = urlParams.get('dr') || sessionStorage.getItem('tt_current_doctor') || '';
-    let targetCity = urlParams.get('city') || sessionStorage.getItem('tt_current_city') || '';
+    let targetDoctorName = '';
+    let targetCity = '';
+    let targetEmail = '';
+    let currentUserId = null;
 
     let allOrders = [];
     let feedbackMap = {};
     let activeFilteredOrders = [];
     let chartInstance = null;
-    let allDoctorSuggestions = []; // { doctor_name, city, order_count }
+    let allDoctorSuggestions = [];
     let fuzzyMatchInfo = null;
+    let pendingSignup = null; // { name, city, email, password }
+    let otpTimerInterval = null;
 
     let currentDateScope = "MTD";
     let filterStartDate = null;
     let filterEndDate = null;
 
     // ============================================================
-    // FUZZY NAME MATCHING UTILITIES
+    // AUTH VIEW SWITCHER
+    // ============================================================
+    function showAuthView(view) {
+      ['login', 'signup', 'otp', 'forgot', 'reset'].forEach(v => {
+        const el = document.getElementById('authView-' + v);
+        if (el) el.classList.toggle('hidden', v !== view);
+      });
+      document.getElementById('authErrorMsg').classList.add('hidden');
+      if (view !== 'otp' && otpTimerInterval) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+      }
+    }
+    window.showAuthView = showAuthView;
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authErrorMsg');
+      el.innerText = msg;
+      el.classList.remove('hidden');
+    }
+
+    function setBtnLoading(btnId, loading, labelWhenIdle) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.innerText = loading ? '⏳ Please wait...' : labelWhenIdle;
+    }
+
+    // ============================================================
+    // FUZZY NAME MATCHING (unchanged — preserved from old file)
     // ============================================================
     function normalizeDoctorName(name) {
       if (!name) return '';
-      return String(name)
-        .toLowerCase()
-        .replace(/^dr\.?\s*/i, '')
-        .replace(/[^a-z\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      return String(name).toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
     }
-
     function tokenizeName(name) {
-      return normalizeDoctorName(name)
-        .split(' ')
-        .filter(w => w.length >= 2);  // ignore single letters like "J"
+      return normalizeDoctorName(name).split(' ').filter(w => w.length >= 2);
     }
-
     function countSharedTokens(tokens1, tokens2) {
       let count = 0;
       const used = new Set();
       tokens1.forEach(t1 => {
         for (let i = 0; i < tokens2.length; i++) {
-          if (!used.has(i) && tokens2[i] === t1) {
-            count++;
-            used.add(i);
-            break;
-          }
+          if (!used.has(i) && tokens2[i] === t1) { count++; used.add(i); break; }
         }
       });
       return count;
     }
-
-    /**
-     * Returns true if the two doctor names likely refer to the same person.
-     * Requires at least 2 shared words OR 1 shared word if both names are 1-word.
-     */
     function isSameDoctorName(nameA, nameB) {
       const tokensA = tokenizeName(nameA);
       const tokensB = tokenizeName(nameB);
-
       if (tokensA.length === 0 || tokensB.length === 0) return false;
-
       const shared = countSharedTokens(tokensA, tokensB);
       const minTokens = Math.min(tokensA.length, tokensB.length);
-
-      if (minTokens === 1) {
-        // If either name is a single word, require that word to match exactly
-        return shared >= 1 && tokensA[0] === tokensB[0];
-      }
-      // Otherwise require at least 2 shared tokens
+      if (minTokens === 1) return shared >= 1 && tokensA[0] === tokensB[0];
       return shared >= 2;
     }
-
     function cityMatches(cityA, cityB) {
-      if (!cityA || !cityB) return true; // treat missing city as wildcard
+      if (!cityA || !cityB) return true;
       return cityA.toLowerCase().trim() === cityB.toLowerCase().trim();
     }
 
     // ============================================================
-    // AUTOCOMPLETE ENGINE
+    // AUTOCOMPLETE ENGINE (signup screen)
     // ============================================================
     async function loadDoctorSuggestions() {
       try {
@@ -331,9 +463,7 @@
           city: row.city || '',
           order_count: Number(row.order_count) || 0
         }));
-      } catch (err) {
-        console.warn('Suggestion load exception:', err);
-      }
+      } catch (err) { console.warn('Suggestion load exception:', err); }
     }
 
     function showDrNameSuggestions(query) {
@@ -343,20 +473,17 @@
       if (!q) { box.classList.add('hidden'); return; }
 
       const tokens = q.split(/\s+/).filter(Boolean);
-
-      // Filter: every typed token must appear somewhere in the doctor name or city
       const matches = allDoctorSuggestions.filter(s => {
         const haystack = (s.doctor_name + ' ' + s.city).toLowerCase();
         return tokens.every(tok => haystack.includes(tok));
       });
 
       if (matches.length === 0) {
-        box.innerHTML = `<div class="px-4 py-3 text-xs text-slate-500 italic">No match in our records yet — you can still log in with your name.</div>`;
+        box.innerHTML = `<div class="px-4 py-3 text-xs text-slate-500 italic">No match in our records. Only doctors with existing patient referrals can register.</div>`;
         box.classList.remove('hidden');
         return;
       }
 
-      // Sort: name matches first, then by name alphabetically
       matches.sort((a, b) => {
         const aName = normalizeDoctorName(a.doctor_name);
         const bName = normalizeDoctorName(b.doctor_name);
@@ -383,27 +510,428 @@
     }
 
     function pickDoctorSuggestion(name, city) {
-      document.getElementById('lookupDrName').value = name;
-      document.getElementById('lookupCity').value = city;
+      document.getElementById('signupDrName').value = name;
+      document.getElementById('signupCity').value = city;
       document.getElementById('drNameSuggestions').classList.add('hidden');
     }
+    window.pickDoctorSuggestion = pickDoctorSuggestion;
 
     // ============================================================
-    // NOTIFICATION CENTER OPENER
+    // LOGIN FLOW
     // ============================================================
-    function tryOpenNotifCenter() {
-      if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
-        window.notificationCenter.toggleDropdown();
-        return;
+    async function handleDoctorLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!identifier || !password) return;
+
+      setBtnLoading('loginBtn', true, 'Access Clinical Feed');
+      try {
+        // Resolve identifier → email
+        const { data: resolved, error: resolveErr } = await client
+          .rpc('resolve_doctor_identifier', { p_identifier: identifier });
+
+        if (resolveErr) throw resolveErr;
+        if (!resolved || resolved.length === 0) {
+          showAuthError('No account found with that name or email. Please sign up first.');
+          return;
+        }
+
+        const profile = resolved[0];
+        const { data: authData, error: signInErr } = await client.auth.signInWithPassword({
+          email: profile.email,
+          password: password
+        });
+
+        if (signInErr) {
+          showAuthError('Incorrect password. Please try again or use Forgot Password.');
+          return;
+        }
+
+        currentUserId = authData.user.id;
+        targetDoctorName = profile.doctor_name;
+        targetCity = profile.city;
+        targetEmail = profile.email;
+        sessionStorage.setItem('tt_current_doctor', targetDoctorName);
+        sessionStorage.setItem('tt_current_city', targetCity);
+        sessionStorage.setItem('tt_current_email', targetEmail);
+        sessionStorage.setItem('tt_doctor_user_id', currentUserId);
+        checkDoctorSession();
+      } catch (err) {
+        console.error('Login error:', err);
+        showAuthError(err.message || 'Login failed. Please try again.');
+      } finally {
+        setBtnLoading('loginBtn', false, 'Access Clinical Feed');
       }
-      console.warn('notificationCenter.toggleDropdown not available yet.');
     }
-    window.tryOpenNotifCenter = tryOpenNotifCenter;
+    window.handleDoctorLogin = handleDoctorLogin;
 
     // ============================================================
-    // TAB SWITCHING
+    // SIGNUP FLOW
     // ============================================================
-        function switchTab(tabId) {
+    async function handleDoctorSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('signupDrName').value.trim();
+      const city = document.getElementById('signupCity').value.trim();
+      const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+      const password = document.getElementById('signupPassword').value;
+      const confirm = document.getElementById('signupPasswordConfirm').value;
+
+      if (!name || !city || !email || !password) return;
+      if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      if (password !== confirm) { showAuthError('Passwords do not match.'); return; }
+
+      setBtnLoading('signupBtn', true, 'Send Verification Code');
+      try {
+        // Check if this (name, city) already has a profile
+        const { data: existing } = await client
+          .from('doctor_profiles')
+          .select('id, email')
+          .ilike('doctor_name', name)
+          .ilike('city', city)
+          .maybeSingle();
+
+        if (existing) {
+          showAuthError('An account already exists for this doctor. Please log in instead.');
+          return;
+        }
+
+        // Create Supabase auth user (sends OTP to email)
+        const { data: authData, error: signUpErr } = await client.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: { doctor_name: name, city: city, role: 'doctor' }
+          }
+        });
+
+        if (signUpErr) {
+          if (signUpErr.message.includes('already registered')) {
+            showAuthError('This email is already registered. Please log in instead.');
+          } else {
+            showAuthError(signUpErr.message);
+          }
+          return;
+        }
+
+        pendingSignup = { name, city, email, userId: authData.user?.id };
+
+        // Move to OTP screen
+        document.getElementById('otpEmailDisplay').innerText = email;
+        document.getElementById('otpCode').value = '';
+        showAuthView('otp');
+        startOtpCountdown();
+      } catch (err) {
+        console.error('Signup error:', err);
+        showAuthError(err.message || 'Signup failed. Please try again.');
+      } finally {
+        setBtnLoading('signupBtn', false, 'Send Verification Code');
+      }
+    }
+    window.handleDoctorSignup = handleDoctorSignup;
+
+    // ============================================================
+    // OTP VERIFY FLOW
+    // ============================================================
+    async function handleOtpVerify(e) {
+      e.preventDefault();
+      if (!pendingSignup) { showAuthView('signup'); return; }
+      const code = document.getElementById('otpCode').value.trim();
+      if (!/^\d{6}$/.test(code)) { showAuthError('Please enter the 6-digit code.'); return; }
+
+      setBtnLoading('otpBtn', true, 'Verify & Access Portal');
+      try {
+        const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
+          email: pendingSignup.email,
+          token: code,
+          type: 'signup'
+        });
+
+        if (verifyErr) throw verifyErr;
+
+        const userId = verifyData.user.id;
+
+        // Insert doctor_profiles row
+        const { error: profileErr } = await client
+          .from('doctor_profiles')
+          .insert([{
+            user_id: userId,
+            doctor_name: pendingSignup.name,
+            city: pendingSignup.city,
+            email: pendingSignup.email
+          }]);
+
+        if (profileErr) throw profileErr;
+
+        // Success — set session
+        currentUserId = userId;
+        targetDoctorName = pendingSignup.name;
+        targetCity = pendingSignup.city;
+        targetEmail = pendingSignup.email;
+        sessionStorage.setItem('tt_current_doctor', targetDoctorName);
+        sessionStorage.setItem('tt_current_city', targetCity);
+        sessionStorage.setItem('tt_current_email', targetEmail);
+        sessionStorage.setItem('tt_doctor_user_id', currentUserId);
+        pendingSignup = null;
+        if (otpTimerInterval) { clearInterval(otpTimerInterval); otpTimerInterval = null; }
+
+        checkDoctorSession();
+      } catch (err) {
+        console.error('OTP verify error:', err);
+        showAuthError(err.message || 'Invalid or expired code. Please try again.');
+      } finally {
+        setBtnLoading('otpBtn', false, 'Verify & Access Portal');
+      }
+    }
+    window.handleOtpVerify = handleOtpVerify;
+
+    async function resendOtp() {
+      if (!pendingSignup) { showAuthView('signup'); return; }
+      try {
+        const { error } = await client.auth.resend({
+          type: 'signup',
+          email: pendingSignup.email
+        });
+        if (error) throw error;
+        alert('✅ New code sent to ' + pendingSignup.email);
+        startOtpCountdown();
+      } catch (err) {
+        showAuthError(err.message || 'Could not resend. Please try again.');
+      }
+    }
+    window.resendOtp = resendOtp;
+
+    function startOtpCountdown() {
+      if (otpTimerInterval) clearInterval(otpTimerInterval);
+      let seconds = 600; // 10 minutes
+      const el = document.getElementById('otpTimer');
+      const update = () => {
+        if (seconds <= 0) {
+          el.innerText = 'Code expired — please resend';
+          clearInterval(otpTimerInterval);
+          otpTimerInterval = null;
+          return;
+        }
+        const m = Math.floor(seconds / 60);
+        const s = String(seconds % 60).padStart(2, '0');
+        el.innerText = `Code expires in ${m}:${s}`;
+        seconds--;
+      };
+      update();
+      otpTimerInterval = setInterval(update, 1000);
+    }
+
+    // ============================================================
+    // FORGOT PASSWORD FLOW
+    // ============================================================
+    async function handleForgotPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+      if (!email) return;
+
+      setBtnLoading('forgotBtn', true, 'Send Reset Code');
+      try {
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/doctor.html'
+        });
+        if (error) throw error;
+        sessionStorage.setItem('tt_reset_email', email);
+        alert('✅ Reset code sent to ' + email + '\n\nCheck your inbox.');
+        showAuthView('reset');
+      } catch (err) {
+        console.error('Forgot error:', err);
+        showAuthError(err.message || 'Could not send reset code. Please try again.');
+      } finally {
+        setBtnLoading('forgotBtn', false, 'Send Reset Code');
+      }
+    }
+    window.handleForgotPassword = handleForgotPassword;
+
+    async function handlePasswordReset(e) {
+      e.preventDefault();
+      const email = sessionStorage.getItem('tt_reset_email') || '';
+      const code = document.getElementById('resetOtp').value.trim();
+      const newPwd = document.getElementById('resetNewPassword').value;
+      const confirm = document.getElementById('resetNewPasswordConfirm').value;
+
+      if (!email) { showAuthError('Session expired. Please try again.'); showAuthView('forgot'); return; }
+      if (!/^\d{6}$/.test(code)) { showAuthError('Please enter the 6-digit code.'); return; }
+      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
+
+      setBtnLoading('resetBtn', true, 'Set New Password');
+      try {
+        // Verify OTP (recovery flow)
+        const { error: verifyErr } = await client.auth.verifyOtp({
+          email: email,
+          token: code,
+          type: 'recovery'
+        });
+        if (verifyErr) throw verifyErr;
+
+        // Update password
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+        if (updateErr) throw updateErr;
+
+        alert('✅ Password updated! Please log in with your new password.');
+        sessionStorage.removeItem('tt_reset_email');
+        document.getElementById('loginIdentifier').value = email;
+        document.getElementById('loginPassword').value = '';
+        showAuthView('login');
+      } catch (err) {
+        console.error('Reset error:', err);
+        showAuthError(err.message || 'Could not reset password. Please try again.');
+      } finally {
+        setBtnLoading('resetBtn', false, 'Set New Password');
+      }
+    }
+    window.handlePasswordReset = handlePasswordReset;
+
+    // ============================================================
+    // SESSION + LOGOUT
+    // ============================================================
+    function handleDoctorLogout() {
+      client.auth.signOut().catch(() => {});
+      sessionStorage.removeItem('tt_current_doctor');
+      sessionStorage.removeItem('tt_current_city');
+      sessionStorage.removeItem('tt_current_email');
+      sessionStorage.removeItem('tt_doctor_user_id');
+      targetDoctorName = '';
+      targetCity = '';
+      targetEmail = '';
+      currentUserId = null;
+      fuzzyMatchInfo = null;
+      showAuthView('login');
+      checkDoctorSession();
+    }
+    window.handleDoctorLogout = handleDoctorLogout;
+
+    async function checkDoctorSession() {
+      // Try to restore from Supabase session
+      try {
+        const { data: { session } } = await client.auth.getSession();
+        if (session && session.user) {
+          // Fetch profile
+          const { data: profile } = await client
+            .from('doctor_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            currentUserId = session.user.id;
+            targetDoctorName = profile.doctor_name;
+            targetCity = profile.city;
+            targetEmail = profile.email;
+            sessionStorage.setItem('tt_current_doctor', targetDoctorName);
+            sessionStorage.setItem('tt_current_city', targetCity);
+            sessionStorage.setItem('tt_current_email', targetEmail);
+            sessionStorage.setItem('tt_doctor_user_id', currentUserId);
+            showDashboard();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Session restore error:', err);
+      }
+
+      // No active session → show login
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('dashboardContent').classList.add('hidden');
+      document.getElementById('topNavBar').classList.add('hidden');
+      showAuthView('login');
+    }
+
+    function showDashboard() {
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('dashboardContent').classList.remove('hidden');
+      document.getElementById('topNavBar').classList.remove('hidden');
+      document.getElementById('doctorNameDisplay').innerText = targetDoctorName;
+      document.getElementById('profileDoctorName').innerText = targetDoctorName;
+      document.getElementById('profileDoctorCity').innerText = targetCity || 'National Clinical Partner';
+      document.getElementById('profileEmail').innerText = targetEmail || '—';
+
+      if (typeof NotificationCenter !== 'undefined') {
+        window.notificationCenter = new NotificationCenter({
+          userId: targetDoctorName,
+          userRole: 'doctor',
+          pollInterval: 30000,
+          badgeId: 'navNotifBadge'
+        });
+      }
+      initDates();
+      window.fetchDoctorOrders();
+    }
+
+    // ============================================================
+    // PROFILE MODAL
+    // ============================================================
+    function openProfileModal() {
+      if (!targetDoctorName) return;
+      document.getElementById('profileDoctorName').innerText = targetDoctorName;
+      document.getElementById('profileDoctorCity').innerText = targetCity || 'National Clinical Partner';
+      document.getElementById('profileEmail').innerText = targetEmail || '—';
+      const modal = document.getElementById('profileModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+
+    // ============================================================
+    // DATE UTILITIES
+    // ============================================================
+    function getLocalDateKey(dateInput) {
+      const d = dateInput ? new Date(dateInput) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    function initDates() { setDatePreset('ALL'); }
+    function setDatePreset(type) {
+      currentDateScope = type;
+      const today = new Date();
+      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+        const el = document.getElementById(`btnDate${id}`);
+        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+      });
+      if (type === 'TODAY') { document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; filterStartDate = getLocalDateKey(today); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Today"; document.getElementById('activeDateScopeTag').innerText = "Today"; }
+      else if (type === 'YESTERDAY') { document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const y = new Date(); y.setDate(y.getDate() - 1); filterStartDate = getLocalDateKey(y); filterEndDate = getLocalDateKey(y); document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday"; document.getElementById('activeDateScopeTag').innerText = "Yesterday"; }
+      else if (type === 'LAST7') { document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const last7 = new Date(); last7.setDate(last7.getDate() - 6); filterStartDate = getLocalDateKey(last7); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Last 7 Days"; document.getElementById('activeDateScopeTag').innerText = "Last 7 Days"; }
+      else if (type === 'MTD') { document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const firstDay = new Date(today.getFullYear(), today.getMonth(), 1); filterStartDate = getLocalDateKey(firstDay); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Month to Date"; document.getElementById('activeDateScopeTag').innerText = "Month to Date"; }
+      else if (type === 'ALL') { document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; filterStartDate = null; filterEndDate = null; document.getElementById('dateScopeBadge').innerText = "Showing: All Time"; document.getElementById('activeDateScopeTag').innerText = "All Time"; }
+      document.getElementById('calendarFromDate').value = filterStartDate || '';
+      document.getElementById('calendarToDate').value = filterEndDate || '';
+      applyAllFilters();
+    }
+    function onCustomDateSelected() {
+      const from = document.getElementById('calendarFromDate').value;
+      const to = document.getElementById('calendarToDate').value;
+      if (from && to) {
+        filterStartDate = from; filterEndDate = to; currentDateScope = "CUSTOM";
+        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
+          const el = document.getElementById(`btnDate${id}`);
+          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
+        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
+        applyAllFilters();
+      }
+    }
+    function renderStars(rating) { if (!rating) return ''; return '⭐'.repeat(rating); }
+    window.setDatePreset = setDatePreset;
+    window.onCustomDateSelected = onCustomDateSelected;
+
+    // ============================================================
+    // TAB SWITCHER
+    // ============================================================
+    function switchTab(tabId) {
       document.querySelectorAll('.tab-view-container').forEach(el => el.classList.add('hidden'));
       const activeContainer = document.getElementById(`view-${tabId}`);
       if (activeContainer) activeContainer.classList.remove('hidden');
@@ -432,160 +960,41 @@
       if (tabId === 'datescope') {
         setTimeout(() => renderTimelinePreview(), 50);
       }
-
-      // Auto-scroll to top so user sees the switched tab content
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    window.switchTab = switchTab;
 
     // ============================================================
-    // PROFILE MODAL
+    // NOTIFICATIONS
     // ============================================================
-    function openProfileModal() {
-      if (!targetDoctorName) return;
-      document.getElementById('profileDoctorName').innerText = targetDoctorName;
-      document.getElementById('profileDoctorCity').innerText = targetCity || 'National Clinical Partner';
-      document.getElementById('profileCityScope').innerText = targetCity || 'All Cities';
-      const modal = document.getElementById('profileModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeProfileModal() {
-      const modal = document.getElementById('profileModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    function switchDoctorProfile() {
-      closeProfileModal();
-      handleDoctorLogout();
-    }
-
-    // ============================================================
-    // DATE UTILITIES
-    // ============================================================
-    function getLocalDateKey(dateInput) {
-      const d = dateInput ? new Date(dateInput) : new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function initDates() { setDatePreset('ALL'); }
-
-    function setDatePreset(type) {
-      currentDateScope = type;
-      const today = new Date();
-      ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-        const el = document.getElementById(`btnDate${id}`);
-        if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-      });
-      if (type === 'TODAY') { document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; filterStartDate = getLocalDateKey(today); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Today"; document.getElementById('activeDateScopeTag').innerText = "Today"; }
-      else if (type === 'YESTERDAY') { document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const y = new Date(); y.setDate(y.getDate() - 1); filterStartDate = getLocalDateKey(y); filterEndDate = getLocalDateKey(y); document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday"; document.getElementById('activeDateScopeTag').innerText = "Yesterday"; }
-      else if (type === 'LAST7') { document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const last7 = new Date(); last7.setDate(last7.getDate() - 6); filterStartDate = getLocalDateKey(last7); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Last 7 Days"; document.getElementById('activeDateScopeTag').innerText = "Last 7 Days"; }
-      else if (type === 'MTD') { document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; const firstDay = new Date(today.getFullYear(), today.getMonth(), 1); filterStartDate = getLocalDateKey(firstDay); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Month to Date"; document.getElementById('activeDateScopeTag').innerText = "Month to Date"; }
-      else if (type === 'ALL') { document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-sky-600 text-white shadow-sm transition-all"; filterStartDate = null; filterEndDate = null; document.getElementById('dateScopeBadge').innerText = "Showing: All Time"; document.getElementById('activeDateScopeTag').innerText = "All Time"; }
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
-      applyAllFilters();
-    }
-
-    function onCustomDateSelected() {
-      const from = document.getElementById('calendarFromDate').value;
-      const to = document.getElementById('calendarToDate').value;
-      if (from && to) {
-        filterStartDate = from;
-        filterEndDate = to;
-        currentDateScope = "CUSTOM";
-        ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
-          const el = document.getElementById(`btnDate${id}`);
-          if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        });
-        document.getElementById('dateScopeBadge').innerText = `Showing Custom: ${from} to ${to}`;
-        document.getElementById('activeDateScopeTag').innerText = "Custom Window";
-        applyAllFilters();
+    function tryOpenNotifCenter() {
+      if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
+        window.notificationCenter.toggleDropdown();
+        return;
       }
+      console.warn('notificationCenter.toggleDropdown not available yet.');
     }
-
-    function renderStars(rating) { if (!rating) return ''; return '⭐'.repeat(rating); }
+    window.tryOpenNotifCenter = tryOpenNotifCenter;
 
     // ============================================================
-    // AUTH — LOOKUP, LOGOUT, SESSION
-    // ============================================================
-    function handleDoctorLookup(e) {
-      e.preventDefault();
-      const val = document.getElementById('lookupDrName').value.trim();
-      const cityVal = document.getElementById('lookupCity').value.trim();
-      if (!val) { document.getElementById('authErrorMsg').classList.remove('hidden'); return; }
-      targetDoctorName = val;
-      targetCity = cityVal || '';
-      sessionStorage.setItem('tt_current_doctor', targetDoctorName);
-      sessionStorage.setItem('tt_current_city', targetCity);
-      checkDoctorSession();
-    }
-
-    function handleDoctorLogout() {
-      sessionStorage.removeItem('tt_current_doctor');
-      sessionStorage.removeItem('tt_current_city');
-      targetDoctorName = '';
-      targetCity = '';
-      fuzzyMatchInfo = null;
-      checkDoctorSession();
-    }
-
-    function checkDoctorSession() {
-      if (targetDoctorName) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-        document.getElementById('topNavBar').classList.remove('hidden');
-        document.getElementById('doctorNameDisplay').innerText = targetDoctorName;
-        if (typeof NotificationCenter !== 'undefined') {
-          window.notificationCenter = new NotificationCenter({
-            userId: targetDoctorName,
-            userRole: 'doctor',
-            pollInterval: 30000,
-            badgeId: 'navNotifBadge'
-          });
-        }
-        initDates();
-        window.fetchDoctorOrders();
-      } else {
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
-        document.getElementById('topNavBar').classList.add('hidden');
-      }
-    }
-
-    // ============================================================
-    // FUZZY-MATCH DOCTOR ORDER FETCH
+    // FETCH ORDERS (fuzzy match)
     // ============================================================
     window.fetchDoctorOrders = async function() {
       if (!targetDoctorName) return;
 
-      // Fetch ALL orders with a lightweight query, then fuzzy-filter client-side.
-      // This guarantees we find matches even when the input spelling differs.
       const { data: orders, error: orderErr } = await client
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (orderErr) {
-        console.error("Error loading doctor orders:", orderErr.message);
-        return;
-      }
+      if (orderErr) { console.error("Error loading doctor orders:", orderErr.message); return; }
 
       const rawOrders = orders || [];
 
-      // Find all orders whose doctor name fuzzy-matches the target
       const matchedOrders = rawOrders.filter(o => {
         if (!o.doctor_name) return false;
-
-        // Step 1: name token match
         const nameOK = isSameDoctorName(targetDoctorName, o.doctor_name);
         if (!nameOK) return false;
-
-        // Step 2: city filter (only if user provided one)
         if (targetCity && targetCity.toLowerCase() !== 'all') {
           if (!cityMatches(targetCity, o.city)) return false;
         }
@@ -594,7 +1003,6 @@
 
       allOrders = matchedOrders;
 
-      // Build a small note about how many spelling variants were merged
       const distinctNames = [...new Set(matchedOrders.map(o => (o.doctor_name || '').trim()))];
       const distinctCities = [...new Set(matchedOrders.map(o => (o.city || '').trim()))];
       fuzzyMatchInfo = {
@@ -607,10 +1015,7 @@
 
       if (allOrders.length > 0) {
         const orderIds = allOrders.map(o => o.id);
-        const { data: feedbacks } = await client
-          .from('feedback')
-          .select('*')
-          .in('order_id', orderIds);
+        const { data: feedbacks } = await client.from('feedback').select('*').in('order_id', orderIds);
         feedbackMap = {};
         (feedbacks || []).forEach(f => { feedbackMap[f.order_id] = f; });
       } else {
@@ -623,12 +1028,7 @@
     function renderFuzzyMatchNote() {
       const note = document.getElementById('fuzzyMatchNote');
       if (!note || !fuzzyMatchInfo) { if (note) note.classList.add('hidden'); return; }
-
-      if (fuzzyMatchInfo.orderCount === 0) {
-        note.classList.add('hidden');
-        return;
-      }
-
+      if (fuzzyMatchInfo.orderCount === 0) { note.classList.add('hidden'); return; }
       let msg = '';
       if (fuzzyMatchInfo.variantCount > 1) {
         msg = `📋 Showing ${fuzzyMatchInfo.orderCount} order${fuzzyMatchInfo.orderCount > 1 ? 's' : ''} matching ${fuzzyMatchInfo.variantCount} spelling variation${fuzzyMatchInfo.variantCount > 1 ? 's' : ''} of your name:`;
@@ -637,31 +1037,28 @@
       } else {
         msg = `📋 Showing ${fuzzyMatchInfo.orderCount} order${fuzzyMatchInfo.orderCount > 1 ? 's' : ''} matched to your profile.`;
       }
-      if (fuzzyMatchInfo.cityCount > 1) {
-        msg += ` (Across ${fuzzyMatchInfo.cityCount} cities)`;
-      }
+      if (fuzzyMatchInfo.cityCount > 1) msg += ` (Across ${fuzzyMatchInfo.cityCount} cities)`;
       note.innerText = msg;
       note.classList.remove('hidden');
     }
 
-        function renderTimelinePreview() {
+    // ============================================================
+    // TIMELINE PREVIEW
+    // ============================================================
+    function renderTimelinePreview() {
       const previewEl = document.getElementById('timelinePatientPreview');
       const countEl = document.getElementById('timelineCountBadge');
       if (!previewEl || !countEl) return;
-
       countEl.innerText = `${activeFilteredOrders.length} Patient${activeFilteredOrders.length !== 1 ? 's' : ''}`;
-
       if (activeFilteredOrders.length === 0) {
         previewEl.innerHTML = '<div class="text-slate-400 dark:text-slate-500 py-3 text-center text-xs italic">No patient records in this window.</div>';
         return;
       }
-
       previewEl.innerHTML = activeFilteredOrders.slice(0, 5).map(order => {
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isCancelled = order.status === 'Cancelled';
         const isDispatched = order.status === 'Dispatched';
         const pill = isCancelled ? '❌ Cancelled' : (isDelivered ? '✅ Delivered' : (isDispatched ? '🚚 Dispatched' : '📦 ' + (order.status || 'New')));
-
         return `
           <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <div class="min-w-0 flex-1">
@@ -669,19 +1066,18 @@
               <div class="text-[10px] font-mono text-slate-400 mt-0.5">${order.order_id || ''} · ${new Date(order.created_at).toLocaleDateString()}</div>
             </div>
             <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${isCancelled ? 'bg-rose-500/10 text-rose-600' : (isDelivered ? 'bg-emerald-500/10 text-emerald-600' : (isDispatched ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200 dark:bg-slate-800 text-sky-600 dark:text-sky-400'))} flex-shrink-0">${pill}</span>
-          </div>
-        `;
+          </div>`;
       }).join('');
-
       if (activeFilteredOrders.length > 5) {
         previewEl.innerHTML += `<div class="text-[10px] text-center text-slate-500 pt-1">+ ${activeFilteredOrders.length - 5} more in Patient Feed</div>`;
       }
     }
+    window.renderTimelinePreview = renderTimelinePreview;
 
     // ============================================================
     // FILTERS + RENDER
     // ============================================================
-        function applyAllFilters() {
+    function applyAllFilters() {
       const statusFilter = document.getElementById('statusFilterSelect')?.value || 'ALL';
       const searchTerm = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
       const matchedOrders = allOrders.filter(o => {
@@ -716,8 +1112,7 @@
     }
 
     function updateDailyChart(ordersToGraph) {
-      const daysCount = {};
-      const datesList = [];
+      const daysCount = {}; const datesList = [];
       for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const key = getLocalDateKey(d); daysCount[key] = 0; datesList.push(key); }
       (ordersToGraph || []).forEach(o => { const orderDate = getLocalDateKey(o.created_at); if (daysCount[orderDate] !== undefined) daysCount[orderDate]++; });
       const labels = datesList.map(dateStr => { const parts = dateStr.split('-'); return `${parts[2]}/${parts[1]}`; });
@@ -793,22 +1188,20 @@
         }
       } catch (err) { alert("Error: " + err.message); }
     }
+    window.registerDoctorMobilePush = registerDoctorMobilePush;
 
     // ============================================================
-    // AUTOCOMPLETE WIRING (input listeners)
+    // AUTOCOMPLETE WIRING
     // ============================================================
     function wireAutocomplete() {
-      const drInput = document.getElementById('lookupDrName');
-      const cityInput = document.getElementById('lookupCity');
+      const drInput = document.getElementById('signupDrName');
+      const cityInput = document.getElementById('signupCity');
       const drBox = document.getElementById('drNameSuggestions');
       const cityBox = document.getElementById('citySuggestions');
+      if (!drInput || !cityInput) return;
 
-      drInput.addEventListener('input', () => {
-        showDrNameSuggestions(drInput.value);
-      });
-      drInput.addEventListener('focus', () => {
-        if (drInput.value) showDrNameSuggestions(drInput.value);
-      });
+      drInput.addEventListener('input', () => showDrNameSuggestions(drInput.value));
+      drInput.addEventListener('focus', () => { if (drInput.value) showDrNameSuggestions(drInput.value); });
 
       cityInput.addEventListener('input', () => {
         const q = cityInput.value.toLowerCase().trim();
@@ -817,36 +1210,27 @@
         const matches = cities.filter(c => c.toLowerCase().includes(q));
         if (matches.length === 0) { cityBox.classList.add('hidden'); return; }
         cityBox.innerHTML = matches.slice(0, 10).map(c => `
-          <div onclick="document.getElementById('lookupCity').value='${c.replace(/'/g, "\\'")}'; document.getElementById('citySuggestions').classList.add('hidden');"
+          <div onclick="document.getElementById('signupCity').value='${c.replace(/'/g, "\\'")}'; document.getElementById('citySuggestions').classList.add('hidden');"
                class="px-4 py-2 hover:bg-sky-50 dark:hover:bg-sky-950/40 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-xs font-semibold text-slate-800 dark:text-slate-200">${c}</div>
         `).join('');
         cityBox.classList.remove('hidden');
       });
 
-      // Close dropdowns when clicking outside
       document.addEventListener('click', (e) => {
         if (!drInput.contains(e.target) && !drBox.contains(e.target)) drBox.classList.add('hidden');
         if (!cityInput.contains(e.target) && !cityBox.contains(e.target)) cityBox.classList.add('hidden');
       });
     }
 
-    window.switchTab = switchTab;
-    window.setDatePreset = setDatePreset;
-    window.onCustomDateSelected = onCustomDateSelected;
-    window.handleDoctorLookup = handleDoctorLookup;
-    window.handleDoctorLogout = handleDoctorLogout;
-    window.openProfileModal = openProfileModal;
-    window.closeProfileModal = closeProfileModal;
-    window.switchDoctorProfile = switchDoctorProfile;
-    window.registerDoctorMobilePush = registerDoctorMobilePush;
-    window.pickDoctorSuggestion = pickDoctorSuggestion;
     window.toggleTheme = toggleTheme || function() { document.documentElement.classList.toggle('dark'); };
 
-    // Boot
+    // ============================================================
+    // BOOT
+    // ============================================================
     (async () => {
       await loadDoctorSuggestions();
       wireAutocomplete();
-      checkDoctorSession();
+      await checkDoctorSession();
     })();
     if (typeof checkGlobalBroadcast === 'function') checkGlobalBroadcast('doctor');
   </script>
