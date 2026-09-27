@@ -44,30 +44,94 @@
     </div>
   </nav>
 
-  <!-- AUTH SCREEN -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+  <!-- AUTH SCREEN — SINGLE PAGE WITH DUAL MODES -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative my-8">
       <div class="flex items-center justify-between">
         <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">🏠 Home</a>
         <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><span class="theme-icon">🌙</span></button>
       </div>
-      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">⚡</div>
-      <div>
-        <h2 class="text-xl font-black text-slate-900 dark:text-white">MDS Partner Portal</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="authSubtitle">Enter Partner Name and Password (Default: admin123)</p>
+
+      <!-- ==================== MODE 1: LOGIN (default) ==================== -->
+      <div id="authView-login" class="space-y-5">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">⚡</div>
+        <div>
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">MDS Partner Portal</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Partner Name + Password</p>
+        </div>
+
+        <form onsubmit="handlePasswordLogin(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
+            <input type="text" id="loginPartnerName" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
+            <input type="password" id="loginPassword" placeholder="Enter password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <button type="submit" id="loginBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Partner Queue</button>
+        </form>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="showAuthView('setup')" class="text-xs text-teal-600 dark:text-teal-400 font-bold hover:underline">First time setup? →</button>
+        </div>
       </div>
 
-      <form id="authForm" onsubmit="handlePartnerAuth(event)" class="space-y-4 text-left">
+      <!-- ==================== MODE 2: FIRST-TIME SETUP ==================== -->
+      <div id="authView-setup" class="space-y-5 hidden">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">📧</div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1">MDS Partner Name *</label>
-          <input type="text" id="partnerNameInput" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">First-Time Setup</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your partner name and registered email</p>
         </div>
+
+        <form onsubmit="handleSendOtp(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
+            <input type="text" id="setupPartnerName" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Registered Email *</label>
+            <input type="email" id="setupEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <button type="submit" id="sendOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Verification Code</button>
+        </form>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="showAuthView('login')" class="text-xs text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Back to Login</button>
+        </div>
+      </div>
+
+      <!-- ==================== MODE 3: OTP + SET PASSWORD ==================== -->
+      <div id="authView-otp" class="space-y-5 hidden">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">🔐</div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-500 mb-1" id="passLabel">Password</label>
-          <input type="password" id="authPassword" placeholder="Enter password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">Verify & Set Password</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Code sent to <span id="otpEmailDisplay" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
         </div>
-        <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Partner Queue</button>
-      </form>
+
+        <form onsubmit="handleVerifyOtp(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Verification Code *</label>
+            <input type="text" id="otpCode" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label>
+            <input type="password" id="newPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm Password *</label>
+            <input type="password" id="confirmPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+          </div>
+          <button type="submit" id="verifyOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Verify & Save Password</button>
+        </form>
+
+        <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="resendOtp()" class="text-teal-600 dark:text-teal-400 font-bold hover:underline">Resend Code</button>
+          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change email</button>
+        </div>
+      </div>
+
       <p id="authErrorMsg" class="text-xs text-rose-500 font-medium hidden"></p>
     </div>
   </div>
@@ -91,9 +155,8 @@
   </div>
 
   <!-- MAIN CONTENT -->
-  <div class="max-w-7xl mx-auto space-y-6">
+  <div id="dashboardContent" class="max-w-7xl mx-auto space-y-6 hidden">
 
-    <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm">
       <div>
         <div class="flex items-center gap-2">
@@ -106,7 +169,6 @@
       </div>
     </div>
 
-    <!-- STATS GRID -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Orders</div>
@@ -130,7 +192,6 @@
       </div>
     </div>
 
-    <!-- TABS + FILTERS -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
         <button id="tabAll" onclick="setTabFilter('ALL')" class="py-2.5 rounded-xl bg-teal-600 text-white shadow-sm transition-all">All Records</button>
@@ -158,7 +219,6 @@
       </div>
     </div>
 
-    <!-- ORDERS GRID -->
     <div class="space-y-3">
       <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
         <span>⚡</span> Your Assigned Orders (<span id="filteredCount">0</span>)
@@ -219,6 +279,7 @@
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Partner Utilities</div>
         <button id="menuPushBtn" onclick="togglePushFromProfile()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
+        <button onclick="openChangePasswordModal(); closeProfileModal();" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔑</span> <span>Change Password</span></button>
         <button onclick="window.fetchMdsOrders(); closeProfileModal(); alert('✅ Orders refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Assigned Orders</span></button>
         <button onclick="toggleTheme()" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
         <button onclick="handleLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Secure Logout</span></button>
@@ -237,15 +298,11 @@
     let currentTab = 'ALL';
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mds_current_partner') || null;
-    let isFirstLoginSetup = false;
+    let pendingSetup = null;
 
     const TITRATION_MAP = {
-      '2.5mg': '5mg',
-      '5mg': '7.5mg',
-      '7.5mg': '10mg',
-      '10mg': '12.5mg',
-      '12.5mg': '15mg',
-      '15mg': '15mg (Maintenance)'
+      '2.5mg': '5mg', '5mg': '7.5mg', '7.5mg': '10mg',
+      '10mg': '12.5mg', '12.5mg': '15mg', '15mg': '15mg (Maintenance)'
     };
 
     function getNextTargetDose(dose) {
@@ -269,87 +326,247 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    function promptCancellation(id) {
-      pendingCancelOrderId = id;
-      document.getElementById('cancelReasonInput').value = '';
-      document.getElementById('cancelModal').classList.remove('hidden');
+    // ============================================================
+    // AUTH VIEW SWITCHER
+    // ============================================================
+    function showAuthView(view) {
+      ['login', 'setup', 'otp'].forEach(v => {
+        const el = document.getElementById('authView-' + v);
+        if (el) el.classList.toggle('hidden', v !== view);
+      });
+      document.getElementById('authErrorMsg').classList.add('hidden');
     }
-    function closeCancelModal() {
-      document.getElementById('cancelModal').classList.add('hidden');
-      pendingCancelOrderId = null;
+    window.showAuthView = showAuthView;
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authErrorMsg');
+      el.innerText = msg;
+      el.classList.remove('hidden');
     }
-    window.promptCancellation = promptCancellation;
-    window.closeCancelModal = closeCancelModal;
 
-    async function submitOrderCancellation() {
-      const reason = document.getElementById('cancelReasonInput').value.trim();
-      if (!reason) {
-        alert("Please enter a reason for cancellation.");
-        return;
-      }
-      if (!pendingCancelOrderId) return;
-
-      await client.from('orders').update({
-        status: 'Cancelled',
-        cancellation_reason: reason
-      }).eq('id', pendingCancelOrderId);
-
-      closeCancelModal();
-      window.fetchMdsOrders();
+    function setBtnLoading(btnId, loading, labelWhenIdle) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.innerText = loading ? '⏳ Please wait...' : labelWhenIdle;
     }
-    window.submitOrderCancellation = submitOrderCancellation;
 
     // ============================================================
-    // AUTH
+    // PASSWORD LOGIN (already setup)
     // ============================================================
-    async function handlePartnerAuth(e) {
+    async function handlePasswordLogin(e) {
       e.preventDefault();
-      const err = document.getElementById('authErrorMsg');
-      err.classList.add('hidden');
+      const name = document.getElementById('loginPartnerName').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+      if (!name || !pass) return;
 
-      const partnerName = document.getElementById('partnerNameInput').value.trim();
-      const pass = document.getElementById('authPassword').value.trim();
-      const portalKey = `mds_${partnerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-
+      setBtnLoading('loginBtn', true, 'Unlock Partner Queue');
       try {
-        let { data } = await client.from('portal_auth').select('*').eq('portal_key', portalKey).single();
-        if (!data) {
-          await client.from('portal_auth').insert([{ portal_key: portalKey, password: 'admin123', is_default: true }]);
-          data = { password: 'admin123', is_default: true };
-        }
-        if (isFirstLoginSetup) {
-          await client.from('portal_auth').update({ password: pass, is_default: false }).eq('portal_key', portalKey);
-          alert(`✅ Secure password set for ${partnerName}!`);
-          sessionStorage.setItem('mds_current_partner', partnerName);
-          currentPartner = partnerName;
-          unlockPortal();
+        // Look up partner by name to get the auth email
+        const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const { data: profile, error: findErr } = await client
+          .from('mds_profiles')
+          .select('*')
+          .eq('portal_key', portal_key)
+          .maybeSingle();
+
+        if (findErr || !profile) {
+          showAuthError('Partner not found. Please check your partner name or sign up.');
           return;
         }
-        if (pass === data.password) {
-          if (data.is_default) {
-            isFirstLoginSetup = true;
-            document.getElementById('authSubtitle').innerText = `Security Notice: Set a new password for ${partnerName}.`;
-            document.getElementById('passLabel').innerText = "Set New Secure Password";
-            document.getElementById('authPassword').value = '';
-            document.getElementById('authSubmitBtn').innerText = "Save & Unlock Hub";
-            document.getElementById('partnerNameInput').disabled = true;
-            return;
-          }
-          sessionStorage.setItem('mds_current_partner', partnerName);
-          currentPartner = partnerName;
-          unlockPortal();
-        } else {
-          throw new Error("Invalid password for this partner. (Default is admin123)");
+        if (!profile.email) {
+          showAuthError('This partner has no registered email. Please contact admin.');
+          return;
         }
-      } catch (ex) {
-        err.innerText = ex.message;
-        err.classList.remove('hidden');
+
+        // Sign in with Supabase Auth using the partner's registered email
+        const { data: authData, error: signInErr } = await client.auth.signInWithPassword({
+          email: profile.email,
+          password: pass
+        });
+
+        if (signInErr) {
+          showAuthError('Incorrect password. Please try again or contact admin.');
+          return;
+        }
+
+        currentPartner = name;
+        sessionStorage.setItem('mds_current_partner', name);
+        unlockPortal();
+      } catch (err) {
+        console.error('Login error:', err);
+        showAuthError(err.message || 'Login failed.');
+      } finally {
+        setBtnLoading('loginBtn', false, 'Unlock Partner Queue');
       }
     }
-    window.handlePartnerAuth = handlePartnerAuth;
+    window.handlePasswordLogin = handlePasswordLogin;
+
+    // ============================================================
+    // SEND OTP (first-time setup)
+    // ============================================================
+    async function handleSendOtp(e) {
+      e.preventDefault();
+      const name = document.getElementById('setupPartnerName').value.trim();
+      const email = document.getElementById('setupEmail').value.trim().toLowerCase();
+      if (!name || !email) return;
+
+      setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
+      try {
+        // Check partner exists
+        const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const { data: profile, error: findErr } = await client
+          .from('mds_profiles')
+          .select('*')
+          .eq('portal_key', portal_key)
+          .maybeSingle();
+
+        if (findErr || !profile) {
+          showAuthError('Partner not found. Please contact admin to register your account.');
+          return;
+        }
+
+        // Verify email matches the registered email
+        if (profile.email && profile.email.toLowerCase() !== email) {
+          showAuthError('Email does not match our records. Please use the email registered by admin.');
+          return;
+        }
+
+        // If no email on file, save the entered email
+        if (!profile.email) {
+          await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
+        }
+
+        // Send OTP via Supabase Auth
+        const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
+          email: email,
+          options: { shouldCreateUser: false }
+        });
+
+        if (otpErr) {
+          console.error('OTP error:', otpErr);
+          showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
+          return;
+        }
+
+        if (!otpData || !otpData.user) {
+          // Silent null — usually means the auth user doesn't exist
+          showAuthError('Could not find your auth account. Please contact admin to re-register your partner account.');
+          return;
+        }
+
+        pendingSetup = { name, email, portal_key };
+        document.getElementById('otpEmailDisplay').innerText = email;
+        document.getElementById('otpCode').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        showAuthView('otp');
+      } catch (err) {
+        console.error('Send OTP error:', err);
+        showAuthError(err.message || 'Could not send OTP.');
+      } finally {
+        setBtnLoading('sendOtpBtn', false, 'Send Verification Code');
+      }
+    }
+    window.handleSendOtp = handleSendOtp;
+
+    async function resendOtp() {
+      if (!pendingSetup) { showAuthView('setup'); return; }
+      try {
+        const { error } = await client.auth.signInWithOtp({
+          email: pendingSetup.email,
+          options: { shouldCreateUser: false }
+        });
+        if (error) throw error;
+        alert('✅ New code sent to ' + pendingSetup.email);
+      } catch (err) {
+        showAuthError(err.message || 'Could not resend.');
+      }
+    }
+    window.resendOtp = resendOtp;
+
+    // ============================================================
+    // VERIFY OTP + SET PASSWORD
+    // ============================================================
+    async function handleVerifyOtp(e) {
+      e.preventDefault();
+      if (!pendingSetup) { showAuthView('setup'); return; }
+
+      const code = document.getElementById('otpCode').value.trim();
+      const newPwd = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+
+      if (!/^\d{6}$/.test(code)) { showAuthError('Please enter the 6-digit code.'); return; }
+      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
+
+      setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
+      try {
+        const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
+          email: pendingSetup.email,
+          token: code,
+          type: 'email'
+        });
+
+        if (verifyErr) throw verifyErr;
+
+        // Update password for the logged-in user
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+        if (updateErr) throw updateErr;
+
+        // Mark as verified in mds_profiles
+        await client.from('mds_profiles')
+          .update({ is_verified: true })
+          .eq('portal_key', pendingSetup.portal_key);
+
+        currentPartner = pendingSetup.name;
+        sessionStorage.setItem('mds_current_partner', currentPartner);
+        pendingSetup = null;
+        unlockPortal();
+      } catch (err) {
+        console.error('Verify error:', err);
+        showAuthError(err.message || 'Invalid or expired code. Please try again.');
+      } finally {
+        setBtnLoading('verifyOtpBtn', false, 'Verify & Save Password');
+      }
+    }
+    window.handleVerifyOtp = handleVerifyOtp;
+
+    // ============================================================
+    // SESSION
+    // ============================================================
+    async function checkSession() {
+      try {
+        const { data: { session } } = await client.auth.getSession();
+        if (session && session.user) {
+          // Find partner by user_id
+          const { data: profile } = await client
+            .from('mds_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            currentPartner = profile.partner_name;
+            sessionStorage.setItem('mds_current_partner', currentPartner);
+            unlockPortal();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Session restore error:', err);
+      }
+
+      // No session → show login
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('dashboardContent').classList.add('hidden');
+      document.getElementById('topNavBar').classList.add('hidden');
+      showAuthView('login');
+    }
 
     function unlockPortal() {
       document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('dashboardContent').classList.remove('hidden');
       document.getElementById('topNavBar').classList.remove('hidden');
       document.getElementById('headerPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerName').innerText = currentPartner;
@@ -365,12 +582,14 @@
       window.fetchMdsOrders();
     }
 
-    function handleLogout() {
+    async function handleLogout() {
       if (typeof closeProfileModal === 'function') closeProfileModal();
       if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
       if (typeof closeCancelModal === 'function') closeCancelModal();
+      try { await client.auth.signOut(); } catch (e) {}
       sessionStorage.removeItem('mds_current_partner');
-      location.reload();
+      currentPartner = null;
+      checkSession();
     }
     window.handleLogout = handleLogout;
 
@@ -381,7 +600,6 @@
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
 
-      // Reflect TRUE push subscription state from DB
       const pushBtn = document.getElementById('menuPushBtn');
       const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
       if (pushBtn && sapId) {
@@ -442,19 +660,25 @@
       e.preventDefault();
       const err = document.getElementById('cpError');
       err.classList.add('hidden');
-      const currentPwd = document.getElementById('cpCurrent').value.trim();
-      const newPwd = document.getElementById('cpNew').value.trim();
-      const confirmPwd = document.getElementById('cpConfirm').value.trim();
+      const currentPwd = document.getElementById('cpCurrent').value;
+      const newPwd = document.getElementById('cpNew').value;
+      const confirmPwd = document.getElementById('cpConfirm').value;
 
       if (newPwd.length < 6) { err.innerText = 'New password must be at least 6 characters.'; err.classList.remove('hidden'); return; }
       if (newPwd !== confirmPwd) { err.innerText = 'New passwords do not match.'; err.classList.remove('hidden'); return; }
 
       try {
-        const portalKey = `mds_${currentPartner.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        const { data } = await client.from('portal_auth').select('password').eq('portal_key', portalKey).single();
-        if (!data || data.password !== currentPwd) throw new Error('Current password is incorrect.');
+        // Re-authenticate with current password
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) throw new Error('Session expired. Please log in again.');
 
-        const { error: updateErr } = await client.from('portal_auth').update({ password: newPwd, is_default: false }).eq('portal_key', portalKey);
+        const { error: verifyErr } = await client.auth.signInWithPassword({
+          email: user.email,
+          password: currentPwd
+        });
+        if (verifyErr) throw new Error('Current password is incorrect.');
+
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
         if (updateErr) throw updateErr;
 
         alert('✅ Password updated successfully!');
@@ -467,7 +691,7 @@
     window.submitPasswordChange = submitPasswordChange;
 
     // ============================================================
-    // PUSH NOTIFICATION TOGGLE
+    // PUSH TOGGLE
     // ============================================================
     async function enablePushFromProfile() {
       const btn = document.getElementById('menuPushBtn');
@@ -540,45 +764,7 @@
     window.togglePushFromProfile = togglePushFromProfile;
 
     // ============================================================
-    // FUZZY MATCHING (kept for future features / consistency)
-    // ============================================================
-    function normalizeName(name) {
-      return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
-    }
-
-    function levenshtein(a, b) {
-      if (!a) return b ? b.length : 0;
-      if (!b) return a.length;
-      a = String(a); b = String(b);
-      if (a === b) return 0;
-      const al = a.length, bl = b.length;
-      if (al === 0) return bl;
-      if (bl === 0) return al;
-      const prev = new Array(bl + 1);
-      const curr = new Array(bl + 1);
-      for (let j = 0; j <= bl; j++) prev[j] = j;
-      for (let i = 1; i <= al; i++) {
-        curr[0] = i;
-        for (let j = 1; j <= bl; j++) {
-          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-          curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
-        }
-        for (let j = 0; j <= bl; j++) prev[j] = curr[j];
-      }
-      return prev[bl];
-    }
-
-    function similarity(a, b) {
-      if (!a || !b) return 0;
-      a = String(a); b = String(b);
-      const maxLen = Math.max(a.length, b.length);
-      if (maxLen === 0) return 1;
-      const dist = levenshtein(a, b);
-      return 1 - (dist / maxLen);
-    }
-
-    // ============================================================
-    // FETCH ORDERS
+    // ORDER FETCH + RENDER
     // ============================================================
     window.fetchMdsOrders = async function() {
       if (!currentPartner) return;
@@ -590,7 +776,7 @@
         .ilike('mds_provider', currentPartner.trim())
         .order('created_at', { ascending: false });
 
-      if (error) return;
+      if (error) { console.warn('Fetch orders error:', error); return; }
       allOrders = data || [];
       updateMetrics();
       renderOrders();
@@ -615,7 +801,8 @@
       ['tabAll', 'tabNew', 'tabDispatched', 'tabDelivered', 'tabCancelled'].forEach(id => {
         document.getElementById(id).className = "py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-white transition-all";
       });
-      document.getElementById(`tab${tab.charAt(0) + tab.slice(1).toLowerCase()}`).className = "py-2.5 rounded-xl bg-teal-600 text-white shadow-sm transition-all";
+      const map = { ALL: 'tabAll', NEW: 'tabNew', DISPATCHED: 'tabDispatched', DELIVERED: 'tabDelivered', CANCELLED: 'tabCancelled' };
+      document.getElementById(map[tab]).className = "py-2.5 rounded-xl bg-teal-600 text-white shadow-sm transition-all";
       renderOrders();
     }
     window.setTabFilter = setTabFilter;
@@ -637,19 +824,10 @@
         const today = new Date();
         filtered = filtered.filter(o => {
           const orderDate = new Date(o.created_at);
-          if (timeline === 'TODAY') {
-            return orderDate.toDateString() === today.toDateString();
-          } else if (timeline === 'YESTERDAY') {
-            const y = new Date();
-            y.setDate(today.getDate() - 1);
-            return orderDate.toDateString() === y.toDateString();
-          } else if (timeline === 'LAST7') {
-            const last7 = new Date();
-            last7.setDate(today.getDate() - 7);
-            return orderDate >= last7;
-          } else if (timeline === 'MTD') {
-            return orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
-          }
+          if (timeline === 'TODAY') return orderDate.toDateString() === today.toDateString();
+          if (timeline === 'YESTERDAY') { const y = new Date(); y.setDate(today.getDate() - 1); return orderDate.toDateString() === y.toDateString(); }
+          if (timeline === 'LAST7') { const last7 = new Date(); last7.setDate(today.getDate() - 7); return orderDate >= last7; }
+          if (timeline === 'MTD') return orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
           return true;
         });
       }
@@ -722,41 +900,25 @@
 
             <div class="grid grid-cols-3 gap-1.5 pt-1">
               ${isDispatched ? `
-                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800/80 text-amber-500 dark:text-amber-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-60 flex items-center justify-center gap-1">
-                  🚚 Out
-                </button>
+                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800/80 text-amber-500 dark:text-amber-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-60 flex items-center justify-center gap-1">🚚 Out</button>
               ` : (isDelivered || isCancelled) ? `
-                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">
-                  🚚 Out
-                </button>
+                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">🚚 Out</button>
               ` : `
-                <button onclick="updateStatus('${order.id}', 'Dispatched')" class="py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 font-bold rounded-xl text-[11px] transition-all">
-                  🚚 Out
-                </button>
+                <button onclick="updateStatus('${order.id}', 'Dispatched')" class="py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 font-bold rounded-xl text-[11px] transition-all">🚚 Out</button>
               `}
 
               ${isDelivered ? `
-                <button disabled class="py-2 bg-emerald-600/30 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl text-[11px] cursor-not-allowed flex items-center justify-center gap-1">
-                  ✅ Delivered
-                </button>
+                <button disabled class="py-2 bg-emerald-600/30 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl text-[11px] cursor-not-allowed flex items-center justify-center gap-1">✅ Delivered</button>
               ` : isCancelled ? `
-                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">
-                  ✅ Deliver
-                </button>
+                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">✅ Deliver</button>
               ` : `
-                <button onclick="updateStatus('${order.id}', 'Delivered')" class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] transition-all shadow-sm">
-                  ✅ Deliver
-                </button>
+                <button onclick="updateStatus('${order.id}', 'Delivered')" class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[11px] transition-all shadow-sm">✅ Deliver</button>
               `}
 
               ${(isDelivered || isCancelled) ? `
-                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">
-                  ❌ Cancel
-                </button>
+                <button disabled class="py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl text-[11px] cursor-not-allowed opacity-40">❌ Cancel</button>
               ` : `
-                <button onclick="promptCancellation('${order.id}')" class="py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/20 font-bold rounded-xl text-[11px] transition-all">
-                  ❌ Cancel
-                </button>
+                <button onclick="promptCancellation('${order.id}')" class="py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/20 font-bold rounded-xl text-[11px] transition-all">❌ Cancel</button>
               `}
             </div>
           </div>
@@ -772,11 +934,40 @@
     window.updateStatus = updateStatus;
 
     // ============================================================
+    // CANCEL ORDER
+    // ============================================================
+    function promptCancellation(id) {
+      pendingCancelOrderId = id;
+      document.getElementById('cancelReasonInput').value = '';
+      document.getElementById('cancelModal').classList.remove('hidden');
+    }
+    window.promptCancellation = promptCancellation;
+
+    function closeCancelModal() {
+      document.getElementById('cancelModal').classList.add('hidden');
+      pendingCancelOrderId = null;
+    }
+    window.closeCancelModal = closeCancelModal;
+
+    async function submitOrderCancellation() {
+      const reason = document.getElementById('cancelReasonInput').value.trim();
+      if (!reason) { alert("Please enter a reason for cancellation."); return; }
+      if (!pendingCancelOrderId) return;
+
+      await client.from('orders').update({
+        status: 'Cancelled',
+        cancellation_reason: reason
+      }).eq('id', pendingCancelOrderId);
+
+      closeCancelModal();
+      window.fetchMdsOrders();
+    }
+    window.submitOrderCancellation = submitOrderCancellation;
+
+    // ============================================================
     // BOOT
     // ============================================================
-    if (currentPartner) {
-      unlockPortal();
-    }
+    checkSession();
   </script>
 </body>
 </html>
