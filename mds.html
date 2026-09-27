@@ -10,22 +10,48 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#020617">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/theme.js"></script>
   <script src="/broadcast.js"></script>
   <script src="/notification.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/notification-center.js"></script>
+  <script src="/notification-helper.js"></script>
+
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 pt-20 md:pt-20 transition-colors duration-200">
 
+  <!-- FIXED TOP NAVIGATION -->
+  <nav id="topNavBar" class="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-4 py-3 hidden">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <a href="/" class="flex items-center gap-2 select-none">
+        <span class="text-xl font-black italic tracking-tight text-[#0284c7] leading-none">Tirza<span class="text-slate-900 dark:text-white not-italic ml-0.5">Trim</span></span>
+        <span class="text-[10px] uppercase tracking-wider font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20 hidden sm:inline">MDS</span>
+      </a>
+      <div class="flex items-center gap-1.5">
+        <button onclick="window.fetchMdsOrders();" title="Refresh Orders" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"><span class="text-lg">🔄</span></button>
+        <button onclick="toggleTheme()" title="Toggle Theme" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"><span class="theme-icon text-lg">🌙</span></button>
+        <button onclick="tryOpenNotifCenter()" title="Notifications" class="relative w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"><span class="text-lg">🔔</span><span id="navNotifBadge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">0</span></button>
+        <button onclick="openProfileModal()" title="My Profile" class="relative w-10 h-10 rounded-full bg-white dark:bg-slate-800 border-2 border-teal-500/40 shadow-md flex items-center justify-center hover:ring-2 hover:ring-teal-500/50 transition-all overflow-hidden p-1">
+          <img src="/logo.png" alt="TirzaTrim" class="w-full h-full object-contain">
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600">⚡</div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative">
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold">🏠 Home</a>
+        <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><span class="theme-icon">🌙</span></button>
+      </div>
+      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">⚡</div>
       <div>
         <h2 class="text-xl font-black text-slate-900 dark:text-white">MDS Partner Portal</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="authSubtitle">Enter Partner Name and Password (Default: admin123)</p>
@@ -46,6 +72,7 @@
     </div>
   </div>
 
+  <!-- CANCEL ORDER MODAL -->
   <div id="cancelModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative">
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -63,38 +90,23 @@
     </div>
   </div>
 
-  <div id="sideMenuOverlay" onclick="closeSideMenu()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity"></div>
-  <aside id="sideMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
-    <div class="space-y-6">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div class="flex items-center gap-2"><span class="text-xl">⚙️</span><span class="font-black text-sm tracking-tight text-slate-900 dark:text-white">Partner Settings</span></div>
-        <button onclick="closeSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-sm">✕</button>
-      </div>
-      <div class="space-y-2">
-        <button onclick="window.fetchMdsOrders(); closeSideMenu();" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3"><span>🔄</span> Refresh Assigned Orders</button>
-        <button onclick="toggleTheme()" class="w-full px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3"><span class="theme-icon text-base">🌙</span> Toggle Theme</button>
-      </div>
-    </div>
-    <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      <a href="/" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2">🏠 Back to Main Portal</a>
-      <button onclick="handleLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-2">🚪 Secure Logout</button>
-    </div>
-  </aside>
-
+  <!-- MAIN CONTENT -->
   <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-sm">
       <div>
         <div class="flex items-center gap-2">
-          <a href="/" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold mr-1">🏠 Home</a>
           <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight"><span id="headerPartnerName">MDS Partner</span> <span class="text-teal-600 dark:text-teal-400">Hub</span></h1>
         </div>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Exclusive fulfillment console for your assigned orders only</p>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="openSideMenu()" class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">☰</button>
+        <button onclick="openProfileModal()" title="Profile & Settings" class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">⚙️</button>
       </div>
     </div>
 
+    <!-- STATS GRID -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
         <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Orders</div>
@@ -118,6 +130,7 @@
       </div>
     </div>
 
+    <!-- TABS + FILTERS -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl text-xs font-semibold border border-slate-200 dark:border-slate-800">
         <button id="tabAll" onclick="setTabFilter('ALL')" class="py-2.5 rounded-xl bg-teal-600 text-white shadow-sm transition-all">All Records</button>
@@ -145,6 +158,7 @@
       </div>
     </div>
 
+    <!-- ORDERS GRID -->
     <div class="space-y-3">
       <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
         <span>⚡</span> Your Assigned Orders (<span id="filteredCount">0</span>)
@@ -155,11 +169,69 @@
     </div>
   </div>
 
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="changePwdModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">🔑 Change Partner Password</h3>
+        <button onclick="closeChangePasswordModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold">✕</button>
+      </div>
+      <form onsubmit="submitPasswordChange(event)" class="space-y-3 text-xs">
+        <div><label class="block font-semibold text-slate-500 mb-1">Current Password *</label><input type="password" id="cpCurrent" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
+        <div><label class="block font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label><input type="password" id="cpNew" required minlength="6" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
+        <div><label class="block font-semibold text-slate-500 mb-1">Confirm New Password *</label><input type="password" id="cpConfirm" required minlength="6" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
+        <p id="cpError" class="text-xs text-rose-500 font-medium hidden"></p>
+        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">Update Password</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">⚡ MDS Partner Profile</h3>
+        <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold">✕</button>
+      </div>
+
+      <div class="flex flex-col items-center gap-3 pb-2">
+        <div class="w-28 h-28 rounded-3xl bg-white dark:bg-slate-800 border-2 border-teal-500/30 shadow-lg flex items-center justify-center p-3">
+          <img src="/logo.png" alt="TirzaTrim MDS" class="w-full h-full object-contain">
+        </div>
+        <div class="text-center space-y-2">
+          <div id="profPartnerName" class="text-lg font-black text-slate-900 dark:text-white">MDS Partner</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">Same-Day Fulfillment Provider</div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-teal-600 dark:text-teal-400">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">Verified Partner</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Session Info</div>
+        <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Role</span><span class="font-bold text-slate-800 dark:text-slate-200">MDS Partner</span></div>
+        <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Portal</span><span class="font-bold text-teal-600 dark:text-teal-400">Fulfillment Console</span></div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Partner Utilities</div>
+        <button id="menuPushBtn" onclick="togglePushFromProfile()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
+        <button onclick="window.fetchMdsOrders(); closeProfileModal(); alert('✅ Orders refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Assigned Orders</span></button>
+        <button onclick="toggleTheme()" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
+        <button onclick="handleLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Secure Logout</span></button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = window.supabaseClient;
 
     let allOrders = [];
     let currentTab = 'ALL';
@@ -181,8 +253,21 @@
       return TITRATION_MAP[dose.trim()] || '5mg';
     }
 
-    function openSideMenu() { document.getElementById('sideMenuOverlay').classList.remove('hidden'); document.getElementById('sideMenuDrawer').classList.remove('translate-x-full'); }
-    function closeSideMenu() { document.getElementById('sideMenuOverlay').classList.add('hidden'); document.getElementById('sideMenuDrawer').classList.add('translate-x-full'); }
+    function tryOpenNotifCenter() {
+      if (window.notificationCenter && typeof window.notificationCenter.toggleDropdown === 'function') {
+        window.notificationCenter.toggleDropdown();
+        return;
+      }
+      console.warn('notificationCenter.toggleDropdown not available yet.');
+    }
+    window.tryOpenNotifCenter = tryOpenNotifCenter;
+
+    function getInitials(name) {
+      if (!name) return 'MD';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
 
     function promptCancellation(id) {
       pendingCancelOrderId = id;
@@ -193,6 +278,8 @@
       document.getElementById('cancelModal').classList.add('hidden');
       pendingCancelOrderId = null;
     }
+    window.promptCancellation = promptCancellation;
+    window.closeCancelModal = closeCancelModal;
 
     async function submitOrderCancellation() {
       const reason = document.getElementById('cancelReasonInput').value.trim();
@@ -202,20 +289,24 @@
       }
       if (!pendingCancelOrderId) return;
 
-      await client.from('orders').update({ 
-        status: 'Cancelled', 
-        cancellation_reason: reason 
+      await client.from('orders').update({
+        status: 'Cancelled',
+        cancellation_reason: reason
       }).eq('id', pendingCancelOrderId);
 
       closeCancelModal();
       window.fetchMdsOrders();
     }
+    window.submitOrderCancellation = submitOrderCancellation;
 
+    // ============================================================
+    // AUTH
+    // ============================================================
     async function handlePartnerAuth(e) {
       e.preventDefault();
       const err = document.getElementById('authErrorMsg');
       err.classList.add('hidden');
-      
+
       const partnerName = document.getElementById('partnerNameInput').value.trim();
       const pass = document.getElementById('authPassword').value.trim();
       const portalKey = `mds_${partnerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
@@ -255,18 +346,240 @@
         err.classList.remove('hidden');
       }
     }
+    window.handlePartnerAuth = handlePartnerAuth;
 
     function unlockPortal() {
       document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('topNavBar').classList.remove('hidden');
       document.getElementById('headerPartnerName').innerText = currentPartner;
+      document.getElementById('profPartnerName').innerText = currentPartner;
+
+      if (typeof NotificationCenter !== 'undefined') {
+        window.notificationCenter = new NotificationCenter({
+          userId: 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(),
+          userRole: 'mds',
+          pollInterval: 30000,
+          badgeId: 'navNotifBadge'
+        });
+      }
       window.fetchMdsOrders();
     }
 
     function handleLogout() {
+      if (typeof closeProfileModal === 'function') closeProfileModal();
+      if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
+      if (typeof closeCancelModal === 'function') closeCancelModal();
       sessionStorage.removeItem('mds_current_partner');
       location.reload();
     }
+    window.handleLogout = handleLogout;
 
+    // ============================================================
+    // PROFILE MODAL
+    // ============================================================
+    function openProfileModal() {
+      if (!currentPartner) return;
+      document.getElementById('profPartnerName').innerText = currentPartner;
+
+      // Reflect TRUE push subscription state from DB
+      const pushBtn = document.getElementById('menuPushBtn');
+      const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      if (pushBtn && sapId) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          pushBtn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+        }
+        client
+          .from('push_subscriptions')
+          .select('sap_id')
+          .eq('sap_id', sapId)
+          .maybeSingle()
+          .then(({ data }) => {
+            const btn = document.getElementById('menuPushBtn');
+            if (!btn) return;
+            if (data) {
+              btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+            } else {
+              btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>`;
+            }
+          });
+      }
+
+      const modal = document.getElementById('profileModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    window.openProfileModal = openProfileModal;
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    window.closeProfileModal = closeProfileModal;
+
+    // ============================================================
+    // CHANGE PASSWORD MODAL
+    // ============================================================
+    function openChangePasswordModal() {
+      const m = document.getElementById('changePwdModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      document.getElementById('cpCurrent').value = '';
+      document.getElementById('cpNew').value = '';
+      document.getElementById('cpConfirm').value = '';
+      document.getElementById('cpError').classList.add('hidden');
+    }
+    window.openChangePasswordModal = openChangePasswordModal;
+
+    function closeChangePasswordModal() {
+      const m = document.getElementById('changePwdModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+    window.closeChangePasswordModal = closeChangePasswordModal;
+
+    async function submitPasswordChange(e) {
+      e.preventDefault();
+      const err = document.getElementById('cpError');
+      err.classList.add('hidden');
+      const currentPwd = document.getElementById('cpCurrent').value.trim();
+      const newPwd = document.getElementById('cpNew').value.trim();
+      const confirmPwd = document.getElementById('cpConfirm').value.trim();
+
+      if (newPwd.length < 6) { err.innerText = 'New password must be at least 6 characters.'; err.classList.remove('hidden'); return; }
+      if (newPwd !== confirmPwd) { err.innerText = 'New passwords do not match.'; err.classList.remove('hidden'); return; }
+
+      try {
+        const portalKey = `mds_${currentPartner.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        const { data } = await client.from('portal_auth').select('password').eq('portal_key', portalKey).single();
+        if (!data || data.password !== currentPwd) throw new Error('Current password is incorrect.');
+
+        const { error: updateErr } = await client.from('portal_auth').update({ password: newPwd, is_default: false }).eq('portal_key', portalKey);
+        if (updateErr) throw updateErr;
+
+        alert('✅ Password updated successfully!');
+        closeChangePasswordModal();
+      } catch (ex) {
+        err.innerText = ex.message || 'Failed to update password.';
+        err.classList.remove('hidden');
+      }
+    }
+    window.submitPasswordChange = submitPasswordChange;
+
+    // ============================================================
+    // PUSH NOTIFICATION TOGGLE
+    // ============================================================
+    async function enablePushFromProfile() {
+      const btn = document.getElementById('menuPushBtn');
+      try {
+        if (!currentPartner) { alert('Please log in first.'); return; }
+        if (!('Notification' in window)) { alert("Push notifications are not supported on this browser."); return; }
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          alert('Push notifications require HTTPS and a modern browser.');
+          return;
+        }
+        if (Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') {
+            alert('⚠️ Notification permission was denied.\n\nTo enable: open your browser settings → Site Settings → Notifications → Allow.');
+            return;
+          }
+        }
+        if (Notification.permission === 'denied') {
+          alert('⚠️ Notifications are blocked for this site.\n\nFix: Browser Settings → Site Settings → Notifications → Allow for tirzatrim.vercel.app');
+          return;
+        }
+        const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+        if (typeof window.subscribeDeviceToPush === 'function') {
+          await window.subscribeDeviceToPush(sapId, 'mds', currentPartner);
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+          setTimeout(() => {
+            alert(`✅ Phone Linked!\n\nRole: MDS Partner\nPartner: ${currentPartner}`);
+          }, 800);
+        } else {
+          alert('⚠️ Push system not loaded. Please refresh the page and try again.');
+        }
+      } catch (err) {
+        console.error('Push enable error:', err);
+        alert('Failed: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    async function togglePushFromProfile() {
+      const btn = document.getElementById('menuPushBtn');
+      if (!btn) return;
+      const isActive = btn.innerHTML.includes('Phone Push Active');
+
+      if (isActive) {
+        const confirmRevoke = confirm(
+          'Disable phone push alerts for this device?\n\n' +
+          'You will stop receiving push notifications until you re-enable them.'
+        );
+        if (!confirmRevoke) return;
+
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await sub.unsubscribe();
+          }
+          const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+          await client.from('push_subscriptions').delete().eq('sap_id', sapId);
+          btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>`;
+          alert('✅ Push alerts disabled.\n\nYou can re-enable anytime from this screen.');
+        } catch (err) {
+          console.error('Revoke push error:', err);
+          alert('Failed to disable push: ' + (err.message || 'Unknown error'));
+        }
+        return;
+      }
+
+      await enablePushFromProfile();
+    }
+    window.enablePushFromProfile = enablePushFromProfile;
+    window.togglePushFromProfile = togglePushFromProfile;
+
+    // ============================================================
+    // FUZZY MATCHING (kept for future features / consistency)
+    // ============================================================
+    function normalizeName(name) {
+      return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function levenshtein(a, b) {
+      if (!a) return b ? b.length : 0;
+      if (!b) return a.length;
+      a = String(a); b = String(b);
+      if (a === b) return 0;
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      const prev = new Array(bl + 1);
+      const curr = new Array(bl + 1);
+      for (let j = 0; j <= bl; j++) prev[j] = j;
+      for (let i = 1; i <= al; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= bl; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= bl; j++) prev[j] = curr[j];
+      }
+      return prev[bl];
+    }
+
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      a = String(a); b = String(b);
+      const maxLen = Math.max(a.length, b.length);
+      if (maxLen === 0) return 1;
+      const dist = levenshtein(a, b);
+      return 1 - (dist / maxLen);
+    }
+
+    // ============================================================
+    // FETCH ORDERS
+    // ============================================================
     window.fetchMdsOrders = async function() {
       if (!currentPartner) return;
 
@@ -305,6 +618,7 @@
       document.getElementById(`tab${tab.charAt(0) + tab.slice(1).toLowerCase()}`).className = "py-2.5 rounded-xl bg-teal-600 text-white shadow-sm transition-all";
       renderOrders();
     }
+    window.setTabFilter = setTabFilter;
 
     function renderOrders() {
       const grid = document.getElementById('ordersGrid');
@@ -341,7 +655,7 @@
       }
 
       if (searchVal) {
-        filtered = filtered.filter(o => 
+        filtered = filtered.filter(o =>
           (o.patient_name || '').toLowerCase().includes(searchVal) ||
           (o.mobile || '').includes(searchVal) ||
           (o.order_id || '').toLowerCase().includes(searchVal) ||
@@ -449,12 +763,17 @@
         `;
       }).join('');
     }
+    window.renderOrders = renderOrders;
 
     async function updateStatus(id, status) {
       await client.from('orders').update({ status }).eq('id', id);
       window.fetchMdsOrders();
     }
+    window.updateStatus = updateStatus;
 
+    // ============================================================
+    // BOOT
+    // ============================================================
     if (currentPartner) {
       unlockPortal();
     }
