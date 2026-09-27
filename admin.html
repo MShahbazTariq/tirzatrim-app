@@ -1841,10 +1841,18 @@
     // 5-rule matcher: Exact / Substring / Shared tokens / Phonetic / Fuzzy
     // ============================================================
     function renderUntappedList() {
-      const container = document.getElementById('untappedListContainer');
-      if (!container) return;
-      const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
-      let baseDoctors = selectedRep === 'ALL' ? teamDoctorsData : teamDoctorsData.filter(doc => (doc['Territory ID'] || '') === selectedRep);
+  const container = document.getElementById('untappedListContainer');
+  if (!container) return;
+  const selectedRep = document.getElementById('untappedRepFilter')?.value || 'ALL';
+
+  // ← FIX: restrict to registered reps' territories (like HOS does)
+  const registeredRepCodes = registeredReps.map(r => (r.territory_code || '').toUpperCase());
+  let baseDoctors;
+  if (selectedRep === 'ALL') {
+    baseDoctors = teamDoctorsData.filter(doc => registeredRepCodes.includes((doc['Territory ID'] || '').toUpperCase()));
+  } else {
+    baseDoctors = teamDoctorsData.filter(doc => (doc['Territory ID'] || '').toUpperCase() === selectedRep.toUpperCase());
+  }
       const allDoctorNames = [...new Set(baseDoctors.map(doc => (doc['Doctor Name'] || '').trim()).filter(name => name && name.toLowerCase() !== 'undefined' && name !== ''))];
 
       const untappedDoctors = allDoctorNames.filter(doctorName => {
