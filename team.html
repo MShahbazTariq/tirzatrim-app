@@ -1934,7 +1934,7 @@
         const masterLast = masterTokens[masterTokens.length - 1] || '';
         const masterPhon = phoneticNameKey(doctorName);
 
-        const hasRecentOrder = activeFilteredOrders.some(o => {
+        const hasRecentOrder = rawOrders.some(o => {
           const orderNorm = normalizeName(o.doctor_name || '');
           if (!orderNorm) return false;
           const orderTokens = orderNorm.split(' ').filter(Boolean);
