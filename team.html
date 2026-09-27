@@ -1860,6 +1860,75 @@
     }
 
         // ============================================================
+    // FUZZY STRING SIMILARITY (Levenshtein-based)
+    // ============================================================
+    function levenshtein(a, b) {
+      if (!a) return b ? b.length : 0;
+      if (!b) return a.length;
+      a = String(a); b = String(b);
+      if (a === b) return 0;
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      const prev = new Array(bl + 1);
+      const curr = new Array(bl + 1);
+      for (let j = 0; j <= bl; j++) prev[j] = j;
+      for (let i = 1; i <= al; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= bl; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(
+            prev[j] + 1,        // deletion
+            curr[j - 1] + 1,    // insertion
+            prev[j - 1] + cost  // substitution
+          );
+        }
+        for (let j = 0; j <= bl; j++) prev[j] = curr[j];
+      }
+      return prev[bl];
+    }
+
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      a = String(a); b = String(b);
+      const maxLen = Math.max(a.length, b.length);
+      if (maxLen === 0) return 1;
+      const dist = levenshtein(a, b);
+      return 1 - (dist / maxLen);
+    }
+
+    function isFuzzyNameMatch(nameA, nameB) {
+      const normA = normalizeName(nameA);
+      const normB = normalizeName(nameB);
+      if (!normA || !normB) return false;
+
+      // If identical or one contains the other — always match
+      if (normA === normB) return true;
+      if (normA.includes(normB) || normB.includes(normA)) return true;
+
+      const tokensA = normA.split(' ').filter(Boolean);
+      const tokensB = normB.split(' ').filter(Boolean);
+      if (tokensA.length === 0 || tokensB.length === 0) return false;
+
+      const firstA = tokensA[0];
+      const firstB = tokensB[0];
+      const lastA = tokensA[tokensA.length - 1];
+      const lastB = tokensB[tokensB.length - 1];
+
+      // Fuzzy first name (>= 75% similar) AND fuzzy last name (>= 75% similar)
+      const firstSim = similarity(firstA, firstB);
+      const lastSim = similarity(lastA, lastB);
+
+      if (firstSim >= 0.75 && lastSim >= 0.75) return true;
+
+      // Fallback: overall full-name similarity >= 80%
+      const fullSim = similarity(normA, normB);
+      if (fullSim >= 0.80) return true;
+
+      return false;
+    }
+
+    // ============================================================
     // PHONETIC NAME MATCHING — collapses sound-alike variants
     // ============================================================
     function phoneticKey(word) {
@@ -1918,7 +1987,7 @@
       };
     }
 
-    function renderUntappedList() {
+        function renderUntappedList() {
       const container = document.getElementById('untappedListContainer');
       if (!container) return;
 
@@ -1956,6 +2025,9 @@
           if (masterPhon.first && orderPhon.first && masterPhon.last && orderPhon.last) {
             if (masterPhon.first === orderPhon.first && masterPhon.last === orderPhon.last) return true;
           }
+
+          // Rule 5 — FUZZY: character-level similarity (typos, transliterations)
+          if (isFuzzyNameMatch(doctorName, o.doctor_name || '')) return true;
 
           return false;
         });
