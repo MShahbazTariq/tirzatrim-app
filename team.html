@@ -2659,7 +2659,7 @@ setTimeout(() => {
       }
     }
 
-    // Globally expose
+        // Globally expose
     window.renderDoctorSummaryList = renderDoctorSummaryList;
     window.showDoctorPatients = showDoctorPatients;
     window.closeDoctorPatientPanel = closeDoctorPatientPanel;
@@ -2683,6 +2683,8 @@ setTimeout(() => {
     window.closeProfileModal = closeProfileModal;
     window.saveProfile = saveProfile;
     window.handleProfileAvatarUpload = handleProfileAvatarUpload;
+    window.enablePushFromProfile = enablePushFromProfile;
+    window.togglePushFromProfile = togglePushFromProfile;
 
     setInterval(() => {
       if (!currentRep) return;
