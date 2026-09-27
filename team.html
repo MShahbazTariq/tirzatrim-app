@@ -1223,7 +1223,11 @@
       }
     }
 
-    async function handleRepLogout() {
+        async function handleRepLogout() {
+      // Close any open modals first
+      if (typeof closeProfileModal === 'function') closeProfileModal();
+      if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
+
       await client.auth.signOut();
       if (realtimeChannel) { client.removeChannel(realtimeChannel); realtimeChannel = null; }
       if (repPollingInterval) { clearInterval(repPollingInterval); repPollingInterval = null; }
@@ -2426,7 +2430,7 @@
       }
     }
 
-    function openProfileModal() {
+        function openProfileModal() {
       if (!currentRep) return;
 
       document.getElementById('profFullName').value = currentRep.full_name || '';
@@ -2452,6 +2456,14 @@
         img.classList.add('hidden');
         initials.classList.remove('hidden');
         initials.innerText = getInitials(currentRep.full_name);
+      }
+
+      // ============================================================
+      // NEW: Reflect push subscription state in the button
+      // ============================================================
+      const pushBtn = document.getElementById('menuPushBtn');
+      if (pushBtn && 'Notification' in window && Notification.permission === 'granted') {
+        pushBtn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
       }
 
       const modal = document.getElementById('profileModal');
@@ -2491,9 +2503,11 @@
 
     if (typeof window.subscribeDeviceToPush === 'function') {
       await window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
-      setTimeout(() => {
-        alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${currentRep.sap_id}\nTerritory: ${currentRep.territory_code}\n\nYou will receive push alerts for your territory.`);
-      }, 800);
+const btn = document.getElementById('menuPushBtn');
+if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+setTimeout(() => {
+  alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${currentRep.sap_id}\nTerritory: ${currentRep.territory_code}\n\nYou'll receive push alerts for your territory.`);
+}, 800);
     } else {
       alert('⚠️ Push system not loaded. Please refresh the page and try again.');
     }
