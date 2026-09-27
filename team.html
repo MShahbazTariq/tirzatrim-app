@@ -1763,7 +1763,7 @@
       }
     }
 
-    function normalizeName(name) {
+        function normalizeName(name) {
       return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
     }
 
@@ -2059,7 +2059,7 @@
         const isDelivered = ['Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Feedback Submitted'].includes(order.status);
         const isDispatched = order.status === 'Dispatched' || order.status === 'Out for Delivery';
         const isCancelled = order.status === 'Cancelled';
-        const isTerminalStatus = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'].includes(order.status); // ← NEW
+        const isTerminalStatus = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'].includes(order.status);
 
         const isRouted = Boolean(order.fulfillment_channel);
         const isBeingEdited = Boolean(window._editingOrders[order.id]);
