@@ -1223,8 +1223,7 @@
       }
     }
 
-        async function handleRepLogout() {
-      // Close any open modals first
+    async function handleRepLogout() {
       if (typeof closeProfileModal === 'function') closeProfileModal();
       if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
 
@@ -1316,19 +1315,18 @@
     }
 
     function enableRoutingEdit(orderId, city) {
-  // Block editing for terminal statuses
-  const order = activeFilteredOrders.find(o => String(o.id) === String(orderId));
-  if (order) {
-    const blocked = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'];
-    if (blocked.includes(order.status)) {
-      alert('⚠️ This order has already been ' + order.status + '.\n\nRouting cannot be changed at this stage.');
-      return;
+      const order = activeFilteredOrders.find(o => String(o.id) === String(orderId));
+      if (order) {
+        const blocked = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'];
+        if (blocked.includes(order.status)) {
+          alert('⚠️ This order has already been ' + order.status + '.\n\nRouting cannot be changed at this stage.');
+          return;
+        }
+      }
+      window._activeRoutingInteractions = true;
+      window._editingOrders[orderId] = true;
+      renderCards();
     }
-  }
-  window._activeRoutingInteractions = true;
-  window._editingOrders[orderId] = true;
-  renderCards();
-}
 
     function cancelRoutingEdit(orderId) {
       delete window._editingOrders[orderId];
@@ -1338,14 +1336,13 @@
       renderCards();
     }
 
-        async function saveOrderRouting(orderId, city) {
+    async function saveOrderRouting(orderId, city) {
       const channelEl = document.querySelector(`input[name="channel-${orderId}"]:checked`);
       if (!channelEl) {
         alert("Please select a fulfillment channel (M&P Helpline or MDS Express).");
         return;
       }
 
-      // 🔒 Safety net — block routing changes on terminal-status orders
       const existingOrder = activeFilteredOrders.find(o => String(o.id) === String(orderId));
       if (existingOrder) {
         const blocked = ['Dispatched', 'Out for Delivery', 'Delivered', 'Patient Confirmed', 'Usage Guidance Completed', 'Completed', 'Cancelled', 'Feedback Submitted'];
@@ -1763,7 +1760,7 @@
       }
     }
 
-        function normalizeName(name) {
+    function normalizeName(name) {
       return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
     }
 
@@ -2430,7 +2427,7 @@
       }
     }
 
-        function openProfileModal() {
+    function openProfileModal() {
       if (!currentRep) return;
 
       document.getElementById('profFullName').value = currentRep.full_name || '';
@@ -2458,16 +2455,12 @@
         initials.innerText = getInitials(currentRep.full_name);
       }
 
-      // ============================================================
       // Reflect TRUE push subscription state from the database
-      // ============================================================
       const pushBtn = document.getElementById('menuPushBtn');
       if (pushBtn && currentRep && currentRep.sap_id) {
-        // Optimistic default: if permission granted, show Active briefly
         if ('Notification' in window && Notification.permission === 'granted') {
           pushBtn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
         }
-        // Then verify against DB (async — fixes state if it was revoked)
         client
           .from('push_subscriptions')
           .select('sap_id')
@@ -2484,58 +2477,63 @@
           });
       }
 
+      const modal = document.getElementById('profileModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.getElementById('profError').classList.add('hidden');
+    }
+
     async function enablePushFromProfile() {
-  try {
-    if (!currentRep || !currentRep.sap_id) {
-      alert('Please log in first.');
-      return;
-    }
+      try {
+        if (!currentRep || !currentRep.sap_id) {
+          alert('Please log in first.');
+          return;
+        }
 
-    if (!('Notification' in window)) {
-      alert('Push notifications are not supported on this browser.');
-      return;
-    }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      alert('Push notifications require HTTPS and a modern browser.');
-      return;
-    }
+        if (!('Notification' in window)) {
+          alert('Push notifications are not supported on this browser.');
+          return;
+        }
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          alert('Push notifications require HTTPS and a modern browser.');
+          return;
+        }
 
-    if (Notification.permission === 'default') {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') {
-        alert('⚠️ Notification permission was denied.\n\nTo enable: open your browser settings → Site Settings → Notifications → Allow.');
-        return;
+        if (Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') {
+            alert('⚠️ Notification permission was denied.\n\nTo enable: open your browser settings → Site Settings → Notifications → Allow.');
+            return;
+          }
+        }
+        if (Notification.permission === 'denied') {
+          alert('⚠️ Notifications are blocked for this site.\n\nFix: Browser Settings → Site Settings → Notifications → Allow for tirzatrim.vercel.app');
+          return;
+        }
+
+        if (typeof window.subscribeDeviceToPush === 'function') {
+          await window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
+          const btn = document.getElementById('menuPushBtn');
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+          setTimeout(() => {
+            alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${currentRep.sap_id}\nTerritory: ${currentRep.territory_code}\n\nYou'll receive push alerts for your territory.`);
+          }, 800);
+        } else {
+          alert('⚠️ Push system not loaded. Please refresh the page and try again.');
+        }
+      } catch (err) {
+        console.error('Push enable error:', err);
+        alert('Failed: ' + (err.message || 'Unknown error'));
       }
     }
-    if (Notification.permission === 'denied') {
-      alert('⚠️ Notifications are blocked for this site.\n\nFix: Browser Settings → Site Settings → Notifications → Allow for tirzatrim.vercel.app');
-      return;
-    }
 
-    if (typeof window.subscribeDeviceToPush === 'function') {
-      await window.subscribeDeviceToPush(currentRep.sap_id, 'rep', currentRep.territory_code);
-const btn = document.getElementById('menuPushBtn');
-if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
-setTimeout(() => {
-  alert(`✅ Phone Linked!\n\nRole: Field Rep\nSAP ID: ${currentRep.sap_id}\nTerritory: ${currentRep.territory_code}\n\nYou'll receive push alerts for your territory.`);
-}, 800);
-    } else {
-      alert('⚠️ Push system not loaded. Please refresh the page and try again.');
-    }
-  } catch (err) {
-    console.error('Push enable error:', err);
-    alert('Failed: ' + (err.message || 'Unknown error'));
-  }
-}
-        async function togglePushFromProfile() {
+    async function togglePushFromProfile() {
       const btn = document.getElementById('menuPushBtn');
       if (!btn) return;
 
       const isActive = btn.innerHTML.includes('Phone Push Active');
 
-      // ============================================================
-      // REVOKE FLOW — button is currently showing "Phone Push Active"
-      // ============================================================
       if (isActive) {
         const confirmRevoke = confirm(
           'Disable phone push alerts for this device?\n\n' +
@@ -2544,22 +2542,18 @@ setTimeout(() => {
         if (!confirmRevoke) return;
 
         try {
-          // 1. Unsubscribe from the browser's PushManager
           if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.getSubscription();
             if (sub) await sub.unsubscribe();
           }
 
-          // 2. Delete the subscription row from the DB
           await client
             .from('push_subscriptions')
             .delete()
             .eq('sap_id', currentRep.sap_id);
 
-          // 3. Reset button UI to "Enable" state
           btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>`;
-
           alert('✅ Push alerts disabled.\n\nYou can re-enable anytime from this screen.');
         } catch (err) {
           console.error('Revoke push error:', err);
@@ -2568,13 +2562,8 @@ setTimeout(() => {
         return;
       }
 
-      // ============================================================
-      // ENABLE FLOW — call the existing enable function
-      // ============================================================
       await enablePushFromProfile();
     }
-    window.togglePushFromProfile = togglePushFromProfile;
-    window.enablePushFromProfile = enablePushFromProfile;
 
     function closeProfileModal() {
       const modal = document.getElementById('profileModal');
@@ -2659,7 +2648,7 @@ setTimeout(() => {
       }
     }
 
-        // Globally expose
+    // Globally expose
     window.renderDoctorSummaryList = renderDoctorSummaryList;
     window.showDoctorPatients = showDoctorPatients;
     window.closeDoctorPatientPanel = closeDoctorPatientPanel;
