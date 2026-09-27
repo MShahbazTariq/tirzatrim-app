@@ -1859,6 +1859,65 @@
       } catch (e) { console.warn("Extra stats skipped:", e); }
     }
 
+        // ============================================================
+    // PHONETIC NAME MATCHING — collapses sound-alike variants
+    // ============================================================
+    function phoneticKey(word) {
+      if (!word) return '';
+      let w = String(word).toLowerCase().trim();
+      w = w.replace(/[^a-z]/g, '');
+      if (!w) return '';
+
+      // Collapse repeated letters
+      w = w.replace(/(.)\1+/g, '$1');
+
+      // Common phonetic normalizations for Urdu/Pakistani names
+      w = w
+        .replace(/au/g, 'o')
+        .replace(/ou/g, 'o')
+        .replace(/oo/g, 'u')
+        .replace(/ee/g, 'i')
+        .replace(/aa/g, 'a')
+        .replace(/kh/g, 'k')
+        .replace(/ph/g, 'f')
+        .replace(/gh/g, 'g')
+        .replace(/q/g, 'k')
+        .replace(/x/g, 'ks')
+        .replace(/z/g, 's')
+        .replace(/v/g, 'w')
+        .replace(/y$/g, 'i')
+        .replace(/e$/g, '')
+        .replace(/h$/g, '')
+        .replace(/([aeiou])\1+/g, '$1');
+
+      // Special variants
+      w = w
+        .replace(/^moh?amm?[ae]d/, 'mohd')
+        .replace(/^moh?[ae]mm?[ae]d/, 'mohd')
+        .replace(/^mohd/, 'mohd')
+        .replace(/^m[ae]h?m[uo]+d/, 'mahmud')
+        .replace(/^nou?m[ae]n/, 'noman')
+        .replace(/^n[ao]um[ae]n/, 'noman')
+        .replace(/^[ae]hm[ae]d/, 'ahmad')
+        .replace(/^[ae]hm[ae]d$/, 'ahmad')
+        .replace(/^s[ae]y[ae]d/, 'sayed')
+        .replace(/^s[ae][iy][ae]d/, 'sayed')
+        .replace(/^kh[ae]d[iy]j[ae]h?/, 'khadija')
+        .replace(/^khadijah?/, 'khadija');
+
+      return w;
+    }
+
+    function phoneticNameKey(name) {
+      const tokens = normalizeName(name).split(' ').filter(Boolean);
+      if (tokens.length === 0) return { first: '', last: '', full: '' };
+      return {
+        first: phoneticKey(tokens[0]),
+        last: phoneticKey(tokens[tokens.length - 1]),
+        full: tokens.map(phoneticKey).join('|')
+      };
+    }
+
     function renderUntappedList() {
       const container = document.getElementById('untappedListContainer');
       if (!container) return;
@@ -1869,14 +1928,38 @@
       )];
 
       const untappedDoctors = allDoctorNames.filter(doctorName => {
-        const normalizedMaster = normalizeName(doctorName);
-        const masterWords = normalizedMaster.split(' ');
+        const masterNorm = normalizeName(doctorName);
+        const masterTokens = masterNorm.split(' ').filter(Boolean);
+        const masterFirst = masterTokens[0] || '';
+        const masterLast = masterTokens[masterTokens.length - 1] || '';
+        const masterPhon = phoneticNameKey(doctorName);
+
         const hasRecentOrder = activeFilteredOrders.some(o => {
-          const normalizedOrder = normalizeName(o.doctor_name || '');
-          const orderWords = normalizedOrder.split(' ');
-          const matchedWords = masterWords.filter(word => orderWords.includes(word));
-          return matchedWords.length >= 2;
+          const orderNorm = normalizeName(o.doctor_name || '');
+          if (!orderNorm) return false;
+          const orderTokens = orderNorm.split(' ').filter(Boolean);
+          const orderFirst = orderTokens[0] || '';
+          const orderLast = orderTokens[orderTokens.length - 1] || '';
+          const orderPhon = phoneticNameKey(o.doctor_name || '');
+
+          // Rule 1 — First name AND last name both match exactly
+          if (masterFirst === orderFirst && masterLast === orderLast) return true;
+
+          // Rule 2 — Full substring containment
+          if (masterNorm.includes(orderNorm) || orderNorm.includes(masterNorm)) return true;
+
+          // Rule 3 — At least 2 shared full tokens
+          const shared = masterTokens.filter(w => orderTokens.includes(w));
+          if (shared.length >= 2) return true;
+
+          // Rule 4 — PHONETIC: first name AND last name sound the same
+          if (masterPhon.first && orderPhon.first && masterPhon.last && orderPhon.last) {
+            if (masterPhon.first === orderPhon.first && masterPhon.last === orderPhon.last) return true;
+          }
+
+          return false;
         });
+
         return !hasRecentOrder;
       });
 
