@@ -42,8 +42,8 @@
         <button onclick="toggleTheme()" title="Toggle Theme" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"><span class="theme-icon text-lg">🌙</span></button>
         <button onclick="tryOpenNotifCenter()" title="Notifications" class="relative w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"><span class="text-lg">🔔</span><span id="navNotifBadge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">0</span></button>
         <button onclick="openProfileModal()" title="HQ Profile" class="relative w-10 h-10 rounded-full bg-white dark:bg-slate-800 border-2 border-emerald-500/40 shadow-md flex items-center justify-center hover:ring-2 hover:ring-emerald-500/50 transition-all overflow-hidden p-1">
-  <img src="/logo.png" alt="TirzaTrim" class="w-full h-full object-contain">
-</button>
+          <img src="/logo.png" alt="TirzaTrim" class="w-full h-full object-contain">
+        </button>
       </div>
     </div>
   </nav>
@@ -330,18 +330,18 @@
 
       <div class="flex flex-col items-center gap-3 pb-2">
         <div class="w-28 h-28 rounded-3xl bg-white dark:bg-slate-800 border-2 border-emerald-500/30 shadow-lg flex items-center justify-center p-3">
-  <img src="/logo.png" alt="TirzaTrim HQ" class="w-full h-full object-contain">
-</div>
-         <div class="text-center space-y-2">
-         <div class="text-lg font-black text-slate-900 dark:text-white">National Command Center</div>
-         <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
-         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-emerald-600 dark:text-emerald-400">
-             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-           </svg>
-           <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Verified Executive</span>
-         </div>
-       </div>
+          <img src="/logo.png" alt="TirzaTrim HQ" class="w-full h-full object-contain">
+        </div>
+        <div class="text-center space-y-2">
+          <div class="text-lg font-black text-slate-900 dark:text-white">National Command Center</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">Head Office Executive Suite</div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-emerald-600 dark:text-emerald-400">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Verified Executive</span>
+          </div>
+        </div>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -363,14 +363,14 @@
 
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">HQ Utilities</div>
-        <button id="menuPushBtn" onclick="registerHoMobilePush()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable National Push Alerts</span></button>
+        <button id="menuPushBtn" onclick="togglePushFromProfile()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable National Push Alerts</span></button>
         <button onclick="window.fetchEverything(); closeProfileModal(); alert('✅ National data refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh National Data</span></button>
         <button onclick="toggleTheme()" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
         <button onclick="handleHeadOfficeLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Lock HQ Suite</span></button>
       </div>
     </div>
   </div>
-
+  
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
@@ -414,6 +414,110 @@
 
     function normalizeName(name) {
       return String(name || '').toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    // ============================================================
+    // FUZZY STRING SIMILARITY (Levenshtein-based)
+    // ============================================================
+    function levenshtein(a, b) {
+      if (!a) return b ? b.length : 0;
+      if (!b) return a.length;
+      a = String(a); b = String(b);
+      if (a === b) return 0;
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      const prev = new Array(bl + 1);
+      const curr = new Array(bl + 1);
+      for (let j = 0; j <= bl; j++) prev[j] = j;
+      for (let i = 1; i <= al; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= bl; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= bl; j++) prev[j] = curr[j];
+      }
+      return prev[bl];
+    }
+
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      a = String(a); b = String(b);
+      const maxLen = Math.max(a.length, b.length);
+      if (maxLen === 0) return 1;
+      const dist = levenshtein(a, b);
+      return 1 - (dist / maxLen);
+    }
+
+    function isFuzzyNameMatch(nameA, nameB) {
+      const normA = normalizeName(nameA);
+      const normB = normalizeName(nameB);
+      if (!normA || !normB) return false;
+      if (normA === normB) return true;
+      if (normA.includes(normB) || normB.includes(normA)) return true;
+      const tokensA = normA.split(' ').filter(Boolean);
+      const tokensB = normB.split(' ').filter(Boolean);
+      if (tokensA.length === 0 || tokensB.length === 0) return false;
+      const firstSim = similarity(tokensA[0], tokensB[0]);
+      const lastSim = similarity(tokensA[tokensA.length - 1], tokensB[tokensB.length - 1]);
+      if (firstSim >= 0.75 && lastSim >= 0.75) return true;
+      const fullSim = similarity(normA, normB);
+      if (fullSim >= 0.80) return true;
+      return false;
+    }
+
+    // ============================================================
+    // PHONETIC NAME MATCHING — collapses sound-alike variants
+    // Note: 'kh' → 'k' rule intentionally REMOVED (breaks Khadija/Khadeeja)
+    // ============================================================
+    function phoneticKey(word) {
+      if (!word) return '';
+      let w = String(word).toLowerCase().trim();
+      w = w.replace(/[^a-z]/g, '');
+      if (!w) return '';
+      w = w.replace(/(.)\1+/g, '$1');
+      w = w
+        .replace(/au/g, 'o')
+        .replace(/ou/g, 'o')
+        .replace(/oo/g, 'u')
+        .replace(/ee/g, 'i')
+        .replace(/aa/g, 'a')
+        .replace(/ph/g, 'f')
+        .replace(/gh/g, 'g')
+        .replace(/q/g, 'k')
+        .replace(/x/g, 'ks')
+        .replace(/z/g, 's')
+        .replace(/v/g, 'w')
+        .replace(/y$/g, 'i')
+        .replace(/e$/g, '')
+        .replace(/h$/g, '')
+        .replace(/([aeiou])\1+/g, '$1');
+
+      w = w
+        .replace(/^moh?amm?[ae]d/, 'mohd')
+        .replace(/^moh?[ae]mm?[ae]d/, 'mohd')
+        .replace(/^mohd/, 'mohd')
+        .replace(/^m[ae]h?m[uo]+d/, 'mahmud')
+        .replace(/^nou?m[ae]n/, 'noman')
+        .replace(/^n[ao]um[ae]n/, 'noman')
+        .replace(/^[ae]hm[ae]d/, 'ahmad')
+        .replace(/^s[ae]y[ae]d/, 'sayed')
+        .replace(/^s[ae][iy][ae]d/, 'sayed')
+        .replace(/^kh[ae]d[iye]+j[ae]h?/, 'khadija')
+        .replace(/^khadijah?/, 'khadija');
+
+      return w;
+    }
+
+    function phoneticNameKey(name) {
+      const tokens = normalizeName(name).split(' ').filter(Boolean);
+      if (tokens.length === 0) return { first: '', last: '', full: '' };
+      return {
+        first: phoneticKey(tokens[0]),
+        last: phoneticKey(tokens[tokens.length - 1]),
+        full: tokens.map(phoneticKey).join('|')
+      };
     }
 
     function getEscalationDetails(createdAt, prescribedDose) {
@@ -477,6 +581,28 @@
       modal.classList.add('flex');
       const sess = sessionStorage.getItem('tt_ho_session_start');
       document.getElementById('profSessionTime').innerText = sess ? new Date(parseInt(sess)).toLocaleString() : '—';
+
+      // Reflect TRUE push subscription state from DB
+      const pushBtn = document.getElementById('menuPushBtn');
+      if (pushBtn) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          pushBtn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+        }
+        client
+          .from('push_subscriptions')
+          .select('sap_id')
+          .eq('sap_id', 'HQ_DIRECT')
+          .maybeSingle()
+          .then(({ data }) => {
+            const btn = document.getElementById('menuPushBtn');
+            if (!btn) return;
+            if (data) {
+              btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+            } else {
+              btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable National Push Alerts</span>`;
+            }
+          });
+      }
     }
 
     function closeProfileModal() {
@@ -514,6 +640,78 @@
       alert('⚠️ The HQ master key is hardcoded in the app.\n\nTo change it, edit the MASTER_KEY constant in headoffice.html and redeploy.');
       closeChangePasswordModal();
     }
+
+    // ============================================================
+    // PUSH NOTIFICATION TOGGLE (Enable ↔ Revoke)
+    // ============================================================
+    async function enablePushFromProfile() {
+      const btn = document.getElementById('menuPushBtn');
+      try {
+        if (!('Notification' in window)) { alert("Push notifications are not supported on this browser."); return; }
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          alert('Push notifications require HTTPS and a modern browser.');
+          return;
+        }
+        if (Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') {
+            alert('⚠️ Notification permission was denied.\n\nTo enable: open your browser settings → Site Settings → Notifications → Allow.');
+            return;
+          }
+        }
+        if (Notification.permission === 'denied') {
+          alert('⚠️ Notifications are blocked for this site.\n\nFix: Browser Settings → Site Settings → Notifications → Allow for tirzatrim.vercel.app');
+          return;
+        }
+        const sapId = 'HQ_DIRECT';
+        if (typeof window.subscribeDeviceToPush === 'function') {
+          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
+          setTimeout(() => {
+            alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)`);
+          }, 800);
+        } else {
+          alert('⚠️ Push system not loaded. Please refresh the page and try again.');
+        }
+      } catch (err) {
+        console.error('Push enable error:', err);
+        alert('Failed: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    async function togglePushFromProfile() {
+      const btn = document.getElementById('menuPushBtn');
+      if (!btn) return;
+      const isActive = btn.innerHTML.includes('National Push Active');
+
+      if (isActive) {
+        const confirmRevoke = confirm(
+          'Disable national push alerts for this device?\n\n' +
+          'You will stop receiving push notifications until you re-enable them.'
+        );
+        if (!confirmRevoke) return;
+
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await sub.unsubscribe();
+          }
+          await client.from('push_subscriptions').delete().eq('sap_id', 'HQ_DIRECT');
+          btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable National Push Alerts</span>`;
+          alert('✅ Push alerts disabled.\n\nYou can re-enable anytime from this screen.');
+        } catch (err) {
+          console.error('Revoke push error:', err);
+          alert('Failed to disable push: ' + (err.message || 'Unknown error'));
+        }
+        return;
+      }
+
+      await enablePushFromProfile();
+    }
+
+    window.enablePushFromProfile = enablePushFromProfile;
+    window.togglePushFromProfile = togglePushFromProfile;
 
     function getLocalDateKey(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
@@ -752,26 +950,13 @@
     }
 
     function handleHeadOfficeLogout() {
+      if (typeof closeProfileModal === 'function') closeProfileModal();
+      if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
       if (realtimeChannel) { client.removeChannel(realtimeChannel); realtimeChannel = null; }
       if (hqPollingInterval) { clearInterval(hqPollingInterval); hqPollingInterval = null; }
       sessionStorage.removeItem('tt_ho_auth');
       sessionStorage.removeItem('tt_ho_session_start');
       checkHoSession();
-    }
-
-    async function registerHoMobilePush() {
-      const btn = document.getElementById('menuPushBtn');
-      try {
-        if (!('Notification' in window)) { alert("Push notifications are not supported on this browser."); return; }
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') { alert("⚠️ Notification permission was blocked."); return; }
-        const sapId = 'HQ_DIRECT';
-        if (window.subscribeDeviceToPush) {
-          await window.subscribeDeviceToPush(sapId, 'headoffice', 'NATIONAL');
-          alert(`✅ Phone Linked!\n\nRole: Head Office (Command Center)\nScope: National (Pakistan-wide)`);
-          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>National Push Active</span>`;
-        } else alert("Notification script initializing. Please refresh and try again.");
-      } catch (err) { alert("Error: " + err.message); }
     }
 
     function populateManagerDropdown() {
@@ -1106,6 +1291,10 @@
 
     function onUntappedRegionChange() { populateUntappedDropdown(); }
 
+    // ============================================================
+    // RENDER UNTAPPED — Uses allOrders (all-time, not date-filtered)
+    // 5-rule matcher: Exact / Substring / Shared tokens / Phonetic / Fuzzy
+    // ============================================================
     function renderUntappedList() {
       const container = document.getElementById('untappedListContainer');
       if (!container) return;
@@ -1119,16 +1308,46 @@
       if (selectedRep !== 'ALL') validRepCodes = [selectedRep];
       const baseDoctors = teamDoctorsData.filter(doc => validRepCodes.includes((doc['Territory ID'] || '').toUpperCase()));
       const allDoctorNames = [...new Set(baseDoctors.map(doc => (doc['Doctor Name'] || '').trim()).filter(name => name && name.toLowerCase() !== 'undefined' && name !== ''))];
+
       const untappedDoctors = allDoctorNames.filter(doctorName => {
-        const nm = normalizeName(doctorName);
-        const masterWords = nm.split(' ');
+        const masterNorm = normalizeName(doctorName);
+        const masterTokens = masterNorm.split(' ').filter(Boolean);
+        const masterFirst = masterTokens[0] || '';
+        const masterLast = masterTokens[masterTokens.length - 1] || '';
+        const masterPhon = phoneticNameKey(doctorName);
+
         const hasRecentOrder = allOrders.some(o => {
-          const no = normalizeName(o.doctor_name || '');
-          const orderWords = no.split(' ');
-          return masterWords.filter(w => orderWords.includes(w)).length >= 2;
+          const orderNorm = normalizeName(o.doctor_name || '');
+          if (!orderNorm) return false;
+          const orderTokens = orderNorm.split(' ').filter(Boolean);
+          const orderFirst = orderTokens[0] || '';
+          const orderLast = orderTokens[orderTokens.length - 1] || '';
+          const orderPhon = phoneticNameKey(o.doctor_name || '');
+
+          // Rule 1 — Exact first + last
+          if (masterFirst === orderFirst && masterLast === orderLast) return true;
+
+          // Rule 2 — Substring containment
+          if (masterNorm.includes(orderNorm) || orderNorm.includes(masterNorm)) return true;
+
+          // Rule 3 — At least 2 shared tokens
+          const shared = masterTokens.filter(w => orderTokens.includes(w));
+          if (shared.length >= 2) return true;
+
+          // Rule 4 — Phonetic first + last
+          if (masterPhon.first && orderPhon.first && masterPhon.last && orderPhon.last) {
+            if (masterPhon.first === orderPhon.first && masterPhon.last === orderPhon.last) return true;
+          }
+
+          // Rule 5 — Fuzzy Levenshtein
+          if (isFuzzyNameMatch(doctorName, o.doctor_name || '')) return true;
+
+          return false;
         });
+
         return !hasRecentOrder;
       });
+
       currentUntappedDoctors = untappedDoctors;
       if (untappedDoctors.length > 0) {
         const top5 = isUntappedExpanded ? untappedDoctors : untappedDoctors.slice(0, 5);
@@ -1176,7 +1395,8 @@
     window.submitPasswordChange = submitPasswordChange;
     window.handleMasterPinLogin = handleMasterPinLogin;
     window.handleHeadOfficeLogout = handleHeadOfficeLogout;
-    window.registerHoMobilePush = registerHoMobilePush;
+    window.enablePushFromProfile = enablePushFromProfile;
+    window.togglePushFromProfile = togglePushFromProfile;
     window.onRegionChange = onRegionChange;
     window.onManagerChange = onManagerChange;
     window.onHoDoctorRegionChange = onHoDoctorRegionChange;
