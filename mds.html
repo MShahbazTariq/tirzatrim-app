@@ -411,10 +411,11 @@
           return;
         }
 
-        if (profile.email && profile.email.toLowerCase() !== email) {
-          showAuthError('Email does not match our records. Please use the email registered by admin.');
-          return;
-        }
+        // Check if this partner already completed setup
+        if (profile.is_verified && profile.user_id) {
+           showAuthError('This partner account is already set up. Please log in instead.');
+           return;
+         }
 
         if (!profile.email) {
           await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
