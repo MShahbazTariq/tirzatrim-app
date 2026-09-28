@@ -44,7 +44,7 @@
     </div>
   </nav>
 
-  <!-- AUTH SCREEN — SINGLE PAGE WITH DUAL MODES -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative my-8">
       <div class="flex items-center justify-between">
@@ -52,14 +52,13 @@
         <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><span class="theme-icon">🌙</span></button>
       </div>
 
-      <!-- ==================== MODE 1: LOGIN (default) ==================== -->
+      <!-- MODE 1: LOGIN -->
       <div id="authView-login" class="space-y-5">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">⚡</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">MDS Partner Portal</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Partner Name + Password</p>
         </div>
-
         <form onsubmit="handlePasswordLogin(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
@@ -71,20 +70,18 @@
           </div>
           <button type="submit" id="loginBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Partner Queue</button>
         </form>
-
         <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
           <button onclick="showAuthView('setup')" class="text-xs text-teal-600 dark:text-teal-400 font-bold hover:underline">First time setup? →</button>
         </div>
       </div>
 
-      <!-- ==================== MODE 2: FIRST-TIME SETUP ==================== -->
+      <!-- MODE 2: FIRST-TIME SETUP -->
       <div id="authView-setup" class="space-y-5 hidden">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">📧</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">First-Time Setup</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your partner name and registered email</p>
         </div>
-
         <form onsubmit="handleSendOtp(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
@@ -96,20 +93,18 @@
           </div>
           <button type="submit" id="sendOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Verification Code</button>
         </form>
-
         <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
           <button onclick="showAuthView('login')" class="text-xs text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Back to Login</button>
         </div>
       </div>
 
-      <!-- ==================== MODE 3: OTP + SET PASSWORD ==================== -->
+      <!-- MODE 3: OTP + SET PASSWORD -->
       <div id="authView-otp" class="space-y-5 hidden">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">🔐</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">Verify & Set Password</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Code sent to <span id="otpEmailDisplay" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
         </div>
-
         <form onsubmit="handleVerifyOtp(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Verification Code *</label>
@@ -125,7 +120,6 @@
           </div>
           <button type="submit" id="verifyOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Verify & Save Password</button>
         </form>
-
         <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
           <button onclick="resendOtp()" class="text-teal-600 dark:text-teal-400 font-bold hover:underline">Resend Code</button>
           <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change email</button>
@@ -326,9 +320,7 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    // ============================================================
     // AUTH VIEW SWITCHER
-    // ============================================================
     function showAuthView(view) {
       ['login', 'setup', 'otp'].forEach(v => {
         const el = document.getElementById('authView-' + v);
@@ -351,9 +343,7 @@
       btn.innerText = loading ? '⏳ Please wait...' : labelWhenIdle;
     }
 
-    // ============================================================
-    // PASSWORD LOGIN (already setup)
-    // ============================================================
+    // PASSWORD LOGIN
     async function handlePasswordLogin(e) {
       e.preventDefault();
       const name = document.getElementById('loginPartnerName').value.trim();
@@ -400,9 +390,7 @@
     }
     window.handlePasswordLogin = handlePasswordLogin;
 
-    // ============================================================
-    // SEND OTP (first-time setup) — FIXED
-    // ============================================================
+    // SEND OTP (first-time setup)
     async function handleSendOtp(e) {
       e.preventDefault();
       const name = document.getElementById('setupPartnerName').value.trim();
@@ -428,43 +416,22 @@
           return;
         }
 
-        // If no email on file, save the entered email
-if (!profile.email) {
-  await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
-}
-  
-  // Whether signUp returned an error or not, try to link the user
-  // signUp may fail on email send but user is still created
-  const { data: { users } } = await client.auth.admin ? 
-    { data: { users: null } } : { data: { users: null } }; // admin API not available client-side
-  
-  // Fallback: try to fetch the user by email via signInWithPassword
-  if (newUser?.user?.id) {
-    await client.from('mds_profiles')
-      .update({ user_id: newUser.user.id })
-      .eq('portal_key', portal_key);
-  }
-}
+        if (!profile.email) {
+          await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
+        }
 
-// Send OTP via Supabase Auth
-const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
-  email: email,
-  options: { shouldCreateUser: true }
-});
+        // Send OTP — shouldCreateUser: true auto-creates the auth user if missing
+        const { error: otpErr } = await client.auth.signInWithOtp({
+          email: email,
+          options: { shouldCreateUser: true }
+        });
 
-        // ✅ FIX: Only error if otpErr is set. otpData.user is always null on success.
         if (otpErr) {
           console.error('OTP error:', otpErr);
-          const msg = (otpErr.message || '').toLowerCase();
-          if (msg.includes('user not found') || msg.includes('signup') || msg.includes('not exist')) {
-            showAuthError('Could not find your auth account. Please contact admin to re-register your partner account.');
-          } else {
-            showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
-          }
+          showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
           return;
         }
 
-        // ✅ Success — OTP sent. Proceed to OTP screen.
         pendingSetup = { name, email, portal_key };
         document.getElementById('otpEmailDisplay').innerText = email;
         document.getElementById('otpCode').value = '';
@@ -495,9 +462,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.resendOtp = resendOtp;
 
-    // ============================================================
-    // VERIFY OTP + SET PASSWORD — FIXED (type: 'magiclink')
-    // ============================================================
+    // VERIFY OTP + SET PASSWORD
     async function handleVerifyOtp(e) {
       e.preventDefault();
       if (!pendingSetup) { showAuthView('setup'); return; }
@@ -512,8 +477,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
 
       setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
       try {
-        // ✅ FIX: type 'email' is invalid — must be 'magiclink' for signInWithOtp flows
-        const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
+        const { error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
           type: 'magiclink'
@@ -541,9 +505,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.handleVerifyOtp = handleVerifyOtp;
 
-    // ============================================================
     // SESSION
-    // ============================================================
     async function checkSession() {
       try {
         const { data: { session } } = await client.auth.getSession();
@@ -600,9 +562,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.handleLogout = handleLogout;
 
-    // ============================================================
     // PROFILE MODAL
-    // ============================================================
     function openProfileModal() {
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
@@ -642,9 +602,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.closeProfileModal = closeProfileModal;
 
-    // ============================================================
     // CHANGE PASSWORD MODAL
-    // ============================================================
     function openChangePasswordModal() {
       const m = document.getElementById('changePwdModal');
       m.classList.remove('hidden');
@@ -696,9 +654,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.submitPasswordChange = submitPasswordChange;
 
-    // ============================================================
     // PUSH TOGGLE
-    // ============================================================
     async function enablePushFromProfile() {
       const btn = document.getElementById('menuPushBtn');
       try {
@@ -769,9 +725,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     window.enablePushFromProfile = enablePushFromProfile;
     window.togglePushFromProfile = togglePushFromProfile;
 
-    // ============================================================
     // ORDER FETCH + RENDER
-    // ============================================================
     window.fetchMdsOrders = async function() {
       if (!currentPartner) return;
 
@@ -939,9 +893,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.updateStatus = updateStatus;
 
-    // ============================================================
     // CANCEL ORDER
-    // ============================================================
     function promptCancellation(id) {
       pendingCancelOrderId = id;
       document.getElementById('cancelReasonInput').value = '';
@@ -970,9 +922,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
     }
     window.submitOrderCancellation = submitOrderCancellation;
 
-    // ============================================================
     // BOOT
-    // ============================================================
     checkSession();
   </script>
 </body>
