@@ -362,7 +362,6 @@
 
       setBtnLoading('loginBtn', true, 'Unlock Partner Queue');
       try {
-        // Look up partner by name to get the auth email
         const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const { data: profile, error: findErr } = await client
           .from('mds_profiles')
@@ -379,7 +378,6 @@
           return;
         }
 
-        // Sign in with Supabase Auth using the partner's registered email
         const { data: authData, error: signInErr } = await client.auth.signInWithPassword({
           email: profile.email,
           password: pass
@@ -403,7 +401,7 @@
     window.handlePasswordLogin = handlePasswordLogin;
 
     // ============================================================
-    // SEND OTP (first-time setup)
+    // SEND OTP (first-time setup) — FIXED
     // ============================================================
     async function handleSendOtp(e) {
       e.preventDefault();
@@ -413,7 +411,6 @@
 
       setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
       try {
-        // Check partner exists
         const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const { data: profile, error: findErr } = await client
           .from('mds_profiles')
@@ -426,13 +423,11 @@
           return;
         }
 
-        // Verify email matches the registered email
         if (profile.email && profile.email.toLowerCase() !== email) {
           showAuthError('Email does not match our records. Please use the email registered by admin.');
           return;
         }
 
-        // If no email on file, save the entered email
         if (!profile.email) {
           await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
         }
@@ -443,18 +438,19 @@
           options: { shouldCreateUser: false }
         });
 
+        // ✅ FIX: Only error if otpErr is set. otpData.user is always null on success.
         if (otpErr) {
           console.error('OTP error:', otpErr);
-          showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
+          const msg = (otpErr.message || '').toLowerCase();
+          if (msg.includes('user not found') || msg.includes('signup') || msg.includes('not exist')) {
+            showAuthError('Could not find your auth account. Please contact admin to re-register your partner account.');
+          } else {
+            showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
+          }
           return;
         }
 
-        if (!otpData || !otpData.user) {
-          // Silent null — usually means the auth user doesn't exist
-          showAuthError('Could not find your auth account. Please contact admin to re-register your partner account.');
-          return;
-        }
-
+        // ✅ Success — OTP sent. Proceed to OTP screen.
         pendingSetup = { name, email, portal_key };
         document.getElementById('otpEmailDisplay').innerText = email;
         document.getElementById('otpCode').value = '';
@@ -486,7 +482,7 @@
     window.resendOtp = resendOtp;
 
     // ============================================================
-    // VERIFY OTP + SET PASSWORD
+    // VERIFY OTP + SET PASSWORD — FIXED (type: 'magiclink')
     // ============================================================
     async function handleVerifyOtp(e) {
       e.preventDefault();
@@ -502,19 +498,18 @@
 
       setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
       try {
+        // ✅ FIX: type 'email' is invalid — must be 'magiclink' for signInWithOtp flows
         const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
-          type: 'email'
+          type: 'magiclink'
         });
 
         if (verifyErr) throw verifyErr;
 
-        // Update password for the logged-in user
         const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
         if (updateErr) throw updateErr;
 
-        // Mark as verified in mds_profiles
         await client.from('mds_profiles')
           .update({ is_verified: true })
           .eq('portal_key', pendingSetup.portal_key);
@@ -539,7 +534,6 @@
       try {
         const { data: { session } } = await client.auth.getSession();
         if (session && session.user) {
-          // Find partner by user_id
           const { data: profile } = await client
             .from('mds_profiles')
             .select('*')
@@ -557,7 +551,6 @@
         console.warn('Session restore error:', err);
       }
 
-      // No session → show login
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('dashboardContent').classList.add('hidden');
       document.getElementById('topNavBar').classList.add('hidden');
@@ -668,7 +661,6 @@
       if (newPwd !== confirmPwd) { err.innerText = 'New passwords do not match.'; err.classList.remove('hidden'); return; }
 
       try {
-        // Re-authenticate with current password
         const { data: { user } } = await client.auth.getUser();
         if (!user) throw new Error('Session expired. Please log in again.');
 
