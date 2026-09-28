@@ -432,20 +432,14 @@
 if (!profile.email) {
   await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
 }
-
-// 🆕 If no auth user linked yet, auto-create one with a temp password
-if (!profile.user_id) {
-  const tempPwd = 'TT_' + Math.random().toString(36).slice(2, 14) + '!' + Math.random().toString(36).slice(2, 6);
-  const { data: newUser, error: createErr } = await client.auth.signUp({
-    email: email,
-    password: tempPwd,
-    options: { data: { partner_name: name, portal_key: portal_key, role: 'mds' } }
-  });
-  if (createErr) {
-    console.error('Auto-create auth user failed:', createErr);
-    // Continue anyway — OTP might still work if user exists
-  } else if (newUser?.user?.id) {
-    // Link the new auth user_id back to mds_profiles
+  
+  // Whether signUp returned an error or not, try to link the user
+  // signUp may fail on email send but user is still created
+  const { data: { users } } = await client.auth.admin ? 
+    { data: { users: null } } : { data: { users: null } }; // admin API not available client-side
+  
+  // Fallback: try to fetch the user by email via signInWithPassword
+  if (newUser?.user?.id) {
     await client.from('mds_profiles')
       .update({ user_id: newUser.user.id })
       .eq('portal_key', portal_key);
@@ -455,7 +449,7 @@ if (!profile.user_id) {
 // Send OTP via Supabase Auth
 const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
   email: email,
-  options: { shouldCreateUser: false }
+  options: { shouldCreateUser: true }
 });
 
         // ✅ FIX: Only error if otpErr is set. otpData.user is always null on success.
@@ -491,7 +485,7 @@ const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
       try {
         const { error } = await client.auth.signInWithOtp({
           email: pendingSetup.email,
-          options: { shouldCreateUser: false }
+          options: { shouldCreateUser: true }
         });
         if (error) throw error;
         alert('✅ New code sent to ' + pendingSetup.email);
