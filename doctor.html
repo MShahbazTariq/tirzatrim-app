@@ -194,11 +194,27 @@
             <input type="password" id="resetNewPassword" placeholder="Type Your Password" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm New Password *</label>
-            <input type="password" id="resetNewPasswordConfirm" placeholder="Type Your Password" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
-          </div>
-          <button type="submit" id="resetBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Set New Password</button>
-        </form>
+  <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password *</label>
+  <div class="relative">
+    <input type="password" id="resetNewPassword" placeholder="Type Your Password" minlength="6" required class="w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+    <button type="button" onclick="togglePassword('resetNewPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-500 focus:outline-none transition-colors" aria-label="Show password">
+      <span class="text-base">👁️</span>
+    </button>
+  </div>
+</div>
+
+<div>
+  <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm New Password *</label>
+  <div class="relative">
+    <input type="password" id="resetNewPasswordConfirm" placeholder="Re-type Your Password" minlength="6" required class="w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
+    <button type="button" onclick="togglePassword('resetNewPasswordConfirm', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-500 focus:outline-none transition-colors" aria-label="Show password">
+      <span class="text-base">👁️</span>
+    </button>
+  </div>
+</div>
+
+<button type="submit" id="resetBtn" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all">Set New Password</button>
+</form>
 
         <div class="text-xs pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
           <button onclick="showAuthView('login')" class="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 font-semibold">← Back to Login</button>
@@ -658,24 +674,66 @@ window.pickLoginSuggestion = pickLoginSuggestion;
         }
 
         // Create Supabase auth user (sends OTP to email)
-        const { data: authData, error: signUpErr } = await client.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: { doctor_name: name, city: city, role: 'doctor' }
-          }
-        });
+        // First check if a profile already exists for this email
+const { data: existingProfile } = await client
+  .from('doctor_profiles')
+  .select('email')
+  .ilike('email', email)
+  .maybeSingle();
 
-        if (signUpErr) {
-          if (signUpErr.message.includes('already registered')) {
-            showAuthError('This email is already registered. Please log in instead.');
-          } else {
-            showAuthError(signUpErr.message);
-          }
-          return;
-        }
+if (existingProfile) {
+  showAuthError('This email is already registered. Please log in instead, or use "Forgot Password" if you don\'t remember your password.');
+  return;
+}
 
-        pendingSignup = { name, city, email, userId: authData.user?.id };
+// Create Supabase auth user (sends OTP to email)
+const { data: authData, error: signUpErr } = await client.auth.signUp({
+  email: email,
+  password: password,
+  options: {
+    data: { doctor_name: name, city: city, role: 'doctor' }
+  }
+});
+
+if (signUpErr) {
+  if (signUpErr.message.includes('already registered')) {
+    showAuthError('This email is already registered. Please log in instead.');
+  } else {
+    showAuthError(signUpErr.message);
+  }
+  return;
+}
+
+// Detect "repeated signup" — Supabase returns a user with no session AND no new confirmation
+// If user exists but is already confirmed, no email is sent
+if (authData.user && !authData.session && !authData.user.confirmed_at) {
+  // New unconfirmed user — email will be sent, proceed to OTP screen
+  pendingSignup = { name, city, email, userId: authData.user.id };
+  document.getElementById('otpEmailDisplay').innerText = email;
+  document.getElementById('otpCode').value = '';
+  showAuthView('otp');
+  startOtpCountdown();
+  return;
+}
+
+if (authData.user && authData.user.confirmed_at) {
+  // User already exists and is confirmed — no email sent
+  showAuthError('This email is already registered and confirmed. Please log in instead.');
+  return;
+}
+
+if (!authData.user) {
+  // Supabase silently rejected — likely due to rate limiting
+  showAuthError('Could not create account. Please try again in a few minutes, or use a different email.');
+  return;
+}
+
+// Fallback — proceed to OTP screen
+pendingSignup = { name, city, email, userId: authData.user.id };
+document.getElementById('otpEmailDisplay').innerText = email;
+document.getElementById('otpCode').value = '';
+showAuthView('otp');
+startOtpCountdown();
 
         // Move to OTP screen
         document.getElementById('otpEmailDisplay').innerText = email;
