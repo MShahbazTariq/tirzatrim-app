@@ -428,15 +428,35 @@
           return;
         }
 
-        if (!profile.email) {
-          await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
-        }
+        // If no email on file, save the entered email
+if (!profile.email) {
+  await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
+}
 
-        // Send OTP via Supabase Auth
-        const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
-          email: email,
-          options: { shouldCreateUser: false }
-        });
+// 🆕 If no auth user linked yet, auto-create one with a temp password
+if (!profile.user_id) {
+  const tempPwd = 'TT_' + Math.random().toString(36).slice(2, 14) + '!' + Math.random().toString(36).slice(2, 6);
+  const { data: newUser, error: createErr } = await client.auth.signUp({
+    email: email,
+    password: tempPwd,
+    options: { data: { partner_name: name, portal_key: portal_key, role: 'mds' } }
+  });
+  if (createErr) {
+    console.error('Auto-create auth user failed:', createErr);
+    // Continue anyway — OTP might still work if user exists
+  } else if (newUser?.user?.id) {
+    // Link the new auth user_id back to mds_profiles
+    await client.from('mds_profiles')
+      .update({ user_id: newUser.user.id })
+      .eq('portal_key', portal_key);
+  }
+}
+
+// Send OTP via Supabase Auth
+const { data: otpData, error: otpErr } = await client.auth.signInWithOtp({
+  email: email,
+  options: { shouldCreateUser: false }
+});
 
         // ✅ FIX: Only error if otpErr is set. otpData.user is always null on success.
         if (otpErr) {
