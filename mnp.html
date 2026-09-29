@@ -119,7 +119,7 @@
         <form onsubmit="handleVerifyOtp(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Verification Code *</label>
-            <input type="text" id="otpCode" placeholder="000000" inputmode="numeric" maxlength="8" pattern="[0-9]{6,8}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <input type="text" id="otpCode" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-amber-500">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label>
@@ -132,7 +132,7 @@
           <button type="submit" id="verifyOtpBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Verify & Save Password</button>
         </form>
         <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="resendOtp()" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Resend Code</button>
+          <button id="resendOtpBtn" onclick="resendOtp()" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Resend Code</button>
           <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change email</button>
         </div>
       </div>
@@ -307,6 +307,7 @@
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mmp_current_partner') || null;
     let pendingSetup = null;
+    let otpResendLockedUntil = 0;
 
     const TITRATION_MAP = {
       '2.5mg': '5mg', '5mg': '7.5mg', '7.5mg': '10mg',
@@ -399,161 +400,260 @@
     // SEND OTP — SELF-REGISTRATION
     async function handleSendOtp(e) {
       e.preventDefault();
+
       const name = document.getElementById('setupPartnerName').value.trim();
       const email = document.getElementById('setupEmail').value.trim().toLowerCase();
+
       if (!name || !email) return;
 
-      if (!email.includes('@')) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showAuthError('Please enter a valid email address.');
         return;
       }
 
       setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
+
       try {
+        // Do not use signUp/signIn fallback types here.
+        // This portal intentionally uses Supabase EMAIL OTP.
         try { await client.auth.signOut({ scope: 'local' }); } catch (_) {}
 
         const portal_key = 'mmp_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
-        const { data: existing } = await client
+        const { data: existing, error: lookupErr } = await client
           .from('mmp_profiles')
           .select('*')
           .eq('portal_key', portal_key)
           .maybeSingle();
+
+        if (lookupErr) throw lookupErr;
 
         if (existing) {
           if (existing.is_verified && existing.user_id) {
             showAuthError('This partner account is already set up. Please log in instead.');
             return;
           }
+
           if (existing.email && existing.email.toLowerCase() !== email) {
             showAuthError('This partner name is already registered with a different email. Please use the registered email or contact admin.');
             return;
           }
+
           if (!existing.email) {
-            await client.from('mmp_profiles').update({ email: email }).eq('portal_key', portal_key);
+            const { error: updateProfileErr } = await client
+              .from('mmp_profiles')
+              .update({ email })
+              .eq('portal_key', portal_key);
+
+            if (updateProfileErr) throw updateProfileErr;
           }
         } else {
           const { error: insertErr } = await client
             .from('mmp_profiles')
             .insert([{
-              portal_key: portal_key,
+              portal_key,
               partner_name: name,
-              email: email,
+              email,
               is_verified: false
             }]);
-          if (insertErr) {
-            console.error('Insert error:', insertErr);
-            showAuthError('Could not create partner profile. Please try again.');
-            return;
-          }
+
+          if (insertErr) throw insertErr;
         }
 
-        // Send OTP code
+        // IMPORTANT:
+        // The Supabase "Magic Link / OTP" email template must contain
+        // {{ .Token }} for manual 6-digit OTP entry.
+        // Do NOT include {{ .ConfirmationURL }} in that same OTP email,
+        // because mail scanners can consume the confirmation token.
         const { error: otpErr } = await client.auth.signInWithOtp({
-          email: email,
-          options: { shouldCreateUser: true }
+          email,
+          options: {
+            shouldCreateUser: true
+          }
         });
 
-        if (otpErr) {
-          console.error('OTP error:', otpErr);
-          showAuthError(otpErr.message || 'Could not send OTP. Please try again.');
-          return;
-        }
+        if (otpErr) throw otpErr;
 
         pendingSetup = { name, email, portal_key };
+
         document.getElementById('otpEmailDisplay').innerText = email;
         document.getElementById('otpCode').value = '';
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
+
         showAuthView('otp');
+
+        // Prevent accidental repeated OTP requests.
+        otpResendLockedUntil = Date.now() + 60000;
+        updateResendButton();
+
       } catch (err) {
         console.error('Send OTP error:', err);
-        showAuthError(err.message || 'Could not send OTP.');
+        showAuthError(err.message || 'Could not send verification code. Please try again.');
       } finally {
         setBtnLoading('sendOtpBtn', false, 'Send Verification Code');
       }
     }
     window.handleSendOtp = handleSendOtp;
 
+
+    function updateResendButton() {
+      const btn = document.getElementById('resendOtpBtn');
+      if (!btn) return;
+
+      const remaining = Math.max(0, otpResendLockedUntil - Date.now());
+
+      if (remaining > 0) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.innerText = `Resend Code (${Math.ceil(remaining / 1000)}s)`;
+        setTimeout(updateResendButton, 1000);
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerText = 'Resend Code';
+      }
+    }
+
+
+    // RESEND OTP
     async function resendOtp() {
-      if (!pendingSetup) { showAuthView('setup'); return; }
+      if (!pendingSetup) {
+        showAuthView('setup');
+        return;
+      }
+
+      if (Date.now() < otpResendLockedUntil) return;
+
+      const btn = document.getElementById('resendOtpBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Sending...';
+      }
+
       try {
         const { error } = await client.auth.signInWithOtp({
           email: pendingSetup.email,
-          options: { shouldCreateUser: true }
+          options: {
+            shouldCreateUser: true
+          }
         });
+
         if (error) throw error;
-        alert('✅ New code sent to ' + pendingSetup.email);
+
+        // IMPORTANT: only the newest code should be entered.
+        document.getElementById('otpCode').value = '';
+        otpResendLockedUntil = Date.now() + 60000;
+        updateResendButton();
+
+        document.getElementById('authErrorMsg').classList.add('hidden'); // clear previous error
+        alert('✅ A new verification code was sent. Use the newest code only.');
       } catch (err) {
-        showAuthError(err.message || 'Could not resend.');
+        console.error('Resend OTP error:', err);
+        showAuthError(err.message || 'Could not resend the verification code.');
+        otpResendLockedUntil = 0;
+        updateResendButton();
       }
     }
     window.resendOtp = resendOtp;
 
+
     // VERIFY OTP + SET PASSWORD
     async function handleVerifyOtp(e) {
       e.preventDefault();
-      if (!pendingSetup) { showAuthView('setup'); return; }
 
-      const code = document.getElementById('otpCode').value.trim();
+      if (!pendingSetup) {
+        showAuthView('setup');
+        return;
+      }
+
+      const code = document.getElementById('otpCode').value.replace(/\D/g, '').trim();
       const newPwd = document.getElementById('newPassword').value;
       const confirm = document.getElementById('confirmPassword').value;
 
-      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the 6-digit verification code from your email.'); return; }
-      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
-      if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
+      if (!/^\d{6}$/.test(code)) {
+        showAuthError('Please enter the latest 6-digit verification code from your email.');
+        return;
+      }
+
+      if (newPwd.length < 6) {
+        showAuthError('Password must be at least 6 characters.');
+        return;
+      }
+
+      if (newPwd !== confirm) {
+        showAuthError('Passwords do not match.');
+        return;
+      }
 
       setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
+
       try {
-        // Correct OTP verification type for email 6-digit codes
-        let { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
+        // ONE verification type only.
+        // Supabase's current email OTP flow uses type: 'email'.
+        const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
           type: 'email'
         });
 
-        // Backward compatibility fallback for magiclink/signup
         if (verifyErr) {
-          console.warn('Type email failed, testing type signup/magiclink...', verifyErr.message);
-          const signupAttempt = await client.auth.verifyOtp({
-            email: pendingSetup.email,
-            token: code,
-            type: 'signup'
-          });
-          if (!signupAttempt.error) {
-            verifyData = signupAttempt.data;
-            verifyErr = null;
+          console.error('OTP verification failed:', verifyErr);
+
+          const msg = (verifyErr.message || '').toLowerCase();
+
+          if (msg.includes('expired') || msg.includes('invalid')) {
+            throw new Error(
+              'This code is no longer valid. Please click "Resend Code", wait for the new email, and enter ONLY the newest 6-digit code.'
+            );
           }
+
+          throw verifyErr;
         }
 
-        if (verifyErr) throw verifyErr;
+        const sessionUser = verifyData?.user;
+        if (!sessionUser) {
+          throw new Error('OTP was accepted but no authenticated user session was returned. Please try again.');
+        }
 
-        // Set the chosen password
-        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+        // OTP verification has now authenticated the user.
+        const { error: updateErr } = await client.auth.updateUser({
+          password: newPwd
+        });
+
         if (updateErr) throw updateErr;
 
-        const authUserId = verifyData?.user?.id || (await client.auth.getUser())?.data?.user?.id;
+        const authUserId = sessionUser.id;
 
-        // Update profile with verification status AND user_id
-        await client.from('mmp_profiles')
+        const { error: profileErr } = await client
+          .from('mmp_profiles')
           .update({
             is_verified: true,
             user_id: authUserId
           })
           .eq('portal_key', pendingSetup.portal_key);
 
+        if (profileErr) throw profileErr;
+
         currentPartner = pendingSetup.name;
         sessionStorage.setItem('mmp_current_partner', currentPartner);
         pendingSetup = null;
+
         unlockPortal();
+
       } catch (err) {
         console.error('Verify error:', err);
-        showAuthError(err.message || 'Invalid or expired code. Please request a new code.');
+        showAuthError(err.message || 'Verification failed. Please request a new code and try again.');
       } finally {
         setBtnLoading('verifyOtpBtn', false, 'Verify & Save Password');
       }
     }
     window.handleVerifyOtp = handleVerifyOtp;
+
+    // Keep OTP input strictly numeric and six digits.
+    document.getElementById('otpCode')?.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
 
     // SESSION
     async function checkSession() {
