@@ -410,7 +410,6 @@
 
       setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
       try {
-        // Clear any stale session
         try { await client.auth.signOut({ scope: 'local' }); } catch (_) {}
 
         const portal_key = 'mmp_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -427,7 +426,7 @@
             return;
           }
           if (existing.email && existing.email.toLowerCase() !== email) {
-            showAuthError('This partner name is already registered with a different email. Please use the same email or contact admin.');
+            showAuthError('This partner name is already registered with a different email. Please use the registered email or contact admin.');
             return;
           }
           if (!existing.email) {
@@ -449,6 +448,7 @@
           }
         }
 
+        // Send OTP code
         const { error: otpErr } = await client.auth.signInWithOtp({
           email: email,
           options: { shouldCreateUser: true }
@@ -499,35 +499,47 @@
       const newPwd = document.getElementById('newPassword').value;
       const confirm = document.getElementById('confirmPassword').value;
 
-      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the code from your email (6-8 digits).'); return; }
+      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the 6-digit verification code from your email.'); return; }
       if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
       if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
 
       setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
       try {
-        // Try magiclink first, fall back to signup type
-        let verifyResult = await client.auth.verifyOtp({
+        // Correct OTP verification type for email 6-digit codes
+        let { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
-          type: 'magiclink'
+          type: 'email'
         });
 
-        if (verifyResult.error) {
-          console.warn('magiclink verify failed, trying signup...', verifyResult.error.message);
-          verifyResult = await client.auth.verifyOtp({
+        // Backward compatibility fallback for magiclink/signup
+        if (verifyErr) {
+          console.warn('Type email failed, testing type signup/magiclink...', verifyErr.message);
+          const signupAttempt = await client.auth.verifyOtp({
             email: pendingSetup.email,
             token: code,
             type: 'signup'
           });
+          if (!signupAttempt.error) {
+            verifyData = signupAttempt.data;
+            verifyErr = null;
+          }
         }
 
-        if (verifyResult.error) throw verifyResult.error;
+        if (verifyErr) throw verifyErr;
 
+        // Set the chosen password
         const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
         if (updateErr) throw updateErr;
 
+        const authUserId = verifyData?.user?.id || (await client.auth.getUser())?.data?.user?.id;
+
+        // Update profile with verification status AND user_id
         await client.from('mmp_profiles')
-          .update({ is_verified: true })
+          .update({
+            is_verified: true,
+            user_id: authUserId
+          })
           .eq('portal_key', pendingSetup.portal_key);
 
         currentPartner = pendingSetup.name;
@@ -536,7 +548,7 @@
         unlockPortal();
       } catch (err) {
         console.error('Verify error:', err);
-        showAuthError(err.message || 'Invalid or expired code. Please try again.');
+        showAuthError(err.message || 'Invalid or expired code. Please request a new code.');
       } finally {
         setBtnLoading('verifyOtpBtn', false, 'Verify & Save Password');
       }
