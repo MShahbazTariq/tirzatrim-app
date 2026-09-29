@@ -725,20 +725,36 @@
     window.handleLogout = handleLogout;
 
     // PROFILE MODAL
-    function openProfileModal() {
+        function openProfileModal() {
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
+
+      const pushBtn = document.getElementById('menuPushBtn');
+      const sapId = 'MMP_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      if (pushBtn && sapId) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          pushBtn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+        }
+        client
+          .from('push_subscriptions')
+          .select('sap_id')
+          .eq('sap_id', sapId)
+          .maybeSingle()
+          .then(({ data }) => {
+            const btn = document.getElementById('menuPushBtn');
+            if (!btn) return;
+            if (data) {
+              btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+            } else {
+              btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>`;
+            }
+          });
+      }
+
       const modal = document.getElementById('profileModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-    }
-    window.openProfileModal = openProfileModal;
-
-    function closeProfileModal() {
-      const modal = document.getElementById('profileModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
     }
     window.closeProfileModal = closeProfileModal;
 
