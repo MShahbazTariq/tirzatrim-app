@@ -62,12 +62,7 @@
         <form onsubmit="handlePasswordLogin(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
-            <input type="text" id="loginPartnerName" list="mmpLoginSuggestions" placeholder="e.g. M&P1, M&P2, M&P3" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
-            <datalist id="mmpLoginSuggestions">
-              <option value="M&P1"></option>
-              <option value="M&P2"></option>
-              <option value="M&P3"></option>
-            </datalist>
+            <input type="text" id="loginPartnerName" placeholder="e.g. M&P2 Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
@@ -75,8 +70,14 @@
           </div>
           <button type="submit" id="loginBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Dispatch Queue</button>
         </form>
-        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="showAuthView('setup')" class="text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline">First time setup? →</button>
+
+        <!-- ✅ NEW: Visible Signup Button -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">New to TirzaTrim?</p>
+          <button onclick="showAuthView('setup')" class="w-full py-3 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border-2 border-amber-500 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+            <span class="text-base">✨</span>
+            <span>Create New Partner Account</span>
+          </button>
         </div>
       </div>
 
@@ -85,23 +86,42 @@
         <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">📧</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">First-Time Setup</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your partner name and email — we'll send a verification code</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Register your M&P depot with TirzaTrim</p>
         </div>
         <form onsubmit="handleSendOtp(event)" class="space-y-3 text-left">
+
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
-            <input type="text" id="setupPartnerName" list="mmpSetupSuggestions" placeholder="e.g. M&P1, M&P2, M&P3" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
-            <datalist id="mmpSetupSuggestions">
-              <option value="M&P1"></option>
-              <option value="M&P2"></option>
-              <option value="M&P3"></option>
-            </datalist>
-            <p class="text-[10px] text-slate-400 mt-1">Use your depot code: M&P1, M&P2, or M&P3 for Lahore</p>
+            <input type="text" id="setupPartnerName" placeholder="e.g. M&P2" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <p class="text-[10px] text-slate-400 mt-1">Use your depot code (e.g. M&P1, M&P2, M&P3)</p>
           </div>
+
+          <!-- ✅ NEW: City Field -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Operating City *</label>
+            <input type="text" id="setupCity" list="mmpCitySuggestions" placeholder="e.g. Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <datalist id="mmpCitySuggestions">
+              <option value="Lahore"></option>
+              <option value="Karachi"></option>
+              <option value="Islamabad"></option>
+              <option value="Rawalpindi"></option>
+              <option value="Faisalabad"></option>
+              <option value="Multan"></option>
+              <option value="Peshawar"></option>
+              <option value="Quetta"></option>
+              <option value="Sialkot"></option>
+              <option value="Gujranwala"></option>
+              <option value="Hyderabad"></option>
+              <option value="Bahawalpur"></option>
+            </datalist>
+            <p class="text-[10px] text-slate-400 mt-1">Your depot's primary operating city</p>
+          </div>
+
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Your Email *</label>
             <input type="email" id="setupEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500">
           </div>
+
           <button type="submit" id="sendOtpBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Verification Code</button>
         </form>
         <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -133,7 +153,7 @@
         </form>
         <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
           <button id="resendOtpBtn" onclick="resendOtp()" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Resend Code</button>
-          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change email</button>
+          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change details</button>
         </div>
       </div>
 
@@ -264,7 +284,7 @@
         </div>
         <div class="text-center space-y-2">
           <div id="profPartnerName" class="text-lg font-black text-slate-900 dark:text-white">M&P Partner</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400">Helpline Dispatch Provider</div>
+          <div id="profPartnerCity" class="text-xs text-slate-500 dark:text-slate-400">—</div>
           <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-amber-600 dark:text-amber-400"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
             <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Verified Partner</span>
@@ -306,6 +326,7 @@
     let currentTab = 'ALL';
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mmp_current_partner') || null;
+    let currentCity = sessionStorage.getItem('mmp_current_city') || null;
     let pendingSetup = null;
     let otpResendLockedUntil = 0;
 
@@ -367,7 +388,7 @@
           .maybeSingle();
 
         if (findErr || !profile) {
-          showAuthError('Partner not found. Please click "First time setup" to create your account.');
+          showAuthError('Partner not found. Please click "Create New Partner Account" to register.');
           return;
         }
         if (!profile.email) {
@@ -386,7 +407,9 @@
         }
 
         currentPartner = name;
+        currentCity = profile.city || '';
         sessionStorage.setItem('mmp_current_partner', name);
+        sessionStorage.setItem('mmp_current_city', currentCity);
         unlockPortal();
       } catch (err) {
         console.error('Login error:', err);
@@ -402,9 +425,10 @@
       e.preventDefault();
 
       const name = document.getElementById('setupPartnerName').value.trim();
+      const city = document.getElementById('setupCity').value.trim();
       const email = document.getElementById('setupEmail').value.trim().toLowerCase();
 
-      if (!name || !email) return;
+      if (!name || !city || !email) return;
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showAuthError('Please enter a valid email address.');
@@ -414,8 +438,6 @@
       setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
 
       try {
-        // Do not use signUp/signIn fallback types here.
-        // This portal intentionally uses Supabase EMAIL OTP.
         try { await client.auth.signOut({ scope: 'local' }); } catch (_) {}
 
         const portal_key = 'mmp_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -439,20 +461,20 @@
             return;
           }
 
-          if (!existing.email) {
-            const { error: updateProfileErr } = await client
-              .from('mmp_profiles')
-              .update({ email })
-              .eq('portal_key', portal_key);
+          // Update email + city if missing or changed
+          const { error: updateProfileErr } = await client
+            .from('mmp_profiles')
+            .update({ email, city })
+            .eq('portal_key', portal_key);
 
-            if (updateProfileErr) throw updateProfileErr;
-          }
+          if (updateProfileErr) throw updateProfileErr;
         } else {
           const { error: insertErr } = await client
             .from('mmp_profiles')
             .insert([{
               portal_key,
               partner_name: name,
+              city,
               email,
               is_verified: false
             }]);
@@ -460,21 +482,14 @@
           if (insertErr) throw insertErr;
         }
 
-        // IMPORTANT:
-        // The Supabase "Magic Link / OTP" email template must contain
-        // {{ .Token }} for manual 6-digit OTP entry.
-        // Do NOT include {{ .ConfirmationURL }} in that same OTP email,
-        // because mail scanners can consume the confirmation token.
         const { error: otpErr } = await client.auth.signInWithOtp({
           email,
-          options: {
-            shouldCreateUser: true
-          }
+          options: { shouldCreateUser: true }
         });
 
         if (otpErr) throw otpErr;
 
-        pendingSetup = { name, email, portal_key };
+        pendingSetup = { name, city, email, portal_key };
 
         document.getElementById('otpEmailDisplay').innerText = email;
         document.getElementById('otpCode').value = '';
@@ -483,7 +498,6 @@
 
         showAuthView('otp');
 
-        // Prevent accidental repeated OTP requests.
         otpResendLockedUntil = Date.now() + 60000;
         updateResendButton();
 
@@ -534,19 +548,16 @@
       try {
         const { error } = await client.auth.signInWithOtp({
           email: pendingSetup.email,
-          options: {
-            shouldCreateUser: true
-          }
+          options: { shouldCreateUser: true }
         });
 
         if (error) throw error;
 
-        // IMPORTANT: only the newest code should be entered.
         document.getElementById('otpCode').value = '';
         otpResendLockedUntil = Date.now() + 60000;
         updateResendButton();
 
-        document.getElementById('authErrorMsg').classList.add('hidden'); // clear previous error
+        document.getElementById('authErrorMsg').classList.add('hidden');
         alert('✅ A new verification code was sent. Use the newest code only.');
       } catch (err) {
         console.error('Resend OTP error:', err);
@@ -589,8 +600,6 @@
       setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
 
       try {
-        // ONE verification type only.
-        // Supabase's current email OTP flow uses type: 'email'.
         const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
@@ -616,11 +625,7 @@
           throw new Error('OTP was accepted but no authenticated user session was returned. Please try again.');
         }
 
-        // OTP verification has now authenticated the user.
-        const { error: updateErr } = await client.auth.updateUser({
-          password: newPwd
-        });
-
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
         if (updateErr) throw updateErr;
 
         const authUserId = sessionUser.id;
@@ -629,14 +634,17 @@
           .from('mmp_profiles')
           .update({
             is_verified: true,
-            user_id: authUserId
+            user_id: authUserId,
+            city: pendingSetup.city
           })
           .eq('portal_key', pendingSetup.portal_key);
 
         if (profileErr) throw profileErr;
 
         currentPartner = pendingSetup.name;
+        currentCity = pendingSetup.city;
         sessionStorage.setItem('mmp_current_partner', currentPartner);
+        sessionStorage.setItem('mmp_current_city', currentCity);
         pendingSetup = null;
 
         unlockPortal();
@@ -650,7 +658,6 @@
     }
     window.handleVerifyOtp = handleVerifyOtp;
 
-    // Keep OTP input strictly numeric and six digits.
     document.getElementById('otpCode')?.addEventListener('input', function () {
       this.value = this.value.replace(/\D/g, '').slice(0, 6);
     });
@@ -668,7 +675,9 @@
 
           if (profile) {
             currentPartner = profile.partner_name;
+            currentCity = profile.city || '';
             sessionStorage.setItem('mmp_current_partner', currentPartner);
+            sessionStorage.setItem('mmp_current_city', currentCity);
             unlockPortal();
             return;
           }
@@ -689,6 +698,7 @@
       document.getElementById('topNavBar').classList.remove('hidden');
       document.getElementById('headerPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerName').innerText = currentPartner;
+      document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
 
       if (typeof NotificationCenter !== 'undefined') {
         window.notificationCenter = new NotificationCenter({
@@ -707,7 +717,9 @@
       if (typeof closeCancelModal === 'function') closeCancelModal();
       try { await client.auth.signOut(); } catch (e) {}
       sessionStorage.removeItem('mmp_current_partner');
+      sessionStorage.removeItem('mmp_current_city');
       currentPartner = null;
+      currentCity = null;
       checkSession();
     }
     window.handleLogout = handleLogout;
@@ -716,6 +728,7 @@
     function openProfileModal() {
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
+      document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
       const modal = document.getElementById('profileModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -794,7 +807,7 @@
         if (typeof window.subscribeDeviceToPush === 'function') {
           await window.subscribeDeviceToPush(sapId, 'mmp', currentPartner);
           btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
-          alert(`✅ Phone Linked!\n\nRole: M&P Partner\nPartner: ${currentPartner}`);
+          alert(`✅ Phone Linked!\n\nRole: M&P Partner\nPartner: ${currentPartner}\nCity: ${currentCity || 'Not set'}`);
         } else {
           alert('⚠️ Push system not loaded.');
         }
