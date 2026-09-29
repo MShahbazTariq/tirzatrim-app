@@ -70,8 +70,14 @@
           </div>
           <button type="submit" id="loginBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Partner Queue</button>
         </form>
-        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="showAuthView('setup')" class="text-xs text-teal-600 dark:text-teal-400 font-bold hover:underline">First time setup? →</button>
+
+        <!-- ✅ NEW: Visible Signup Button -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">New to TirzaTrim?</p>
+          <button onclick="showAuthView('setup')" class="w-full py-3 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 border-2 border-teal-500 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+            <span class="text-base">✨</span>
+            <span>Create New Partner Account</span>
+          </button>
         </div>
       </div>
 
@@ -80,17 +86,40 @@
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">📧</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">First-Time Setup</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your partner name and registered email</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Register your distribution network with TirzaTrim</p>
         </div>
         <form onsubmit="handleSendOtp(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
             <input type="text" id="setupPartnerName" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
+
+          <!-- ✅ NEW: City Field -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Operating City *</label>
+            <input type="text" id="setupCity" list="mdsCitySuggestions" placeholder="e.g. Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
+            <datalist id="mdsCitySuggestions">
+              <option value="Lahore"></option>
+              <option value="Karachi"></option>
+              <option value="Islamabad"></option>
+              <option value="Rawalpindi"></option>
+              <option value="Faisalabad"></option>
+              <option value="Multan"></option>
+              <option value="Peshawar"></option>
+              <option value="Quetta"></option>
+              <option value="Sialkot"></option>
+              <option value="Gujranwala"></option>
+              <option value="Hyderabad"></option>
+              <option value="Bahawalpur"></option>
+            </datalist>
+            <p class="text-[10px] text-slate-400 mt-1">Your network's primary operating city</p>
+          </div>
+
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Registered Email *</label>
             <input type="email" id="setupEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
+
           <button type="submit" id="sendOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Verification Code</button>
         </form>
         <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -122,7 +151,7 @@
         </form>
         <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
           <button onclick="resendOtp()" class="text-teal-600 dark:text-teal-400 font-bold hover:underline">Resend Code</button>
-          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change email</button>
+          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change details</button>
         </div>
       </div>
 
@@ -254,7 +283,7 @@
         </div>
         <div class="text-center space-y-2">
           <div id="profPartnerName" class="text-lg font-black text-slate-900 dark:text-white">MDS Partner</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400">Same-Day Fulfillment Provider</div>
+          <div id="profPartnerCity" class="text-xs text-slate-500 dark:text-slate-400">—</div>
           <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-teal-600 dark:text-teal-400">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
@@ -280,18 +309,27 @@
       </div>
     </div>
   </div>
-  
+
   <script>
     const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
     const { createClient } = supabase;
-    window.supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage,
+        storageKey: 'sb-yygmkqzbbnpyikvlqibw-auth-token'
+      }
+    });
     const client = window.supabaseClient;
 
     let allOrders = [];
     let currentTab = 'ALL';
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mds_current_partner') || null;
+    let currentCity = sessionStorage.getItem('mds_current_city') || null;
     let pendingSetup = null;
 
     const TITRATION_MAP = {
@@ -379,7 +417,9 @@
         }
 
         currentPartner = name;
+        currentCity = profile.city || '';
         sessionStorage.setItem('mds_current_partner', name);
+        sessionStorage.setItem('mds_current_city', currentCity);
         unlockPortal();
       } catch (err) {
         console.error('Login error:', err);
@@ -394,8 +434,9 @@
     async function handleSendOtp(e) {
       e.preventDefault();
       const name = document.getElementById('setupPartnerName').value.trim();
+      const city = document.getElementById('setupCity').value.trim();
       const email = document.getElementById('setupEmail').value.trim().toLowerCase();
-      if (!name || !email) return;
+      if (!name || !city || !email) return;
 
       setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
       try {
@@ -417,11 +458,15 @@
            return;
          }
 
-        if (!profile.email) {
-          await client.from('mds_profiles').update({ email: email }).eq('portal_key', portal_key);
-        }
+        // Update email + city
+        const { error: updErr } = await client
+          .from('mds_profiles')
+          .update({ email, city })
+          .eq('portal_key', portal_key);
 
-        // Send OTP — shouldCreateUser: true auto-creates the auth user if missing
+        if (updErr) throw updErr;
+
+        // Send OTP
         const { error: otpErr } = await client.auth.signInWithOtp({
           email: email,
           options: { shouldCreateUser: true }
@@ -433,7 +478,7 @@
           return;
         }
 
-        pendingSetup = { name, email, portal_key };
+        pendingSetup = { name, city, email, portal_key };
         document.getElementById('otpEmailDisplay').innerText = email;
         document.getElementById('otpCode').value = '';
         document.getElementById('newPassword').value = '';
@@ -481,7 +526,7 @@
         const { error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
-          type: 'magiclink'
+          type: 'email'
         });
 
         if (verifyErr) throw verifyErr;
@@ -490,11 +535,13 @@
         if (updateErr) throw updateErr;
 
         await client.from('mds_profiles')
-          .update({ is_verified: true })
+          .update({ is_verified: true, city: pendingSetup.city })
           .eq('portal_key', pendingSetup.portal_key);
 
         currentPartner = pendingSetup.name;
+        currentCity = pendingSetup.city;
         sessionStorage.setItem('mds_current_partner', currentPartner);
+        sessionStorage.setItem('mds_current_city', currentCity);
         pendingSetup = null;
         unlockPortal();
       } catch (err) {
@@ -519,7 +566,9 @@
 
           if (profile) {
             currentPartner = profile.partner_name;
+            currentCity = profile.city || '';
             sessionStorage.setItem('mds_current_partner', currentPartner);
+            sessionStorage.setItem('mds_current_city', currentCity);
             unlockPortal();
             return;
           }
@@ -540,6 +589,7 @@
       document.getElementById('topNavBar').classList.remove('hidden');
       document.getElementById('headerPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerName').innerText = currentPartner;
+      document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
 
       if (typeof NotificationCenter !== 'undefined') {
         window.notificationCenter = new NotificationCenter({
@@ -558,7 +608,9 @@
       if (typeof closeCancelModal === 'function') closeCancelModal();
       try { await client.auth.signOut(); } catch (e) {}
       sessionStorage.removeItem('mds_current_partner');
+      sessionStorage.removeItem('mds_current_city');
       currentPartner = null;
+      currentCity = null;
       checkSession();
     }
     window.handleLogout = handleLogout;
@@ -567,6 +619,7 @@
     function openProfileModal() {
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
+      document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
 
       const pushBtn = document.getElementById('menuPushBtn');
       const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
@@ -681,7 +734,7 @@
           await window.subscribeDeviceToPush(sapId, 'mds', currentPartner);
           if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
           setTimeout(() => {
-            alert(`✅ Phone Linked!\n\nRole: MDS Partner\nPartner: ${currentPartner}`);
+            alert(`✅ Phone Linked!\n\nRole: MDS Partner\nPartner: ${currentPartner}\nCity: ${currentCity || 'Not set'}`);
           }, 800);
         } else {
           alert('⚠️ Push system not loaded. Please refresh the page and try again.');
