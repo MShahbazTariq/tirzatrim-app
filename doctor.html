@@ -673,67 +673,36 @@ window.pickLoginSuggestion = pickLoginSuggestion;
           return;
         }
 
-        // Create Supabase auth user (sends OTP to email)
-        // First check if a profile already exists for this email
-const { data: existingProfile } = await client
-  .from('doctor_profiles')
-  .select('email')
-  .ilike('email', email)
-  .maybeSingle();
+                // Check if a profile already exists for this email
+        const { data: existingProfile } = await client
+          .from('doctor_profiles')
+          .select('email')
+          .ilike('email', email)
+          .maybeSingle();
 
-if (existingProfile) {
-  showAuthError('This email is already registered. Please log in instead, or use "Forgot Password" if you don\'t remember your password.');
-  return;
-}
+        if (existingProfile) {
+          showAuthError('This email is already registered. Please log in instead, or use "Forgot Password" if you don\'t remember your password.');
+          return;
+        }
 
-// Create Supabase auth user (sends OTP to email)
-const { data: authData, error: signUpErr } = await client.auth.signUp({
-  email: email,
-  password: password,
-  options: {
-    data: { doctor_name: name, city: city, role: 'doctor' }
-  }
-});
+        // Send OTP — shouldCreateUser: true handles both new and existing users
+        // (Same pattern as mds.html — always sends the verification email)
+        const { error: otpErr } = await client.auth.signInWithOtp({
+          email: email,
+          options: {
+            shouldCreateUser: true,
+            data: { doctor_name: name, city: city, role: 'doctor' }
+          }
+        });
 
-if (signUpErr) {
-  if (signUpErr.message.includes('already registered')) {
-    showAuthError('This email is already registered. Please log in instead.');
-  } else {
-    showAuthError(signUpErr.message);
-  }
-  return;
-}
+        if (otpErr) {
+          console.error('OTP error:', otpErr);
+          showAuthError(otpErr.message || 'Could not send verification code. Please try again.');
+          return;
+        }
 
-// Detect "repeated signup" — Supabase returns a user with no session AND no new confirmation
-// If user exists but is already confirmed, no email is sent
-if (authData.user && !authData.session && !authData.user.confirmed_at) {
-  // New unconfirmed user — email will be sent, proceed to OTP screen
-  pendingSignup = { name, city, email, userId: authData.user.id };
-  document.getElementById('otpEmailDisplay').innerText = email;
-  document.getElementById('otpCode').value = '';
-  showAuthView('otp');
-  startOtpCountdown();
-  return;
-}
-
-if (authData.user && authData.user.confirmed_at) {
-  // User already exists and is confirmed — no email sent
-  showAuthError('This email is already registered and confirmed. Please log in instead.');
-  return;
-}
-
-if (!authData.user) {
-  // Supabase silently rejected — likely due to rate limiting
-  showAuthError('Could not create account. Please try again in a few minutes, or use a different email.');
-  return;
-}
-
-// Fallback — proceed to OTP screen
-pendingSignup = { name, city, email, userId: authData.user.id };
-document.getElementById('otpEmailDisplay').innerText = email;
-document.getElementById('otpCode').value = '';
-showAuthView('otp');
-startOtpCountdown();
+        // Store signup details for the verify step (password saved for later)
+        pendingSignup = { name, city, email, password: password, userId: null };
 
         // Move to OTP screen
         document.getElementById('otpEmailDisplay').innerText = email;
@@ -760,27 +729,52 @@ startOtpCountdown();
 
       setBtnLoading('otpBtn', true, 'Verify & Access Portal');
       try {
+        // Verify with type 'magiclink' — matches signInWithOtp flow (same as MDS)
         const { data: verifyData, error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSignup.email,
           token: code,
-          type: 'signup'
+          type: 'magiclink'
         });
 
         if (verifyErr) throw verifyErr;
 
         const userId = verifyData.user.id;
 
-        // Insert doctor_profiles row
-        const { error: profileErr } = await client
-          .from('doctor_profiles')
-          .insert([{
-            user_id: userId,
-            doctor_name: pendingSignup.name,
-            city: pendingSignup.city,
-            email: pendingSignup.email
-          }]);
+        // Set the doctor's chosen password (was stored during signup)
+        if (pendingSignup.password) {
+          const { error: pwErr } = await client.auth.updateUser({ password: pendingSignup.password });
+          if (pwErr) {
+            console.warn('Password set failed (may already be set):', pwErr.message);
+          }
+        }
 
-        if (profileErr) throw profileErr;
+        // Insert or update doctor_profiles row
+        const { data: existingRow } = await client
+          .from('doctor_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (existingRow) {
+          await client
+            .from('doctor_profiles')
+            .update({
+              doctor_name: pendingSignup.name,
+              city: pendingSignup.city,
+              email: pendingSignup.email
+            })
+            .eq('user_id', userId);
+        } else {
+          const { error: profileErr } = await client
+            .from('doctor_profiles')
+            .insert([{
+              user_id: userId,
+              doctor_name: pendingSignup.name,
+              city: pendingSignup.city,
+              email: pendingSignup.email
+            }]);
+          if (profileErr) throw profileErr;
+        }
 
         // Success — set session
         currentUserId = userId;
@@ -807,9 +801,10 @@ startOtpCountdown();
     async function resendOtp() {
       if (!pendingSignup) { showAuthView('signup'); return; }
       try {
-        const { error } = await client.auth.resend({
-          type: 'signup',
-          email: pendingSignup.email
+        // Use signInWithOtp to resend (same as initial send)
+        const { error } = await client.auth.signInWithOtp({
+          email: pendingSignup.email,
+          options: { shouldCreateUser: true }
         });
         if (error) throw error;
         alert('✅ New code sent to ' + pendingSignup.email);
