@@ -421,7 +421,7 @@
 
         if (existing) {
           // Partner exists — verify
-          if (profile.is_verified && profile.user_id) {
+          if (existing.is_verified && existing.user_id) {
             showAuthError('This partner account is already set up. Please log in instead.');
             return;
           }
