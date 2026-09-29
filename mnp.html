@@ -501,8 +501,8 @@
         const { error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
-          type: 'magiclink'
-        });
+          type: 'email'
+      });
 
         if (verifyErr) throw verifyErr;
 
