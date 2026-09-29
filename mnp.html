@@ -413,8 +413,8 @@
 
         if (existing) {
           // Partner exists — verify
-          if (existing.is_verified && existing.user_id) {
-            showAuthError('This partner name is already registered. Please log in instead, or contact admin if this is a mistake.');
+          if (profile.is_verified && profile.user_id) {
+            showAuthError('This partner account is already set up. Please log in instead.');
             return;
           }
           if (existing.email && existing.email.toLowerCase() !== email) {
@@ -501,7 +501,7 @@
         const { error: verifyErr } = await client.auth.verifyOtp({
           email: pendingSetup.email,
           token: code,
-          type: 'email'
+          type: 'magiclink'
       });
 
         if (verifyErr) throw verifyErr;
