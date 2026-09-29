@@ -397,57 +397,59 @@
     window.handlePasswordLogin = handlePasswordLogin;
 
     // SEND OTP — SELF-REGISTRATION (creates mmp_profiles row if missing)
-    async function handleSendOtp(e) {
+        // VERIFY OTP + SET PASSWORD
+    async function handleVerifyOtp(e) {
       e.preventDefault();
-      const name = document.getElementById('setupPartnerName').value.trim();
-      const email = document.getElementById('setupEmail').value.trim().toLowerCase();
-      if (!name || !email) return;
+      if (!pendingSetup) { showAuthView('setup'); return; }
 
-      if (!email.includes('@')) {
-        showAuthError('Please enter a valid email address.');
-        return;
-      }
+      const code = document.getElementById('otpCode').value.trim();
+      const newPwd = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
 
-      setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
+      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the code from your email (6-8 digits).'); return; }
+      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
+
+      setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
       try {
-        const portal_key = 'mmp_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        // Try 'magiclink' first (for existing users)
+        let verifyResult = await client.auth.verifyOtp({
+          email: pendingSetup.email,
+          token: code,
+          type: 'magiclink'
+        });
 
-        // Check if this portal_key already exists
-        const { data: existing } = await client
-          .from('mmp_profiles')
-          .select('*')
-          .eq('portal_key', portal_key)
-          .maybeSingle();
-
-        if (existing) {
-          // Partner exists — verify
-          if (existing.is_verified && existing.user_id) {
-            showAuthError('This partner account is already set up. Please log in instead.');
-            return;
-          }
-          if (existing.email && existing.email.toLowerCase() !== email) {
-            showAuthError('This partner name is already registered with a different email. Please use the same email or contact admin.');
-            return;
-          }
-          if (!existing.email) {
-            await client.from('mmp_profiles').update({ email: email }).eq('portal_key', portal_key);
-          }
-        } else {
-          // Brand new partner — create the row
-          const { error: insertErr } = await client
-            .from('mmp_profiles')
-            .insert([{
-              portal_key: portal_key,
-              partner_name: name,
-              email: email,
-              is_verified: false
-            }]);
-          if (insertErr) {
-            console.error('Insert error:', insertErr);
-            showAuthError('Could not create partner profile. Please try again.');
-            return;
-          }
+        // If failed, try 'signup' (for brand new users)
+        if (verifyResult.error) {
+          console.warn('magiclink verify failed, trying signup...', verifyResult.error.message);
+          verifyResult = await client.auth.verifyOtp({
+            email: pendingSetup.email,
+            token: code,
+            type: 'signup'
+          });
         }
+
+        if (verifyResult.error) throw verifyResult.error;
+
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+        if (updateErr) throw updateErr;
+
+        await client.from('mmp_profiles')
+          .update({ is_verified: true })
+          .eq('portal_key', pendingSetup.portal_key);
+
+        currentPartner = pendingSetup.name;
+        sessionStorage.setItem('mmp_current_partner', currentPartner);
+        pendingSetup = null;
+        unlockPortal();
+      } catch (err) {
+        console.error('Verify error:', err);
+        showAuthError(err.message || 'Invalid or expired code. Please try again.');
+      } finally {
+        setBtnLoading('verifyOtpBtn', false, 'Verify & Save Password');
+      }
+    }
+    window.handleVerifyOtp = handleVerifyOtp;
 
         // Send OTP — shouldCreateUser: true auto-creates the auth user
         const { error: otpErr } = await client.auth.signInWithOtp({
