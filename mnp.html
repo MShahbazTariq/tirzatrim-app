@@ -794,27 +794,78 @@
     }
     window.submitPasswordChange = submitPasswordChange;
 
-    // PUSH TOGGLE
-    async function togglePushFromProfile() {
+        // PUSH TOGGLE — enable OR disable
+    async function enablePushFromProfile() {
       const btn = document.getElementById('menuPushBtn');
-      if (!btn) return;
       try {
         if (!currentPartner) { alert('Please log in first.'); return; }
         if (!('Notification' in window)) { alert("Push notifications are not supported on this browser."); return; }
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') { alert('⚠️ Notification permission denied.'); return; }
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          alert('Push notifications require HTTPS and a modern browser.');
+          return;
+        }
+        if (Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') {
+            alert('⚠️ Notification permission was denied.\n\nTo enable: open your browser settings → Site Settings → Notifications → Allow.');
+            return;
+          }
+        }
+        if (Notification.permission === 'denied') {
+          alert('⚠️ Notifications are blocked for this site.\n\nFix: Browser Settings → Site Settings → Notifications → Allow for tirzatrim.vercel.app');
+          return;
+        }
         const sapId = 'MMP_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
         if (typeof window.subscribeDeviceToPush === 'function') {
           await window.subscribeDeviceToPush(sapId, 'mmp', currentPartner);
-          btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
-          alert(`✅ Phone Linked!\n\nRole: M&P Partner\nPartner: ${currentPartner}\nCity: ${currentCity || 'Not set'}`);
+          if (btn) btn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
+          setTimeout(() => {
+            alert(`✅ Phone Linked!\n\nRole: M&P Partner\nPartner: ${currentPartner}\nCity: ${currentCity || 'Not set'}`);
+          }, 800);
         } else {
-          alert('⚠️ Push system not loaded.');
+          alert('⚠️ Push system not loaded. Please refresh the page and try again.');
         }
       } catch (err) {
+        console.error('Push enable error:', err);
         alert('Failed: ' + (err.message || 'Unknown error'));
       }
     }
+
+    async function togglePushFromProfile() {
+      const btn = document.getElementById('menuPushBtn');
+      if (!btn) return;
+      const isActive = btn.innerHTML.includes('Phone Push Active');
+
+      if (isActive) {
+        // 🔕 REVOKE PATH
+        const confirmRevoke = confirm(
+          'Disable phone push alerts for this device?\n\n' +
+          'You will stop receiving push notifications until you re-enable them.'
+        );
+        if (!confirmRevoke) return;
+
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await sub.unsubscribe();
+          }
+          const sapId = 'MMP_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+          await client.from('push_subscriptions').delete().eq('sap_id', sapId);
+          btn.innerHTML = `<span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span>`;
+          alert('✅ Push alerts disabled.\n\nYou can re-enable anytime from this screen.');
+        } catch (err) {
+          console.error('Revoke push error:', err);
+          alert('Failed to disable push: ' + (err.message || 'Unknown error'));
+        }
+        return;
+      }
+
+      // 🔔 ENABLE PATH
+      await enablePushFromProfile();
+    }
+
+    window.enablePushFromProfile = enablePushFromProfile;
     window.togglePushFromProfile = togglePushFromProfile;
 
     // ORDER FETCH + RENDER
