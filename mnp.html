@@ -919,29 +919,29 @@
 
     // ORDER FETCH + RENDER
     window.fetchMmpOrders = async function() {
-      if (!currentPartner) return;
+  if (!currentPartner) return;
 
-      let query = client
-        .from('orders')
-        .select('*')
-        .eq('fulfillment_channel', 'MP');
+  let query = client
+    .from('orders')
+    .select('*')
+    .eq('fulfillment_channel', 'MP');
 
-      // 🎯 Filter by city — each M&P only sees their own city's orders
-      if (currentCity) {
-        query = query.ilike('city', currentCity.trim());
-      }
+  // 🎯 Filter by city — each M&P only sees their own city's orders
+  if (currentCity) {
+    query = query.ilike('city', currentCity.trim());
+  }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+  const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error) { console.warn('Fetch orders error:', error); return; }
-      allOrders = data || [];
-      populateFilterOptions(allOrders);
-      updateMetrics();
-      renderOrders();
-    };
+  if (error) { console.warn('Fetch orders error:', error); return; }
+  allOrders = data || [];
+  await populateFilterOptions(allOrders);   // ← now async-loaded with await
+  updateMetrics();
+  renderOrders();
+};
 
-    // ============================================================
-    // ZSM + REP FILTER
+        // ============================================================
+    // ZSM + REP FILTER (loads from managers + reps tables)
     // ============================================================
     async function populateFilterOptions(orders) {
       const zsmSel = document.getElementById('zsmFilter');
@@ -951,56 +951,102 @@
       const prevZsm = zsmSel.value;
       const prevRep = repSel.value;
 
-      const zsmap = {};
-      const repmap = {};
-      (orders || []).forEach(o => {
-        if (o.manager_sap_id) zsmap[o.manager_sap_id] = (zsmap[o.manager_sap_id] || 0) + 1;
-        if (o.rep_code) repmap[o.rep_code] = (repmap[o.rep_code] || 0) + 1;
-      });
-
-      // Try to resolve SAP IDs → names
-      let zsmNames = {};
-      let repNames = {};
       try {
+        // 🔹 Load all managers (ZSMs)
+        const { data: managers } = await client
+          .from('managers')
+          .select('full_name, manager_sap_id, region, team_name');
+
+        // 🔹 Load all reps
         const { data: reps } = await client
           .from('reps')
-          .select('sap_id, full_name')
-          .in('sap_id', Object.keys(repmap));
-        (reps || []).forEach(r => { repNames[r.sap_id] = r.full_name; });
-      } catch (_) {}
-      try {
-        const { data: managers } = await client
-          .from('reps')
-          .select('sap_id, full_name')
-          .in('sap_id', Object.keys(zsmap));
-        (managers || []).forEach(m => { zsmNames[m.sap_id] = m.full_name; });
-      } catch (_) {}
+          .select('full_name, territory_code, sap_id, manager_sap_id');
 
-      zsmSel.innerHTML = '<option value="ALL">All ZSMs</option>' + 
-        Object.entries(zsmap).map(([id, count]) => {
-          const label = zsmNames[id] ? `${zsmNames[id]} (${count})` : `${id} (${count})`;
-          return `<option value="${id}">${label}</option>`;
-        }).join('');
+        // 🔹 Build maps
+        const zsmMap = {};   // { manager_sap_id: { name, region } }
+        (managers || []).forEach(m => {
+          if (m.manager_sap_id) {
+            zsmMap[m.manager_sap_id] = {
+              name: m.full_name || m.manager_sap_id,
+              region: m.region || '',
+              team: m.team_name || ''
+            };
+          }
+        });
 
-      repSel.innerHTML = '<option value="ALL">All Reps</option>' + 
-        Object.entries(repmap).map(([id, count]) => {
-          const label = repNames[id] ? `${repNames[id]} (${count})` : `${id} (${count})`;
-          return `<option value="${id}">${label}</option>`;
-        }).join('');
+        const repMap = {};   // { territory_code: { name, manager_sap_id, sap_id } }
+        (reps || []).forEach(r => {
+          if (r.territory_code) {
+            repMap[r.territory_code] = {
+              name: r.full_name || r.territory_code,
+              manager_sap_id: r.manager_sap_id || '',
+              sap_id: r.sap_id || ''
+            };
+          }
+        });
 
-      if (Object.keys(zsmap).includes(prevZsm)) zsmSel.value = prevZsm;
-      if (Object.keys(repmap).includes(prevRep)) repSel.value = prevRep;
+        // 🔹 Count orders for badges
+        const repOrderCount = {};
+        const zsmOrderCount = {};
+        (orders || []).forEach(o => {
+          if (o.rep_code) repOrderCount[o.rep_code] = (repOrderCount[o.rep_code] || 0) + 1;
+          if (o.manager_sap_id) zsmOrderCount[o.manager_sap_id] = (zsmOrderCount[o.manager_sap_id] || 0) + 1;
+        });
 
-      document.getElementById('zsmCount').innerText = Object.keys(zsmap).length ? `(${Object.keys(zsmap).length})` : '';
-      document.getElementById('repCount').innerText = Object.keys(repmap).length ? `(${Object.keys(repmap).length})` : '';
+        // 🔹 Build ZSM dropdown
+        const zsmEntries = Object.entries(zsmMap).map(([id, info]) => ({
+          id, ...info, count: zsmOrderCount[id] || 0
+        })).sort((a, b) => a.name.localeCompare(b.name));
+
+        zsmSel.innerHTML = '<option value="ALL">All ZSMs</option>' +
+          zsmEntries.map(z =>
+            `<option value="${z.id}">${z.name}${z.count ? ` (${z.count})` : ' (0)'}</option>`
+          ).join('');
+
+        // 🔹 Build Rep dropdown
+        const repEntries = Object.entries(repMap).map(([code, info]) => ({
+          code, ...info, count: repOrderCount[code] || 0
+        })).sort((a, b) => a.name.localeCompare(b.name));
+
+        repSel.innerHTML = '<option value="ALL">All Reps</option>' +
+          repEntries.map(r =>
+            `<option value="${r.code}" data-manager="${r.manager_sap_id}">${r.name} — ${r.code}${r.count ? ` (${r.count})` : ' (0)'}</option>`
+          ).join('');
+
+        // 🔹 Restore selections if still valid
+        if (zsmMap[prevZsm] || prevZsm === 'ALL') zsmSel.value = prevZsm;
+        if (repMap[prevRep] || prevRep === 'ALL') repSel.value = prevRep;
+
+        // 🔹 Show counts on labels
+        document.getElementById('zsmCount').innerText = `(${zsmEntries.length})`;
+        document.getElementById('repCount').innerText = `(${repEntries.length})`;
+
+      } catch (err) {
+        console.error('populateFilterOptions error:', err);
+      }
     }
 
     function onZsmFilterChange() {
       const zsmSel = document.getElementById('zsmFilter');
       const repSel = document.getElementById('repFilter');
-      currentZsmFilter = zsmSel.value;
-      repSel.value = 'ALL';
-      currentRepFilter = 'ALL';
+      const selectedZsm = zsmSel.value;
+      currentZsmFilter = selectedZsm;
+
+      // Filter rep options: only show reps that report to this ZSM
+      const repOptions = repSel.querySelectorAll('option');
+      repOptions.forEach(opt => {
+        if (opt.value === 'ALL') return;
+        const optManager = opt.dataset.manager;
+        opt.style.display = (selectedZsm === 'ALL' || optManager === selectedZsm) ? '' : 'none';
+      });
+
+      // Reset rep selection if it's now hidden
+      const currentOpt = repSel.querySelector(`option[value="${repSel.value}"]`);
+      if (currentOpt && currentOpt.style.display === 'none') {
+        repSel.value = 'ALL';
+        currentRepFilter = 'ALL';
+      }
+
       renderOrders();
     }
     window.onZsmFilterChange = onZsmFilterChange;
@@ -1030,7 +1076,7 @@
     }
     window.setTabFilter = setTabFilter;
 
-    function renderOrders() {
+        function renderOrders() {
       const grid = document.getElementById('ordersGrid');
       const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
       const timeline = document.getElementById('timelineFilter')?.value || 'ALL';
@@ -1038,9 +1084,9 @@
       const repSel = document.getElementById('repFilter')?.value || 'ALL';
 
       let filtered = allOrders.filter(o => {
-        // ZSM filter
+        // ZSM filter (matches orders.manager_sap_id to managers.manager_sap_id)
         if (zsmSel !== 'ALL' && o.manager_sap_id !== zsmSel) return false;
-        // Rep filter
+        // Rep filter (matches orders.rep_code to reps.territory_code)
         if (repSel !== 'ALL' && o.rep_code !== repSel) return false;
         // Status tab
         if (currentTab === 'NEW') return ['New Patient', 'Prescription Received', 'Order Processing'].includes(o.status);
