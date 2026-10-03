@@ -62,7 +62,7 @@
         <form onsubmit="handlePasswordLogin(event)" class="space-y-3 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
-            <input type="text" id="loginPartnerName" placeholder="e.g. M&P2 Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <input type="text" id="loginPartnerName" placeholder="e.g. M&P Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
@@ -71,7 +71,6 @@
           <button type="submit" id="loginBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Dispatch Queue</button>
         </form>
 
-        <!-- ✅ NEW: Visible Signup Button -->
         <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">New to TirzaTrim?</p>
           <button onclick="showAuthView('setup')" class="w-full py-3 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border-2 border-amber-500 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
@@ -92,11 +91,10 @@
 
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
-            <input type="text" id="setupPartnerName" placeholder="e.g. M&P2" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
-            <p class="text-[10px] text-slate-400 mt-1">Use your depot code (e.g. M&P1, M&P2, M&P3)</p>
+            <input type="text" id="setupPartnerName" placeholder="e.g. M&P Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <p class="text-[10px] text-slate-400 mt-1">Include your city (e.g. M&P Lahore, M&P Karachi)</p>
           </div>
 
-          <!-- ✅ NEW: City Field -->
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Operating City *</label>
             <input type="text" id="setupCity" list="mmpCitySuggestions" placeholder="e.g. Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
@@ -114,7 +112,7 @@
               <option value="Hyderabad"></option>
               <option value="Bahawalpur"></option>
             </datalist>
-            <p class="text-[10px] text-slate-400 mt-1">Your depot's primary operating city</p>
+            <p class="text-[10px] text-slate-400 mt-1">You'll only see orders for this city</p>
           </div>
 
           <div>
@@ -187,7 +185,9 @@
         <div class="flex items-center gap-2">
           <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight"><span id="headerPartnerName">M&P Partner</span> <span class="text-amber-600 dark:text-amber-400">Dispatch Hub</span></h1>
         </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Exclusive dispatch console for your assigned M&P orders</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          Serving <span id="headerPartnerCity" class="font-bold text-amber-600 dark:text-amber-400">—</span>
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="openProfileModal()" title="Profile & Settings" class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-lg font-bold shadow-sm transition-all flex items-center justify-center">⚙️</button>
@@ -226,6 +226,29 @@
         <button id="tabCancelled" onclick="setTabFilter('CANCELLED')" class="py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-white transition-all col-span-2 sm:col-span-1">Cancelled</button>
       </div>
 
+      <!-- ZSM + Rep Filter Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">
+            Filter by ZSM
+            <span id="zsmCount" class="ml-1 text-amber-600 dark:text-amber-400 font-bold"></span>
+          </label>
+          <select id="zsmFilter" onchange="onZsmFilterChange()" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <option value="ALL">All ZSMs</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">
+            Filter by Rep
+            <span id="repCount" class="ml-1 text-amber-600 dark:text-amber-400 font-bold"></span>
+          </label>
+          <select id="repFilter" onchange="renderOrders()" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500">
+            <option value="ALL">All Reps</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Timeline + Search Row -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label class="block text-[11px] font-semibold text-slate-500 mb-1">Timeline Filter</label>
@@ -294,6 +317,7 @@
       <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Session Info</div>
         <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Role</span><span class="font-bold text-slate-800 dark:text-slate-200">M&P Partner</span></div>
+        <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">City</span><span id="profSessionCity" class="font-bold text-amber-600 dark:text-amber-400">—</span></div>
         <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5"><span class="text-slate-500 dark:text-slate-400">Portal</span><span class="font-bold text-amber-600 dark:text-amber-400">Dispatch Console</span></div>
       </div>
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
@@ -329,6 +353,8 @@
     let currentCity = sessionStorage.getItem('mmp_current_city') || null;
     let pendingSetup = null;
     let otpResendLockedUntil = 0;
+    let currentZsmFilter = 'ALL';
+    let currentRepFilter = 'ALL';
 
     const TITRATION_MAP = {
       '2.5mg': '5mg', '5mg': '7.5mg', '7.5mg': '10mg',
@@ -461,7 +487,6 @@
             return;
           }
 
-          // Update email + city if missing or changed
           const { error: updateProfileErr } = await client
             .from('mmp_profiles')
             .update({ email, city })
@@ -697,8 +722,10 @@
       document.getElementById('dashboardContent').classList.remove('hidden');
       document.getElementById('topNavBar').classList.remove('hidden');
       document.getElementById('headerPartnerName').innerText = currentPartner;
+      document.getElementById('headerPartnerCity').innerText = currentCity || '—';
       document.getElementById('profPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
+      document.getElementById('profSessionCity').innerText = currentCity || '—';
 
       if (typeof NotificationCenter !== 'undefined') {
         window.notificationCenter = new NotificationCenter({
@@ -725,10 +752,11 @@
     window.handleLogout = handleLogout;
 
     // PROFILE MODAL
-        function openProfileModal() {
+    function openProfileModal() {
       if (!currentPartner) return;
       document.getElementById('profPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
+      document.getElementById('profSessionCity').innerText = currentCity || '—';
 
       const pushBtn = document.getElementById('menuPushBtn');
       const sapId = 'MMP_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
@@ -755,6 +783,13 @@
       const modal = document.getElementById('profileModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+    }
+    window.openProfileModal = openProfileModal;
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
     }
     window.closeProfileModal = closeProfileModal;
 
@@ -810,7 +845,7 @@
     }
     window.submitPasswordChange = submitPasswordChange;
 
-        // PUSH TOGGLE — enable OR disable
+    // PUSH TOGGLE
     async function enablePushFromProfile() {
       const btn = document.getElementById('menuPushBtn');
       try {
@@ -853,7 +888,6 @@
       const isActive = btn.innerHTML.includes('Phone Push Active');
 
       if (isActive) {
-        // 🔕 REVOKE PATH
         const confirmRevoke = confirm(
           'Disable phone push alerts for this device?\n\n' +
           'You will stop receiving push notifications until you re-enable them.'
@@ -877,7 +911,6 @@
         return;
       }
 
-      // 🔔 ENABLE PATH
       await enablePushFromProfile();
     }
 
@@ -888,17 +921,89 @@
     window.fetchMmpOrders = async function() {
       if (!currentPartner) return;
 
-      const { data, error } = await client
+      let query = client
         .from('orders')
         .select('*')
-        .eq('fulfillment_channel', 'MP')
-        .order('created_at', { ascending: false });
+        .eq('fulfillment_channel', 'MP');
+
+      // 🎯 Filter by city — each M&P only sees their own city's orders
+      if (currentCity) {
+        query = query.ilike('city', currentCity.trim());
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) { console.warn('Fetch orders error:', error); return; }
       allOrders = data || [];
+      populateFilterOptions(allOrders);
       updateMetrics();
       renderOrders();
     };
+
+    // ============================================================
+    // ZSM + REP FILTER
+    // ============================================================
+    async function populateFilterOptions(orders) {
+      const zsmSel = document.getElementById('zsmFilter');
+      const repSel = document.getElementById('repFilter');
+      if (!zsmSel || !repSel) return;
+
+      const prevZsm = zsmSel.value;
+      const prevRep = repSel.value;
+
+      const zsmap = {};
+      const repmap = {};
+      (orders || []).forEach(o => {
+        if (o.manager_sap_id) zsmap[o.manager_sap_id] = (zsmap[o.manager_sap_id] || 0) + 1;
+        if (o.rep_code) repmap[o.rep_code] = (repmap[o.rep_code] || 0) + 1;
+      });
+
+      // Try to resolve SAP IDs → names
+      let zsmNames = {};
+      let repNames = {};
+      try {
+        const { data: reps } = await client
+          .from('reps')
+          .select('sap_id, full_name')
+          .in('sap_id', Object.keys(repmap));
+        (reps || []).forEach(r => { repNames[r.sap_id] = r.full_name; });
+      } catch (_) {}
+      try {
+        const { data: managers } = await client
+          .from('reps')
+          .select('sap_id, full_name')
+          .in('sap_id', Object.keys(zsmap));
+        (managers || []).forEach(m => { zsmNames[m.sap_id] = m.full_name; });
+      } catch (_) {}
+
+      zsmSel.innerHTML = '<option value="ALL">All ZSMs</option>' + 
+        Object.entries(zsmap).map(([id, count]) => {
+          const label = zsmNames[id] ? `${zsmNames[id]} (${count})` : `${id} (${count})`;
+          return `<option value="${id}">${label}</option>`;
+        }).join('');
+
+      repSel.innerHTML = '<option value="ALL">All Reps</option>' + 
+        Object.entries(repmap).map(([id, count]) => {
+          const label = repNames[id] ? `${repNames[id]} (${count})` : `${id} (${count})`;
+          return `<option value="${id}">${label}</option>`;
+        }).join('');
+
+      if (Object.keys(zsmap).includes(prevZsm)) zsmSel.value = prevZsm;
+      if (Object.keys(repmap).includes(prevRep)) repSel.value = prevRep;
+
+      document.getElementById('zsmCount').innerText = Object.keys(zsmap).length ? `(${Object.keys(zsmap).length})` : '';
+      document.getElementById('repCount').innerText = Object.keys(repmap).length ? `(${Object.keys(repmap).length})` : '';
+    }
+
+    function onZsmFilterChange() {
+      const zsmSel = document.getElementById('zsmFilter');
+      const repSel = document.getElementById('repFilter');
+      currentZsmFilter = zsmSel.value;
+      repSel.value = 'ALL';
+      currentRepFilter = 'ALL';
+      renderOrders();
+    }
+    window.onZsmFilterChange = onZsmFilterChange;
 
     function updateMetrics() {
       const total = allOrders.length;
@@ -929,8 +1034,15 @@
       const grid = document.getElementById('ordersGrid');
       const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
       const timeline = document.getElementById('timelineFilter')?.value || 'ALL';
+      const zsmSel = document.getElementById('zsmFilter')?.value || 'ALL';
+      const repSel = document.getElementById('repFilter')?.value || 'ALL';
 
       let filtered = allOrders.filter(o => {
+        // ZSM filter
+        if (zsmSel !== 'ALL' && o.manager_sap_id !== zsmSel) return false;
+        // Rep filter
+        if (repSel !== 'ALL' && o.rep_code !== repSel) return false;
+        // Status tab
         if (currentTab === 'NEW') return ['New Patient', 'Prescription Received', 'Order Processing'].includes(o.status);
         if (currentTab === 'DISPATCHED') return o.status === 'Dispatched';
         if (currentTab === 'DELIVERED') return ['Delivered', 'Patient Confirmed', 'Completed'].includes(o.status);
