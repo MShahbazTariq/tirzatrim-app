@@ -687,24 +687,69 @@
       }
     }
 
-    // ============================================================
+        // ============================================================
     // DATE PRESETS
     // ============================================================
     function initDates() { setDatePreset('MTD'); }
+
     function setDatePreset(type) {
       currentDateScope = type;
       const today = new Date();
+
+      // Reset all buttons
       ['Today', 'Yesterday', '7Days', 'MTD', 'All'].forEach(id => {
         const el = document.getElementById(`btnDate${id}`);
         if (el) el.className = "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
       });
-      if (type === 'TODAY') { document.getElementById('btnDateToday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all"; filterStartDate = getLocalDateKey(today); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Today"; document.getElementById('activeDateScopeTag').innerText = "Today"; }
-      else if (type === 'YESTERDAY') { document.getElementById('btnDateYesterday').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all"; const y = new Date(); y.setDate(y.getDate() - 1); filterStartDate = getLocalDateKey(y); filterEndDate = getLocalDateKey(y); document.getElementById('dateScopeBadge').innerText = "Showing: Yesterday"; document.getElementById('activeDateScopeTag').innerText = "Yesterday"; }
-      else if (type === 'LAST7') { document.getElementById('btnDate7Days').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all"; const last7 = new Date(); last7.setDate(last7.getDate() - 6); filterStartDate = getLocalDateKey(last7); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Last 7 Days"; document.getElementById('activeDateScopeTag').innerText = "Last 7 Days"; }
-      else if (type === 'MTD') { document.getElementById('btnDateMTD').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all"; const firstDay = new Date(today.getFullYear(), today.getMonth(), 1); filterStartDate = getLocalDateKey(firstDay); filterEndDate = getLocalDateKey(today); document.getElementById('dateScopeBadge').innerText = "Showing: Month to Date"; document.getElementById('activeDateScopeTag').innerText = "Month to Date"; }
-      else if (type === 'ALL') { document.getElementById('btnDateAll').className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all"; filterStartDate = null; filterEndDate = null; document.getElementById('dateScopeBadge').innerText = "Showing: All Time"; document.getElementById('activeDateScopeTag').innerText = "All Time"; }
-      document.getElementById('calendarFromDate').value = filterStartDate || '';
-      document.getElementById('calendarToDate').value = filterEndDate || '';
+
+      const dateScopeBadge = document.getElementById('dateScopeBadge');
+      const activeDateScopeTag = document.getElementById('activeDateScopeTag');
+      const calendarFromDate = document.getElementById('calendarFromDate');
+      const calendarToDate = document.getElementById('calendarToDate');
+
+      if (type === 'TODAY') {
+        const btn = document.getElementById('btnDateToday');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = getLocalDateKey(today);
+        filterEndDate = getLocalDateKey(today);
+        if (dateScopeBadge) dateScopeBadge.innerText = "Showing: Today";
+        if (activeDateScopeTag) activeDateScopeTag.innerText = "Today";
+      } else if (type === 'YESTERDAY') {
+        const btn = document.getElementById('btnDateYesterday');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const y = new Date(); y.setDate(y.getDate() - 1);
+        filterStartDate = getLocalDateKey(y);
+        filterEndDate = getLocalDateKey(y);
+        if (dateScopeBadge) dateScopeBadge.innerText = "Showing: Yesterday";
+        if (activeDateScopeTag) activeDateScopeTag.innerText = "Yesterday";
+      } else if (type === 'LAST7') {
+        const btn = document.getElementById('btnDate7Days');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const last7 = new Date(); last7.setDate(last7.getDate() - 6);
+        filterStartDate = getLocalDateKey(last7);
+        filterEndDate = getLocalDateKey(today);
+        if (dateScopeBadge) dateScopeBadge.innerText = "Showing: Last 7 Days";
+        if (activeDateScopeTag) activeDateScopeTag.innerText = "Last 7 Days";
+      } else if (type === 'MTD') {
+        const btn = document.getElementById('btnDateMTD');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStartDate = getLocalDateKey(firstDay);
+        filterEndDate = getLocalDateKey(today);
+        if (dateScopeBadge) dateScopeBadge.innerText = "Showing: Month to Date";
+        if (activeDateScopeTag) activeDateScopeTag.innerText = "Month to Date";
+      } else if (type === 'ALL') {
+        const btn = document.getElementById('btnDateAll');
+        if (btn) btn.className = "px-4 py-2 rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+        filterStartDate = null;
+        filterEndDate = null;
+        if (dateScopeBadge) dateScopeBadge.innerText = "Showing: All Time";
+        if (activeDateScopeTag) activeDateScopeTag.innerText = "All Time";
+      }
+
+      if (calendarFromDate) calendarFromDate.value = filterStartDate || '';
+      if (calendarToDate) calendarToDate.value = filterEndDate || '';
+
       syncOrdersDateButtons();
       applyAllFilters();
     }
@@ -712,16 +757,25 @@
 
     function syncOrdersDateButtons() {
       const map = { 'TODAY': 'ordersBtnToday', 'YESTERDAY': 'ordersBtnYesterday', 'LAST7': 'ordersBtn7Days', 'MTD': 'ordersBtnMTD', 'ALL': 'ordersBtnAll' };
+
       ['ordersBtnToday', 'ordersBtnYesterday', 'ordersBtn7Days', 'ordersBtnMTD', 'ordersBtnAll'].forEach(id => {
         const btn = document.getElementById(id);
         if (btn) btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all";
       });
-      const activeBtnId = map[currentDateScope];
-      if (activeBtnId) { const activeBtn = document.getElementById(activeBtnId); if (activeBtn) activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all"; }
-      const badge = document.getElementById('ordersDateBadge');
-      if (badge) { const scopeMap = { 'TODAY': 'Today', 'YESTERDAY': 'Yesterday', 'LAST7': 'Last 7 Days', 'MTD': 'Month to Date', 'ALL': 'All Time', 'CUSTOM': 'Custom Range' }; badge.innerText = scopeMap[currentDateScope] || 'Month to Date'; }
-    }
 
+      const activeBtnId = map[currentDateScope];
+      if (activeBtnId) {
+        const activeBtn = document.getElementById(activeBtnId);
+        if (activeBtn) activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition-all";
+      }
+
+      const badge = document.getElementById('ordersDateBadge');
+      if (badge) {
+        const scopeMap = { 'TODAY': 'Today', 'YESTERDAY': 'Yesterday', 'LAST7': 'Last 7 Days', 'MTD': 'Month to Date', 'ALL': 'All Time', 'CUSTOM': 'Custom Range' };
+        badge.innerText = scopeMap[currentDateScope] || 'Month to Date';
+      }
+    }
+    
     function onOrdersCustomDate() {
       const from = document.getElementById('ordersCalendarFrom').value;
       const to = document.getElementById('ordersCalendarTo').value;
