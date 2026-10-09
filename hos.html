@@ -326,9 +326,9 @@
           </div>
           <div class="flex items-center gap-2">
             <select id="scorecardChannelFilter" onchange="renderDistributorScorecard()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-              <option value="ALL">All Channels (MDS + MMP)</option>
+              <option value="ALL">All Channels (MDS + M&P)</option>
               <option value="MDS">MDS only (Same-Day)</option>
-              <option value="MP">MMP only (Helpline)</option>
+              <option value="MP">M&P only (Helpline)</option>
             </select>
             <button onclick="exportDistributorScorecardCSV()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all">📥 Export CSV</button>
           </div>
@@ -616,10 +616,14 @@
       const saps = regionManagers.map(m => m.manager_sap_id);
       return allReps.filter(r => saps.includes(r.manager_sap_id));
     }
-    function getRegionOrders() {
-      const regionReps = getRegionReps();
-      const codes = regionReps.map(r => r.territory_code);
-      return allOrders.filter(o => codes.includes(o.rep_code));
+        function getRegionOrders() {
+      const regionManagers = getRegionManagers();
+      const regionSaps = regionManagers.map(m => String(m.manager_sap_id));
+      const regionRepCodes = getRegionReps().map(r => r.territory_code);
+      return allOrders.filter(o => 
+        regionRepCodes.includes(o.rep_code) || 
+        regionSaps.includes(String(o.manager_sap_id))
+      );
     }
     function getRegionName() { return hosUserRegion || 'Central'; }
     function isDelivered(status) { return DELIVERED_STATUSES.includes(status); }
@@ -1565,8 +1569,9 @@
     }
     window.onOrdersCustomDate = onOrdersCustomDate;
 
-    // ============================================================
-    // NEW FEATURE: DISTRIBUTOR SCORECARD
+        // ============================================================
+    // NEW FEATURE: DISTRIBUTOR SCORECARD (region-scoped)
+    // Handles: MDS channel (uses mds_provider) + M&P channel (mds_provider often NULL)
     // ============================================================
     function renderDistributorScorecard() {
       const tbody = document.getElementById('scorecardBody');
@@ -1574,11 +1579,22 @@
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
       const regionOrders = getRegionOrders();
       const partnerMap = {};
+
       regionOrders.forEach(order => {
-        const provider = (order.mds_provider || '').trim();
         const channel = (order.fulfillment_channel || '').trim();
-        if (!provider || (channel !== 'MDS' && channel !== 'MP')) return;
+        if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
+
+        // Resolve provider name per channel
+        let provider;
+        if (channel === 'MDS') {
+          provider = (order.mds_provider || '').trim();
+          if (!provider) return; // skip MDS orders with missing provider
+        } else {
+          // M&P (Helpline) — mds_provider often NULL
+          provider = (order.mds_provider || '').trim() || 'M&P Helpline';
+        }
+
         const key = `${provider}|||${channel}`;
         if (!partnerMap[key]) partnerMap[key] = { provider, channel, orders: 0, delivered: 0, cancelled: 0, times: [], ratings: [] };
         const r = partnerMap[key];
@@ -1594,6 +1610,7 @@
         const fb = feedbackMap[order.id];
         if (fb && fb.overall_rating) r.ratings.push(fb.overall_rating);
       });
+
       const partners = Object.values(partnerMap).sort((a, b) => b.orders - a.orders);
       const totalOrders = partners.reduce((sum, p) => sum + p.orders, 0);
       const allTimes = partners.flatMap(p => p.times);
@@ -1601,23 +1618,26 @@
       const totalCancelled = partners.reduce((sum, p) => sum + p.cancelled, 0);
       const avgCancel = totalOrders > 0 ? (totalCancelled / totalOrders * 100) : 0;
       const allRatings = partners.flatMap(p => p.ratings);
-      const avgRating = allRatings.length ? (allRatings.reduce((a,b) => a+b, 0) / allRatings.length) : 0;
+      const avgRating = allRatings.length ? (allRatings.reduce((a, b) => a + b, 0) / allRatings.length) : 0;
+
       const elOrders = document.getElementById('scTotalOrders'); if (elOrders) elOrders.innerText = totalOrders;
       const elBest = document.getElementById('scBestTime'); if (elBest) elBest.innerText = bestTime > 0 ? `${bestTime.toFixed(1)}d` : '—';
       const elCancel = document.getElementById('scAvgCancel'); if (elCancel) elCancel.innerText = `${avgCancel.toFixed(1)}%`;
       const elRating = document.getElementById('scAvgRating'); if (elRating) elRating.innerText = avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : '—';
+
       if (partners.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-12 text-center text-slate-400 text-sm">No distributor orders in your region.</td></tr>';
         return;
       }
+
       tbody.innerHTML = partners.map((p, idx) => {
         const cancelPct = p.orders > 0 ? (p.cancelled / p.orders * 100) : 0;
         const deliveryPct = p.orders > 0 ? (p.delivered / p.orders * 100) : 0;
-        const avgDelivery = p.times.length ? (p.times.reduce((a,b) => a+b, 0) / p.times.length) : 0;
-        const avgR = p.ratings.length ? (p.ratings.reduce((a,b) => a+b, 0) / p.ratings.length) : 0;
+        const avgDelivery = p.times.length ? (p.times.reduce((a, b) => a + b, 0) / p.times.length) : 0;
+        const avgR = p.ratings.length ? (p.ratings.reduce((a, b) => a + b, 0) / p.ratings.length) : 0;
         const channelBadge = p.channel === 'MDS'
           ? '<span class="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[10px] font-bold border border-teal-500/20">MDS</span>'
-          : '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">MMP</span>';
+          : '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">M&P</span>';
         const cancelColor = cancelPct > 10 ? 'text-rose-600 font-bold' : (cancelPct > 5 ? 'text-amber-600 font-bold' : 'text-emerald-600 font-bold');
         return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
           <td class="px-5 py-4 text-xs font-bold text-slate-400">${idx + 1}</td>
@@ -1633,16 +1653,25 @@
     }
     window.renderDistributorScorecard = renderDistributorScorecard;
 
-    function exportDistributorScorecardCSV() {
+        function exportDistributorScorecardCSV() {
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
       const rows = [['Partner', 'Channel', 'Orders', 'Delivered', 'Cancel %', 'Avg Delivery (days)', 'Rating']];
       const regionOrders = getRegionOrders();
       const partnerMap = {};
+
       regionOrders.forEach(order => {
-        const provider = (order.mds_provider || '').trim();
         const channel = (order.fulfillment_channel || '').trim();
-        if (!provider || (channel !== 'MDS' && channel !== 'MP')) return;
+        if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
+
+        let provider;
+        if (channel === 'MDS') {
+          provider = (order.mds_provider || '').trim();
+          if (!provider) return;
+        } else {
+          provider = (order.mds_provider || '').trim() || 'M&P Helpline';
+        }
+
         const key = `${provider}|||${channel}`;
         if (!partnerMap[key]) partnerMap[key] = { provider, channel, orders: 0, delivered: 0, cancelled: 0, times: [], ratings: [] };
         const r = partnerMap[key];
@@ -1658,12 +1687,14 @@
         const fb = feedbackMap[order.id];
         if (fb && fb.overall_rating) r.ratings.push(fb.overall_rating);
       });
-      Object.values(partnerMap).sort((a,b) => b.orders - a.orders).forEach(p => {
+
+      Object.values(partnerMap).sort((a, b) => b.orders - a.orders).forEach(p => {
         const cancelPct = p.orders > 0 ? (p.cancelled / p.orders * 100).toFixed(1) : '0';
-        const avgT = p.times.length ? (p.times.reduce((a,b) => a+b, 0) / p.times.length).toFixed(1) : '—';
-        const avgR = p.ratings.length ? (p.ratings.reduce((a,b) => a+b, 0) / p.ratings.length).toFixed(1) : '—';
-        rows.push([p.provider, p.channel, p.orders, p.delivered, cancelPct, avgT, avgR]);
+        const avgT = p.times.length ? (p.times.reduce((a, b) => a + b, 0) / p.times.length).toFixed(1) : '—';
+        const avgR = p.ratings.length ? (p.ratings.reduce((a, b) => a + b, 0) / p.ratings.length).toFixed(1) : '—';
+        rows.push([p.provider, p.channel === 'MP' ? 'M&P' : 'MDS', p.orders, p.delivered, cancelPct, avgT, avgR]);
       });
+
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `HOS_${getRegionName()}_Scorecard_${new Date().toISOString().slice(0,10)}.csv`; a.click();
