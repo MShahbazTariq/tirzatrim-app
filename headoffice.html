@@ -1150,80 +1150,81 @@
       } catch (e) {}
     }
 
-    // ============================================================
-    // TAB 4 — DISTRIBUTOR SCORECARD (NEW)
+        // ============================================================
+    // NEW FEATURE: DISTRIBUTOR SCORECARD (region-scoped)
+    // Handles: MDS channel (uses mds_provider) + M&P channel (mds_provider often NULL)
     // ============================================================
     function renderDistributorScorecard() {
       const tbody = document.getElementById('scorecardBody');
       if (!tbody) return;
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
-
+      const regionOrders = getRegionOrders();
       const partnerMap = {};
 
-      allOrders.forEach(order => {
-        const provider = (order.mds_provider || '').trim();
+      regionOrders.forEach(order => {
         const channel = (order.fulfillment_channel || '').trim();
-        if (!provider || !channel) return;
         if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
 
-        const key = `${provider}|||${channel}`;
-        if (!partnerMap[key]) partnerMap[key] = {
-          provider, channel,
-          orders: [], delivered: 0, cancelled: 0,
-          deliveryTimes: [], ratings: []
-        };
-        const rec = partnerMap[key];
-        rec.orders.push(order);
+        // Resolve provider name per channel
+        let provider;
+        if (channel === 'MDS') {
+          provider = (order.mds_provider || '').trim();
+          if (!provider) return; // skip MDS orders with missing provider
+        } else {
+          // M&P (Helpline) — mds_provider often NULL
+          provider = (order.mds_provider || '').trim() || 'M&P Helpline';
+        }
 
+        const key = `${provider}|||${channel}`;
+        if (!partnerMap[key]) partnerMap[key] = { provider, channel, orders: 0, delivered: 0, cancelled: 0, times: [], ratings: [] };
+        const r = partnerMap[key];
+        r.orders++;
         if (isDelivered(order.status)) {
-          rec.delivered++;
+          r.delivered++;
           if (order.created_at && order.delivered_at) {
-            const days = (new Date(order.delivered_at) - new Date(order.created_at)) / (1000 * 60 * 60 * 24);
-            if (days >= 0 && days < 30) rec.deliveryTimes.push(days);
+            const d = (new Date(order.delivered_at) - new Date(order.created_at)) / 86400000;
+            if (d >= 0 && d < 30) r.times.push(d);
           }
         }
-        if (order.status === 'Cancelled') rec.cancelled++;
+        if (order.status === 'Cancelled') r.cancelled++;
         const fb = feedbackMap[order.id];
-        if (fb && fb.overall_rating) rec.ratings.push(fb.overall_rating);
+        if (fb && fb.overall_rating) r.ratings.push(fb.overall_rating);
       });
 
-      const partners = Object.values(partnerMap).sort((a, b) => b.orders.length - a.orders.length);
-
-      // Summary cards
-      const totalOrders = partners.reduce((sum, p) => sum + p.orders.length, 0);
-      const allTimes = partners.flatMap(p => p.deliveryTimes);
-      const avgTime = allTimes.length ? (allTimes.reduce((a, b) => a + b, 0) / allTimes.length) : 0;
+      const partners = Object.values(partnerMap).sort((a, b) => b.orders - a.orders);
+      const totalOrders = partners.reduce((sum, p) => sum + p.orders, 0);
+      const allTimes = partners.flatMap(p => p.times);
       const bestTime = allTimes.length ? Math.min(...allTimes) : 0;
       const totalCancelled = partners.reduce((sum, p) => sum + p.cancelled, 0);
       const avgCancel = totalOrders > 0 ? (totalCancelled / totalOrders * 100) : 0;
       const allRatings = partners.flatMap(p => p.ratings);
       const avgRating = allRatings.length ? (allRatings.reduce((a, b) => a + b, 0) / allRatings.length) : 0;
 
-      document.getElementById('scTotalOrders').innerText = totalOrders;
-      document.getElementById('scBestTime').innerText = bestTime > 0 ? `${bestTime.toFixed(1)}d` : '—';
-      document.getElementById('scAvgCancel').innerText = `${avgCancel.toFixed(1)}%`;
-      document.getElementById('scAvgRating').innerText = avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : '—';
+      const elOrders = document.getElementById('scTotalOrders'); if (elOrders) elOrders.innerText = totalOrders;
+      const elBest = document.getElementById('scBestTime'); if (elBest) elBest.innerText = bestTime > 0 ? `${bestTime.toFixed(1)}d` : '—';
+      const elCancel = document.getElementById('scAvgCancel'); if (elCancel) elCancel.innerText = `${avgCancel.toFixed(1)}%`;
+      const elRating = document.getElementById('scAvgRating'); if (elRating) elRating.innerText = avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : '—';
 
       if (partners.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-12 text-center text-slate-400 text-sm">No distributor orders found in current filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-12 text-center text-slate-400 text-sm">No distributor orders in your region.</td></tr>';
         return;
       }
 
       tbody.innerHTML = partners.map((p, idx) => {
-        const cancelPct = p.orders.length > 0 ? (p.cancelled / p.orders.length * 100) : 0;
-        const deliveryPct = p.orders.length > 0 ? (p.delivered / p.orders.length * 100) : 0;
-        const avgDelivery = p.deliveryTimes.length ? (p.deliveryTimes.reduce((a, b) => a + b, 0) / p.deliveryTimes.length) : 0;
+        const cancelPct = p.orders > 0 ? (p.cancelled / p.orders * 100) : 0;
+        const deliveryPct = p.orders > 0 ? (p.delivered / p.orders * 100) : 0;
+        const avgDelivery = p.times.length ? (p.times.reduce((a, b) => a + b, 0) / p.times.length) : 0;
         const avgR = p.ratings.length ? (p.ratings.reduce((a, b) => a + b, 0) / p.ratings.length) : 0;
-        const channelBadge = p.channel === 'MDS' 
+        const channelBadge = p.channel === 'MDS'
           ? '<span class="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[10px] font-bold border border-teal-500/20">MDS</span>'
-          : '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">MMP</span>';
+          : '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">M&P</span>';
         const cancelColor = cancelPct > 10 ? 'text-rose-600 font-bold' : (cancelPct > 5 ? 'text-amber-600 font-bold' : 'text-emerald-600 font-bold');
         return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
           <td class="px-5 py-4 text-xs font-bold text-slate-400">${idx + 1}</td>
           <td class="px-5 py-4"><div class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(p.provider)}</div></td>
           <td class="px-5 py-4">${channelBadge}</td>
-          <td class="px-5 py-4 text-center font-black text-slate-900 dark:text-white">${p.orders.length}</td>
+          <td class="px-5 py-4 text-center font-black text-slate-900 dark:text-white">${p.orders}</td>
           <td class="px-5 py-4 text-center"><span class="text-emerald-600 font-bold">${p.delivered}</span> <span class="text-slate-400 text-xs">(${deliveryPct.toFixed(0)}%)</span></td>
           <td class="px-5 py-4 text-center"><span class="${cancelColor}">${cancelPct.toFixed(1)}%</span></td>
           <td class="px-5 py-4 text-center font-mono font-bold">${avgDelivery > 0 ? `${avgDelivery.toFixed(1)}d` : '—'}</td>
@@ -1233,42 +1234,53 @@
     }
     window.renderDistributorScorecard = renderDistributorScorecard;
 
-    function exportDistributorScorecardCSV() {
+        function exportDistributorScorecardCSV() {
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
-      const rows = [];
-      rows.push(['Partner', 'Channel', 'Orders', 'Delivered', 'Cancel %', 'Avg Delivery (days)', 'Rating']);
-
+      const rows = [['Partner', 'Channel', 'Orders', 'Delivered', 'Cancel %', 'Avg Delivery (days)', 'Rating']];
+      const regionOrders = getRegionOrders();
       const partnerMap = {};
-      allOrders.forEach(order => {
-        const provider = (order.mds_provider || '').trim();
+
+      regionOrders.forEach(order => {
         const channel = (order.fulfillment_channel || '').trim();
-        if (!provider || (channel !== 'MDS' && channel !== 'MP')) return;
+        if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
+
+        let provider;
+        if (channel === 'MDS') {
+          provider = (order.mds_provider || '').trim();
+          if (!provider) return;
+        } else {
+          provider = (order.mds_provider || '').trim() || 'M&P Helpline';
+        }
+
         const key = `${provider}|||${channel}`;
         if (!partnerMap[key]) partnerMap[key] = { provider, channel, orders: 0, delivered: 0, cancelled: 0, times: [], ratings: [] };
         const r = partnerMap[key];
         r.orders++;
-        if (isDelivered(order.status)) r.delivered++;
-        if (order.status === 'Cancelled') r.cancelled++;
-        if (isDelivered(order.status) && order.created_at && order.delivered_at) {
-          const d = (new Date(order.delivered_at) - new Date(order.created_at)) / 86400000;
-          if (d >= 0 && d < 30) r.times.push(d);
+        if (isDelivered(order.status)) {
+          r.delivered++;
+          if (order.created_at && order.delivered_at) {
+            const d = (new Date(order.delivered_at) - new Date(order.created_at)) / 86400000;
+            if (d >= 0 && d < 30) r.times.push(d);
+          }
         }
+        if (order.status === 'Cancelled') r.cancelled++;
         const fb = feedbackMap[order.id];
         if (fb && fb.overall_rating) r.ratings.push(fb.overall_rating);
       });
+
       Object.values(partnerMap).sort((a, b) => b.orders - a.orders).forEach(p => {
         const cancelPct = p.orders > 0 ? (p.cancelled / p.orders * 100).toFixed(1) : '0';
         const avgT = p.times.length ? (p.times.reduce((a, b) => a + b, 0) / p.times.length).toFixed(1) : '—';
         const avgR = p.ratings.length ? (p.ratings.reduce((a, b) => a + b, 0) / p.ratings.length).toFixed(1) : '—';
-        rows.push([p.provider, p.channel, p.orders, p.delivered, cancelPct, avgT, avgR]);
+        rows.push([p.provider, p.channel === 'MP' ? 'M&P' : 'MDS', p.orders, p.delivered, cancelPct, avgT, avgR]);
       });
+
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Distributor_Scorecard_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `HOS_${getRegionName()}_Scorecard_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     }
     window.exportDistributorScorecardCSV = exportDistributorScorecardCSV;
-
     // ============================================================
     // TAB 5 — ZONE COMPARISON (NEW)
     // ============================================================
