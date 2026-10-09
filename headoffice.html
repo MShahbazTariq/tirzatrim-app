@@ -660,34 +660,44 @@
     }
 
     // ============================================================
-    // REGION DROPDOWNS — derive dynamically
+    // REGION DROPDOWNS — always show all 3 fixed regions
     // ============================================================
+    const FIXED_REGIONS = ['Central', 'North', 'South'];
+
     function populateRegionDropdowns() {
-      const regions = [...new Set(allManagers.map(m => m.region || 'Central'))].filter(Boolean).sort();
-      // Main filter
+      // Start with the 3 fixed regions; merge any additional ones from DB
+      const dbRegions = [...new Set(allManagers.map(m => m.region).filter(Boolean))];
+      const regions = [...new Set([...FIXED_REGIONS, ...dbRegions])].sort();
+
+      // Main filter (Orders tab)
       const filterReg = document.getElementById('filterRegion');
       if (filterReg) {
         const cur = filterReg.value;
-        filterReg.innerHTML = '<option value="ALL">All Regions (National)</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
+        filterReg.innerHTML = '<option value="ALL">All Regions (National)</option>' +
+          regions.map(r => `<option value="${r}">${r}</option>`).join('');
         if (cur && (cur === 'ALL' || regions.includes(cur))) filterReg.value = cur;
       }
-      // HO Doctor filter
+
+      // HO Doctor filter (Team Dr List tab)
       const hoReg = document.getElementById('hoDoctorRegionFilter');
       if (hoReg) {
         const cur = hoReg.value;
-        hoReg.innerHTML = '<option value="ALL">All Regions</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
+        hoReg.innerHTML = '<option value="ALL">All Regions</option>' +
+          regions.map(r => `<option value="${r}">${r}</option>`).join('');
         if (cur && (cur === 'ALL' || regions.includes(cur))) hoReg.value = cur;
       }
+
       // Leaderboard region filter
       const lbReg = document.getElementById('lbRegionFilter');
       if (lbReg) {
         const cur = lbReg.value;
-        lbReg.innerHTML = '<option value="ALL">All Regions</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
+        lbReg.innerHTML = '<option value="ALL">All Regions</option>' +
+          regions.map(r => `<option value="${r}">${r}</option>`).join('');
         if (cur && (cur === 'ALL' || regions.includes(cur))) lbReg.value = cur;
       }
     }
 
-        // ============================================================
+    // ============================================================
     // DATE PRESETS
     // ============================================================
     function initDates() { setDatePreset('MTD'); }
