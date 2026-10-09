@@ -1041,34 +1041,41 @@
       } catch (err) { console.warn("fetchTeamDoctors error:", err); }
     }
 
-    function populateHosDoctorFilters() {
+        function populateHosDoctorFilters() {
       const mgrSelect = document.getElementById('hosDoctorMgrFilter');
       const repSelect = document.getElementById('hosDoctorRepFilter');
       if (!mgrSelect || !repSelect) return;
+
       const currentMgr = mgrSelect.value;
       const currentRep = repSelect.value;
       const regionManagers = getRegionManagers();
-      mgrSelect.innerHTML = '<option value="ALL">All ZSMs</option>' + regionManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
-      if (currentMgr && (currentMgr === 'ALL' || regionManagers.some(m => m.manager_sap_id === currentMgr))) mgrSelect.value = currentMgr;
-      let filteredReps = allReps;
-      if (currentMgr && currentMgr !== 'ALL') filteredReps = allReps.filter(r => r.manager_sap_id === currentMgr);
-      else filteredReps = getRegionReps();
-      repSelect.innerHTML = '<option value="ALL">All KAMs / Reps</option>' + filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
-      if (currentRep && (currentRep === 'ALL' || filteredReps.some(r => r.territory_code === currentRep))) repSelect.value = currentRep;
-    }
 
-    function onHosDoctorMgrChange() { populateHosDoctorFilters(); renderHosTeamDoctorsTable(); }
-    window.onHosDoctorMgrChange = onHosDoctorMgrChange;
+      // ── Populate ZSM dropdown (only HOS's region) ──
+      mgrSelect.innerHTML = '<option value="ALL">All ZSMs</option>' +
+        regionManagers.map(m => `<option value="${m.manager_sap_id}">${m.full_name} (${m.zone_region || 'Zone'})</option>`).join('');
 
-    function setHosDoctorFilter(filterType) {
-      currentHosDoctorFilter = filterType;
-      ['ALL', 'CLASS_A', 'CLASS_B', 'VISIT_YES', 'VISIT_NO', 'NP', 'IFP', 'FP', 'BOC'].forEach(id => {
-        const btn = document.getElementById(`hosFilterBtn-${id}`);
-        if (btn) btn.className = id === filterType ? "px-3 py-1.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm transition-all" : "px-3 py-1.5 rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all";
-      });
-      renderHosTeamDoctorsTable();
+      // Restore previous selection if it still exists
+      if (currentMgr && (currentMgr === 'ALL' || regionManagers.some(m => m.manager_sap_id === currentMgr))) {
+        mgrSelect.value = currentMgr;
+      }
+
+      // ── Populate Rep dropdown (scoped correctly) ──
+      let filteredReps;
+      if (currentMgr && currentMgr !== 'ALL') {
+        // Only reps under the selected ZSM
+        filteredReps = allReps.filter(r => r.manager_sap_id === currentMgr);
+      } else {
+        // All reps in the HOS's region (never all national reps)
+        filteredReps = getRegionReps();
+      }
+
+      repSelect.innerHTML = '<option value="ALL">All KAMs / Reps</option>' +
+        filteredReps.map(r => `<option value="${r.territory_code}">${r.full_name} (${r.territory_code})</option>`).join('');
+
+      if (currentRep && (currentRep === 'ALL' || filteredReps.some(r => r.territory_code === currentRep))) {
+        repSelect.value = currentRep;
+      }
     }
-    window.setHosDoctorFilter = setHosDoctorFilter;
 
     function renderHosTeamDoctorsTable() {
       const tbody = document.getElementById('hosTeamDoctorsTableBody');
