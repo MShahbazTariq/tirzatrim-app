@@ -283,11 +283,17 @@
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>⚡</span> Distributor Performance Scorecard</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">MDS + MMP partner SLA tracking (uses orders.delivered_at)</p>
           </div>
-          <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+            <select id="scorecardRegionFilter" onchange="renderDistributorScorecard()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
+              <option value="ALL">All Regions (National)</option>
+              <option value="Central">Central Region</option>
+              <option value="North">North Region</option>
+              <option value="South">South Region</option>
+            </select>
             <select id="scorecardChannelFilter" onchange="renderDistributorScorecard()" class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500">
-              <option value="ALL">All Channels (MDS + M&P)</option>
+              <option value="ALL">All Channels (MDS + M&amp;P)</option>
               <option value="MDS">MDS only (Same-Day)</option>
-              <option value="MP">M&P only (Helpline)</option>
+              <option value="MP">M&amp;P only (Helpline)</option>
             </select>
             <button onclick="exportDistributorScorecardCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all">📥 Export CSV</button>
           </div>
@@ -1154,14 +1160,30 @@
     // NEW FEATURE: DISTRIBUTOR SCORECARD (region-scoped)
     // Handles: MDS channel (uses mds_provider) + M&P channel (mds_provider often NULL)
     // ============================================================
-    function renderDistributorScorecard() {
+        function renderDistributorScorecard() {
       const tbody = document.getElementById('scorecardBody');
       if (!tbody) return;
+
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
-      const regionOrders = getRegionOrders();
+      const regionFilter = document.getElementById('scorecardRegionFilter')?.value || 'ALL';
+
+      // Region-scoped order set (works in BOTH HQ and HOS)
+      let scopedOrders = allOrders;
+      if (regionFilter !== 'ALL') {
+        const regionManagers = allManagers.filter(m => (m.region || 'Central') === regionFilter);
+        const regionSaps = regionManagers.map(m => String(m.manager_sap_id));
+        const regionRepCodes = allReps
+          .filter(r => regionSaps.includes(String(r.manager_sap_id)))
+          .map(r => r.territory_code);
+        scopedOrders = allOrders.filter(o =>
+          regionRepCodes.includes(o.rep_code) ||
+          regionSaps.includes(String(o.manager_sap_id))
+        );
+      }
+
       const partnerMap = {};
 
-      regionOrders.forEach(order => {
+      scopedOrders.forEach(order => {
         const channel = (order.fulfillment_channel || '').trim();
         if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
@@ -1180,6 +1202,7 @@
         if (!partnerMap[key]) partnerMap[key] = { provider, channel, orders: 0, delivered: 0, cancelled: 0, times: [], ratings: [] };
         const r = partnerMap[key];
         r.orders++;
+
         if (isDelivered(order.status)) {
           r.delivered++;
           if (order.created_at && order.delivered_at) {
@@ -1188,6 +1211,7 @@
           }
         }
         if (order.status === 'Cancelled') r.cancelled++;
+
         const fb = feedbackMap[order.id];
         if (fb && fb.overall_rating) r.ratings.push(fb.overall_rating);
       });
@@ -1207,7 +1231,7 @@
       const elRating = document.getElementById('scAvgRating'); if (elRating) elRating.innerText = avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : '—';
 
       if (partners.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-12 text-center text-slate-400 text-sm">No distributor orders in your region.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-12 text-center text-slate-400 text-sm">No distributor orders found for this filter.</td></tr>';
         return;
       }
 
@@ -1234,13 +1258,28 @@
     }
     window.renderDistributorScorecard = renderDistributorScorecard;
 
-        function exportDistributorScorecardCSV() {
+            function exportDistributorScorecardCSV() {
       const channelFilter = document.getElementById('scorecardChannelFilter')?.value || 'ALL';
+      const regionFilter = document.getElementById('scorecardRegionFilter')?.value || 'ALL';
       const rows = [['Partner', 'Channel', 'Orders', 'Delivered', 'Cancel %', 'Avg Delivery (days)', 'Rating']];
-      const regionOrders = getRegionOrders();
+
+      // Region-scoped order set (works in BOTH HQ and HOS)
+      let scopedOrders = allOrders;
+      if (regionFilter !== 'ALL') {
+        const regionManagers = allManagers.filter(m => (m.region || 'Central') === regionFilter);
+        const regionSaps = regionManagers.map(m => String(m.manager_sap_id));
+        const regionRepCodes = allReps
+          .filter(r => regionSaps.includes(String(r.manager_sap_id)))
+          .map(r => r.territory_code);
+        scopedOrders = allOrders.filter(o =>
+          regionRepCodes.includes(o.rep_code) ||
+          regionSaps.includes(String(o.manager_sap_id))
+        );
+      }
+
       const partnerMap = {};
 
-      regionOrders.forEach(order => {
+      scopedOrders.forEach(order => {
         const channel = (order.fulfillment_channel || '').trim();
         if (channel !== 'MDS' && channel !== 'MP') return;
         if (channelFilter !== 'ALL' && channel !== channelFilter) return;
@@ -1278,7 +1317,13 @@
 
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `HOS_${getRegionName()}_Scorecard_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+
+      // Filename adapts to scope
+      const scopeTag = (regionFilter !== 'ALL') ? `_${regionFilter}` : '_National';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Distributor_Scorecard${scopeTag}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
     }
     window.exportDistributorScorecardCSV = exportDistributorScorecardCSV;
     // ============================================================
