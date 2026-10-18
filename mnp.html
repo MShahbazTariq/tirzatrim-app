@@ -71,6 +71,12 @@
           <button type="submit" id="loginBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Unlock Dispatch Queue</button>
         </form>
 
+        <div class="pt-2 text-center">
+          <button onclick="showAuthView('forgot')" class="text-xs text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 font-semibold transition-colors">
+            Forgot password?
+          </button>
+        </div>
+
         <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">New to TirzaTrim?</p>
           <button onclick="showAuthView('setup')" class="w-full py-3 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border-2 border-amber-500 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
@@ -152,6 +158,48 @@
         <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
           <button id="resendOtpBtn" onclick="resendOtp()" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Resend Code</button>
           <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change details</button>
+        </div>
+      </div>
+
+      <!-- ✅ MODE 4: FORGOT PASSWORD (Enter Email) -->
+      <div id="authView-forgot" class="space-y-5 hidden">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">🔑</div>
+        <div>
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">Reset Password</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your registered email to receive a 6-digit code</p>
+        </div>
+        <form onsubmit="handleForgotPassword(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Registered Email *</label>
+            <input type="email" id="forgotEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500">
+          </div>
+          <button type="submit" id="sendResetBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Reset Code</button>
+        </form>
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="showAuthView('login')" class="text-xs text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Back to Login</button>
+        </div>
+      </div>
+
+      <!-- ✅ MODE 5: RESET PASSWORD (Enter Code + New Password) -->
+      <div id="authView-reset" class="space-y-5 hidden">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">🔐</div>
+        <div>
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">Set New Password</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter the code sent to <span id="resetEmailDisplay" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
+        </div>
+        <form onsubmit="handleResetPassword(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Verification Code *</label>
+            <input type="text" id="resetCode" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label>
+            <input type="password" id="resetNewPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500">
+          </div>
+          <button type="submit" id="verifyResetBtn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Update Password</button>
+        </form>
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="showAuthView('login')" class="text-xs text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Cancel</button>
         </div>
       </div>
 
@@ -355,6 +403,7 @@
     let otpResendLockedUntil = 0;
     let currentZsmFilter = 'ALL';
     let currentRepFilter = 'ALL';
+    let resetEmailAddress = '';  // For forgot password flow
 
     const TITRATION_MAP = {
       '2.5mg': '5mg', '5mg': '7.5mg', '7.5mg': '10mg',
@@ -375,8 +424,9 @@
     }
     window.tryOpenNotifCenter = tryOpenNotifCenter;
 
+    // ✅ AUTH VIEW SWITCHER — Now includes 'forgot' and 'reset'
     function showAuthView(view) {
-      ['login', 'setup', 'otp'].forEach(v => {
+      ['login', 'setup', 'otp', 'forgot', 'reset'].forEach(v => {
         const el = document.getElementById('authView-' + v);
         if (el) el.classList.toggle('hidden', v !== view);
       });
@@ -687,6 +737,77 @@
       this.value = this.value.replace(/\D/g, '').slice(0, 6);
     });
 
+    // ✅ FORGOT PASSWORD (Send Code)
+    async function handleForgotPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+      if (!email) return;
+
+      setBtnLoading('sendResetBtn', true, 'Send Reset Code');
+      try {
+        const { data: profile } = await client
+          .from('mmp_profiles')
+          .select('email')
+          .ilike('email', email)
+          .maybeSingle();
+
+        if (!profile) {
+          showAuthError('No account found with this email. Please contact admin.');
+          return;
+        }
+
+        const { error } = await client.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+
+        resetEmailAddress = email;
+        document.getElementById('resetEmailDisplay').innerText = email;
+        document.getElementById('resetCode').value = '';
+        showAuthView('reset');
+      } catch (err) {
+        console.error('Forgot error:', err);
+        showAuthError(err.message || 'Could not send reset code.');
+      } finally {
+        setBtnLoading('sendResetBtn', false, 'Send Reset Code');
+      }
+    }
+    window.handleForgotPassword = handleForgotPassword;
+
+    // ✅ RESET PASSWORD (Verify Code + Set New)
+    async function handleResetPassword(e) {
+      e.preventDefault();
+      const code = document.getElementById('resetCode').value.trim();
+      const newPwd = document.getElementById('resetNewPassword').value;
+
+      if (code.length < 6 || code.length > 8) { showAuthError('Please enter the full code.'); return; }
+      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+      setBtnLoading('verifyResetBtn', true, 'Update Password');
+      try {
+        const { error: verifyErr } = await client.auth.verifyOtp({
+          email: resetEmailAddress,
+          token: code,
+          type: 'recovery'
+        });
+        if (verifyErr) throw verifyErr;
+
+        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+        if (updateErr) throw updateErr;
+
+        alert('✅ Password reset successfully! You can now log in.');
+        showAuthView('login');
+      } catch (err) {
+        console.error('Reset error:', err);
+        showAuthError(err.message || 'Invalid or expired code.');
+      } finally {
+        setBtnLoading('verifyResetBtn', false, 'Update Password');
+      }
+    }
+    window.handleResetPassword = handleResetPassword;
+
+    document.getElementById('resetCode')?.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+
     // SESSION
     async function checkSession() {
       try {
@@ -935,12 +1056,12 @@
 
   if (error) { console.warn('Fetch orders error:', error); return; }
   allOrders = data || [];
-  await populateFilterOptions(allOrders);   // ← now async-loaded with await
+  await populateFilterOptions(allOrders);
   updateMetrics();
   renderOrders();
 };
 
-        // ============================================================
+    // ============================================================
     // ZSM + REP FILTER (loads from managers + reps tables)
     // ============================================================
     async function populateFilterOptions(orders) {
@@ -952,18 +1073,15 @@
       const prevRep = repSel.value;
 
       try {
-        // 🔹 Load all managers (ZSMs)
         const { data: managers } = await client
           .from('managers')
           .select('full_name, manager_sap_id, region, team_name');
 
-        // 🔹 Load all reps
         const { data: reps } = await client
           .from('reps')
           .select('full_name, territory_code, sap_id, manager_sap_id');
 
-        // 🔹 Build maps
-        const zsmMap = {};   // { manager_sap_id: { name, region } }
+        const zsmMap = {};
         (managers || []).forEach(m => {
           if (m.manager_sap_id) {
             zsmMap[m.manager_sap_id] = {
@@ -974,7 +1092,7 @@
           }
         });
 
-        const repMap = {};   // { territory_code: { name, manager_sap_id, sap_id } }
+        const repMap = {};
         (reps || []).forEach(r => {
           if (r.territory_code) {
             repMap[r.territory_code] = {
@@ -985,7 +1103,6 @@
           }
         });
 
-        // 🔹 Count orders for badges
         const repOrderCount = {};
         const zsmOrderCount = {};
         (orders || []).forEach(o => {
@@ -993,7 +1110,6 @@
           if (o.manager_sap_id) zsmOrderCount[o.manager_sap_id] = (zsmOrderCount[o.manager_sap_id] || 0) + 1;
         });
 
-        // 🔹 Build ZSM dropdown
         const zsmEntries = Object.entries(zsmMap).map(([id, info]) => ({
           id, ...info, count: zsmOrderCount[id] || 0
         })).sort((a, b) => a.name.localeCompare(b.name));
@@ -1003,7 +1119,6 @@
             `<option value="${z.id}">${z.name}${z.count ? ` (${z.count})` : ' (0)'}</option>`
           ).join('');
 
-        // 🔹 Build Rep dropdown
         const repEntries = Object.entries(repMap).map(([code, info]) => ({
           code, ...info, count: repOrderCount[code] || 0
         })).sort((a, b) => a.name.localeCompare(b.name));
@@ -1013,11 +1128,9 @@
             `<option value="${r.code}" data-manager="${r.manager_sap_id}">${r.name} — ${r.code}${r.count ? ` (${r.count})` : ' (0)'}</option>`
           ).join('');
 
-        // 🔹 Restore selections if still valid
         if (zsmMap[prevZsm] || prevZsm === 'ALL') zsmSel.value = prevZsm;
         if (repMap[prevRep] || prevRep === 'ALL') repSel.value = prevRep;
 
-        // 🔹 Show counts on labels
         document.getElementById('zsmCount').innerText = `(${zsmEntries.length})`;
         document.getElementById('repCount').innerText = `(${repEntries.length})`;
 
@@ -1032,7 +1145,6 @@
       const selectedZsm = zsmSel.value;
       currentZsmFilter = selectedZsm;
 
-      // Filter rep options: only show reps that report to this ZSM
       const repOptions = repSel.querySelectorAll('option');
       repOptions.forEach(opt => {
         if (opt.value === 'ALL') return;
@@ -1040,7 +1152,6 @@
         opt.style.display = (selectedZsm === 'ALL' || optManager === selectedZsm) ? '' : 'none';
       });
 
-      // Reset rep selection if it's now hidden
       const currentOpt = repSel.querySelector(`option[value="${repSel.value}"]`);
       if (currentOpt && currentOpt.style.display === 'none') {
         repSel.value = 'ALL';
@@ -1076,7 +1187,7 @@
     }
     window.setTabFilter = setTabFilter;
 
-        function renderOrders() {
+    function renderOrders() {
       const grid = document.getElementById('ordersGrid');
       const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
       const timeline = document.getElementById('timelineFilter')?.value || 'ALL';
@@ -1084,11 +1195,8 @@
       const repSel = document.getElementById('repFilter')?.value || 'ALL';
 
       let filtered = allOrders.filter(o => {
-        // ZSM filter (matches orders.manager_sap_id to managers.manager_sap_id)
         if (zsmSel !== 'ALL' && o.manager_sap_id !== zsmSel) return false;
-        // Rep filter (matches orders.rep_code to reps.territory_code)
         if (repSel !== 'ALL' && o.rep_code !== repSel) return false;
-        // Status tab
         if (currentTab === 'NEW') return ['New Patient', 'Prescription Received', 'Order Processing'].includes(o.status);
         if (currentTab === 'DISPATCHED') return o.status === 'Dispatched';
         if (currentTab === 'DELIVERED') return ['Delivered', 'Patient Confirmed', 'Completed'].includes(o.status);
