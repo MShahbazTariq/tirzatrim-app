@@ -298,7 +298,10 @@
           return;
         }
 
-        if (profile.city.trim() !== inputCity) {
+        // SAFELY check city (handles if DB city is null)
+        const dbCity = profile.city ? profile.city.trim() : '';
+        
+        if (dbCity !== inputCity) {
           showAuthError('Incorrect City. You must type it exactly as provided by Admin (case-sensitive).');
           return;
         }
