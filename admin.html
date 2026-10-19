@@ -845,7 +845,7 @@ window.fetchManagerOrders = async function(silent = false) {
       if (currentSelected && registeredReps.some(r => r.territory_code === currentSelected)) repFilter.value = currentSelected;
     }
     const repCodes = registeredReps.map(r => r.territory_code);
-    const { data: orders, error } = await client.from('orders').select('*').order('created_at', { ascending: false });
+    const { data: orders, error } = await client.from('orders').select('*').order('created_at', { ascending: false }).limit(1000);
     if (error) { if (!silent) console.error("Error loading orders:", error.message); return; }
     const allFetched = orders || [];
     currentOrdersData = repCodes.length > 0 ? allFetched.filter(o => repCodes.includes(o.rep_code) || !o.rep_code || o.rep_code === 'DIRECT') : allFetched;
