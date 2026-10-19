@@ -52,22 +52,22 @@
         <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold"><span class="theme-icon">🌙</span></button>
       </div>
 
-      <!-- ONLY LOGIN MODE REMAINS -->
+      <!-- LOGIN MODE -->
       <div id="authView-login" class="space-y-5">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">⚡</div>
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">MDS Partner Portal</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Partner Name + Password</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter your exact Partner Name & City</p>
         </div>
         
-        <form onsubmit="handlePasswordLogin(event)" class="space-y-4 text-left">
+        <form onsubmit="handlePortalLogin(event)" class="space-y-4 text-left">
           <div>
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
             <input type="text" id="loginPartnerName" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Password *</label>
-            <input type="password" id="loginPassword" placeholder="Enter password" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Operating City *</label>
+            <input type="text" id="loginCity" placeholder="e.g. Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
           <button type="submit" id="loginBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">Unlock Partner Queue</button>
         </form>
@@ -170,23 +170,6 @@
     </div>
   </div>
 
-  <!-- CHANGE PASSWORD MODAL -->
-  <div id="changePwdModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">🔑 Change Partner Password</h3>
-        <button onclick="closeChangePasswordModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold">✕</button>
-      </div>
-      <form onsubmit="submitPasswordChange(event)" class="space-y-3 text-xs">
-        <div><label class="block font-semibold text-slate-500 mb-1">Current Password *</label><input type="password" id="cpCurrent" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
-        <div><label class="block font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label><input type="password" id="cpNew" required minlength="6" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
-        <div><label class="block font-semibold text-slate-500 mb-1">Confirm New Password *</label><input type="password" id="cpConfirm" required minlength="6" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-teal-500"></div>
-        <p id="cpError" class="text-xs text-rose-500 font-medium hidden"></p>
-        <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all mt-2">Update Password</button>
-      </form>
-    </div>
-  </div>
-
   <!-- PROFILE MODAL -->
   <div id="profileModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
@@ -220,7 +203,6 @@
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 px-1">Partner Utilities</div>
         <button id="menuPushBtn" onclick="togglePushFromProfile()" class="w-full px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 border border-emerald-500/20 shadow-sm transition-all"><span class="text-base">🔔</span> <span>Enable Phone Push Alerts</span></button>
-        <button onclick="openChangePasswordModal(); closeProfileModal();" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔑</span> <span>Change Password</span></button>
         <button onclick="window.fetchMdsOrders(); closeProfileModal(); alert('✅ Orders refreshed!');" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="text-base">🔄</span> <span>Refresh Assigned Orders</span></button>
         <button onclick="toggleTheme()" class="w-full px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold flex items-center gap-3 transition-colors"><span class="theme-icon text-base">🌙</span> <span>Toggle Dark / Light Theme</span></button>
         <button onclick="handleLogout()" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors"><span class="text-base">🚪</span> <span>Secure Logout</span></button>
@@ -278,22 +260,25 @@
       const btn = document.getElementById(btnId);
       if (!btn) return;
       btn.disabled = loading;
-      btn.innerText = loading ? '⏳ Please wait...' : labelWhenIdle;
+      btn.innerText = loading ? '⏳ Verifying...' : labelWhenIdle;
     }
 
-    // CASE-INSENSITIVE PASSWORD LOGIN
-    async function handlePasswordLogin(e) {
+    // STRICT EXACT MATCH LOGIN
+    async function handlePortalLogin(e) {
       e.preventDefault();
-      const name = document.getElementById('loginPartnerName').value.trim();
-      const pass = document.getElementById('loginPassword').value;
-      if (!name || !pass) return;
+      
+      const inputName = document.getElementById('loginPartnerName').value.trim();
+      const inputCity = document.getElementById('loginCity').value.trim();
+
+      if (!inputName || !inputCity) return;
 
       setBtnLoading('loginBtn', true, 'Unlock Partner Queue');
+      
       try {
-        // This normalizes the name to lowercase and replaces spaces/special chars
-        // So "Drug Solution Network", "drug solution network", and "DRUG SOLUTION NETWORK" all become "mds_drug_solution_network"
-        const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        // 1. Generate the standard portal key from what they typed
+        const portal_key = 'mds_' + inputName.toLowerCase().replace(/[^a-z0-9]/g, '_');
         
+        // 2. Find the profile in the database
         const { data: profile, error: findErr } = await client
           .from('mds_profiles')
           .select('*')
@@ -301,29 +286,31 @@
           .maybeSingle();
 
         if (findErr || !profile) {
-          showAuthError('Partner not found. Please check your partner name.');
-          return;
-        }
-        if (!profile.email) {
-          showAuthError('This partner has no registered email. Please contact admin.');
+          showAuthError('User not available. Please check your partner name.');
           return;
         }
 
-        const { data: authData, error: signInErr } = await client.auth.signInWithPassword({
-          email: profile.email,
-          password: pass
-        });
-
-        if (signInErr) {
-          showAuthError('Incorrect password. Please try again or contact admin.');
+        // 3. STRICT CASE-SENSITIVE CHECK
+        // If the name or city doesn't match EXACTLY what the admin typed, throw an error.
+        if (profile.partner_name !== inputName) {
+          showAuthError('Incorrect Partner Name. You must type it exactly as provided by Admin (case-sensitive).');
           return;
         }
 
-        currentPartner = profile.partner_name || name; // Use exact stored name
-        currentCity = profile.city || '';
+        if (profile.city !== inputCity) {
+          showAuthError('Incorrect City. You must type it exactly as provided by Admin (case-sensitive).');
+          return;
+        }
+
+        // 4. If they pass the exact match, log them in!
+        currentPartner = profile.partner_name;
+        currentCity = profile.city;
+        
         sessionStorage.setItem('mds_current_partner', currentPartner);
         sessionStorage.setItem('mds_current_city', currentCity);
+        
         unlockPortal();
+
       } catch (err) {
         console.error('Login error:', err);
         showAuthError(err.message || 'Login failed.');
@@ -331,27 +318,15 @@
         setBtnLoading('loginBtn', false, 'Unlock Partner Queue');
       }
     }
-    window.handlePasswordLogin = handlePasswordLogin;
+    window.handlePortalLogin = handlePortalLogin;
 
-    // SESSION
+    // SESSION RESTORE
     async function checkSession() {
       try {
-        const { data: { session } } = await client.auth.getSession();
-        if (session && session.user) {
-          const { data: profile } = await client
-            .from('mds_profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (profile) {
-            currentPartner = profile.partner_name;
-            currentCity = profile.city || '';
-            sessionStorage.setItem('mds_current_partner', currentPartner);
-            sessionStorage.setItem('mds_current_city', currentCity);
-            unlockPortal();
-            return;
-          }
+        // Check if sessionStorage has their data (since we don't use Supabase Auth anymore)
+        if (currentPartner && currentCity) {
+          unlockPortal();
+          return;
         }
       } catch (err) {
         console.warn('Session restore error:', err);
@@ -366,6 +341,7 @@
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('dashboardContent').classList.remove('hidden');
       document.getElementById('topNavBar').classList.remove('hidden');
+      
       document.getElementById('headerPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerName').innerText = currentPartner;
       document.getElementById('profPartnerCity').innerText = currentCity || 'City not set';
@@ -383,13 +359,13 @@
 
     async function handleLogout() {
       if (typeof closeProfileModal === 'function') closeProfileModal();
-      if (typeof closeChangePasswordModal === 'function') closeChangePasswordModal();
       if (typeof closeCancelModal === 'function') closeCancelModal();
-      try { await client.auth.signOut(); } catch (e) {}
+      
       sessionStorage.removeItem('mds_current_partner');
       sessionStorage.removeItem('mds_current_city');
       currentPartner = null;
       currentCity = null;
+      
       checkSession();
     }
     window.handleLogout = handleLogout;
@@ -402,6 +378,7 @@
 
       const pushBtn = document.getElementById('menuPushBtn');
       const sapId = 'MDS_' + currentPartner.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      
       if (pushBtn && sapId) {
         if ('Notification' in window && Notification.permission === 'granted') {
           pushBtn.innerHTML = `<span class="text-base">✅</span> <span>Phone Push Active</span>`;
@@ -434,58 +411,6 @@
       modal.classList.remove('flex');
     }
     window.closeProfileModal = closeProfileModal;
-
-    // CHANGE PASSWORD MODAL
-    function openChangePasswordModal() {
-      const m = document.getElementById('changePwdModal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-      document.getElementById('cpCurrent').value = '';
-      document.getElementById('cpNew').value = '';
-      document.getElementById('cpConfirm').value = '';
-      document.getElementById('cpError').classList.add('hidden');
-    }
-    window.openChangePasswordModal = openChangePasswordModal;
-
-    function closeChangePasswordModal() {
-      const m = document.getElementById('changePwdModal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-    }
-    window.closeChangePasswordModal = closeChangePasswordModal;
-
-    async function submitPasswordChange(e) {
-      e.preventDefault();
-      const err = document.getElementById('cpError');
-      err.classList.add('hidden');
-      const currentPwd = document.getElementById('cpCurrent').value;
-      const newPwd = document.getElementById('cpNew').value;
-      const confirmPwd = document.getElementById('cpConfirm').value;
-
-      if (newPwd.length < 6) { err.innerText = 'New password must be at least 6 characters.'; err.classList.remove('hidden'); return; }
-      if (newPwd !== confirmPwd) { err.innerText = 'New passwords do not match.'; err.classList.remove('hidden'); return; }
-
-      try {
-        const { data: { user } } = await client.auth.getUser();
-        if (!user) throw new Error('Session expired. Please log in again.');
-
-        const { error: verifyErr } = await client.auth.signInWithPassword({
-          email: user.email,
-          password: currentPwd
-        });
-        if (verifyErr) throw new Error('Current password is incorrect.');
-
-        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
-        if (updateErr) throw updateErr;
-
-        alert('✅ Password updated successfully!');
-        closeChangePasswordModal();
-      } catch (ex) {
-        err.innerText = ex.message || 'Failed to update password.';
-        err.classList.remove('hidden');
-      }
-    }
-    window.submitPasswordChange = submitPasswordChange;
 
     // PUSH TOGGLE
     async function enablePushFromProfile() {
