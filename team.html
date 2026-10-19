@@ -1289,15 +1289,28 @@
       const select = document.getElementById(`mdsSelect-${orderId}`);
       if (!select) return;
 
-      // 1. Find the order to get the required dose
+            // 1. Find the order
       const order = rawOrders.find(o => String(o.id) === String(orderId));
-      const requiredDose = order ? (order.prescribed_dose || '5mg').toLowerCase().trim() : '5mg';
       
-      // 2. Map the dose to the correct inventory column
-      let inventoryColumn = 'dose_5mg';
-      if (requiredDose.includes('10')) inventoryColumn = 'dose_10mg';
-      if (requiredDose.includes('15')) inventoryColumn = 'dose_15mg';
-      // Note: if they have a 2.5, 7.5, or 12.5, it defaults to checking 5mg stock for safety
+      // 2. Determine which physical pen is required
+      // We check the DEVICE first (e.g., "10mg Multi-Dose Pen"), and fall back to the prescribed dose if the device is missing.
+      const deviceString = order?.device ? order.device.toLowerCase() : '';
+      const doseString = order?.prescribed_dose ? order.prescribed_dose.toLowerCase() : '5mg';
+      
+      let inventoryColumn = 'dose_5mg'; // Default to 5mg
+      
+      // If the device explicitly says 10mg or 15mg, use that!
+      if (deviceString.includes('10')) {
+        inventoryColumn = 'dose_10mg';
+      } else if (deviceString.includes('15')) {
+        inventoryColumn = 'dose_15mg';
+      } 
+      // Fallback: If device is missing (older orders), map based on the dose string
+      else if (deviceString === '') {
+        const rawDose = doseString.replace(/\s+/g, '');
+        if (rawDose === '10mg' || rawDose === '12.5mg') inventoryColumn = 'dose_10mg';
+        if (rawDose === '15mg') inventoryColumn = 'dose_15mg';
+      }
 
       // 3. Fetch MDS partners in this city
       const { data: providers, error } = await client
