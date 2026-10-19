@@ -1281,7 +1281,7 @@
       openWhatsAppUniversal("", message);
     }
 
-    async function populateMdsDropdown(orderId, city) {
+        async function populateMdsDropdown(orderId, city) {
       const container = document.getElementById(`mdsContainer-${orderId}`);
       if (!container) return;
 
@@ -1289,22 +1289,42 @@
       const select = document.getElementById(`mdsSelect-${orderId}`);
       if (!select) return;
 
-      const { data: providers, error } = await client
-        .from('mds_providers')
-        .select('*')
-        .ilike('city', (city || 'Lahore').trim())
-        .eq('is_active', true);
+      // 1. Find the order to get the required dose
+      const order = rawOrders.find(o => String(o.id) === String(orderId));
+      const requiredDose = order ? (order.prescribed_dose || '5mg').toLowerCase().trim() : '5mg';
+      
+      // 2. Map the dose to the correct inventory column
+      let inventoryColumn = 'dose_5mg';
+      if (requiredDose.includes('10')) inventoryColumn = 'dose_10mg';
+      if (requiredDose.includes('15')) inventoryColumn = 'dose_15mg';
+      // Note: if they have a 2.5, 7.5, or 12.5, it defaults to checking 5mg stock for safety
 
-      if (error || !providers || providers.length === 0) {
-        select.innerHTML = '<option value="">No MDS partners available for ' + (city || 'this city') + '</option>';
+      // 3. Fetch MDS partners in this city
+      const { data: providers, error } = await client
+        .from('mds_inventory')
+        .select('*')
+        .gt(inventoryColumn, 0) // 🎯 ONLY show partners with stock > 0
+        .eq('provider_name', order.mds_provider || ''); // (Optional: keep their current provider if editing)
+
+      // 3b. If no provider is currently set, fetch ALL partners with stock
+      let finalProviders = providers;
+      if (!order.mds_provider) {
+        const { data: allProviders } = await client
+          .from('mds_inventory')
+          .select('*')
+          .gt(inventoryColumn, 0); // Filter by required stock
+        finalProviders = allProviders;
+      }
+
+      if (error || !finalProviders || finalProviders.length === 0) {
+        select.innerHTML = `<option value="">❌ No MDS partners have ${order.prescribed_dose || '5mg'} in stock for ${city || 'this city'}</option>`;
         return;
       }
 
       select.innerHTML = '<option value="">Select MDS Partner...</option>' +
-        providers.map(p => `<option value="${p.provider_name}">${p.provider_name}</option>`).join('');
+        finalProviders.map(p => `<option value="${p.provider_name}">${p.provider_name} (Stock: ${p[inventoryColumn]})</option>`).join('');
 
-      const savedMds = window._selectedMdsProviders?.[orderId] ||
-        rawOrders.find(o => String(o.id) === String(orderId))?.mds_provider;
+      const savedMds = window._selectedMdsProviders?.[orderId] || order.mds_provider;
       if (savedMds) select.value = savedMds;
     }
 
