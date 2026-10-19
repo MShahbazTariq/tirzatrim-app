@@ -76,79 +76,9 @@
             Forgot password?
           </button>
         </div>
-
-        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">New to TirzaTrim?</p>
-          <button onclick="showAuthView('setup')" class="w-full py-3 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 border-2 border-teal-500 text-teal-600 dark:text-teal-400 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
-            <span class="text-base">✨</span>
-            <span>Create New Partner Account</span>
-          </button>
-        </div>
       </div>
 
-      <!-- MODE 2: FIRST-TIME SETUP -->
-      <div id="authView-setup" class="space-y-5 hidden">
-        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">📧</div>
-        <div>
-          <h2 class="text-xl font-black text-slate-900 dark:text-white">First-Time Setup</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Register your distribution network with TirzaTrim</p>
-        </div>
-        <form onsubmit="handleSendOtp(event)" class="space-y-3 text-left">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Partner Name *</label>
-            <input type="text" id="setupPartnerName" placeholder="e.g. Drug Solution Network" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Operating City *</label>
-            <input type="text" id="setupCity" list="mdsCitySuggestions" placeholder="e.g. Lahore" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-teal-500">
-            <datalist id="mdsCitySuggestions">
-              <option value="Lahore"></option><option value="Karachi"></option><option value="Islamabad"></option>
-              <option value="Rawalpindi"></option><option value="Faisalabad"></option><option value="Multan"></option>
-              <option value="Peshawar"></option><option value="Quetta"></option><option value="Sialkot"></option>
-              <option value="Gujranwala"></option><option value="Hyderabad"></option><option value="Bahawalpur"></option>
-            </datalist>
-            <p class="text-[10px] text-slate-400 mt-1">Your network's primary operating city</p>
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Registered Email *</label>
-            <input type="email" id="setupEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <button type="submit" id="sendOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Send Verification Code</button>
-        </form>
-        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="showAuthView('login')" class="text-xs text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Back to Login</button>
-        </div>
-      </div>
-
-      <!-- MODE 3: OTP + SET PASSWORD -->
-      <div id="authView-otp" class="space-y-5 hidden">
-        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">🔐</div>
-        <div>
-          <h2 class="text-xl font-black text-slate-900 dark:text-white">Verify & Set Password</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Code sent to <span id="otpEmailDisplay" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
-        </div>
-        <form onsubmit="handleVerifyOtp(event)" class="space-y-3 text-left">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">6-Digit Verification Code *</label>
-            <input type="text" id="otpCode" placeholder="000000" inputmode="numeric" maxlength="8" pattern="[0-9]{6,8}" autocomplete="one-time-code" required class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-2xl font-mono font-bold tracking-widest text-center text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">New Password * (min 6 chars)</label>
-            <input type="password" id="newPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Confirm Password *</label>
-            <input type="password" id="confirmPassword" placeholder="••••••••" minlength="6" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <button type="submit" id="verifyOtpBtn" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all">Verify & Save Password</button>
-        </form>
-        <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
-          <button onclick="resendOtp()" class="text-teal-600 dark:text-teal-400 font-bold hover:underline">Resend Code</button>
-          <button onclick="showAuthView('setup')" class="text-slate-500 dark:text-slate-400 font-bold hover:text-slate-700 dark:hover:text-slate-200">← Change details</button>
-        </div>
-      </div>
-
-      <!-- MODE 4: FORGOT PASSWORD (Enter Email) -->
+      <!-- MODE 2: FORGOT PASSWORD (Enter Email) -->
       <div id="authView-forgot" class="space-y-5 hidden">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">🔑</div>
         <div>
@@ -167,7 +97,7 @@
         </div>
       </div>
 
-      <!-- MODE 5: RESET PASSWORD (Enter Code + New Password) -->
+      <!-- MODE 3: RESET PASSWORD (Enter Code + New Password) -->
       <div id="authView-reset" class="space-y-5 hidden">
         <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-2xl flex items-center justify-center mx-auto text-teal-600 dark:text-teal-400">🔐</div>
         <div>
@@ -365,7 +295,6 @@
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mds_current_partner') || null;
     let currentCity = sessionStorage.getItem('mds_current_city') || null;
-    let pendingSetup = null;
     let resetEmailAddress = '';
 
     const TITRATION_MAP = {
@@ -387,16 +316,9 @@
     }
     window.tryOpenNotifCenter = tryOpenNotifCenter;
 
-    function getInitials(name) {
-      if (!name) return 'MD';
-      const parts = name.trim().split(/\s+/);
-      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
     // AUTH VIEW SWITCHER
     function showAuthView(view) {
-      ['login', 'setup', 'otp', 'forgot', 'reset'].forEach(v => {
+      ['login', 'forgot', 'reset'].forEach(v => {
         const el = document.getElementById('authView-' + v);
         if (el) el.classList.toggle('hidden', v !== view);
       });
@@ -434,7 +356,7 @@
           .maybeSingle();
 
         if (findErr || !profile) {
-          showAuthError('Partner not found. Please check your partner name or sign up.');
+          showAuthError('Partner not found. Please check your partner name.');
           return;
         }
         if (!profile.email) {
@@ -465,129 +387,6 @@
       }
     }
     window.handlePasswordLogin = handlePasswordLogin;
-
-    // SEND OTP (first-time setup)
-    async function handleSendOtp(e) {
-      e.preventDefault();
-      const name = document.getElementById('setupPartnerName').value.trim();
-      const city = document.getElementById('setupCity').value.trim();
-      const email = document.getElementById('setupEmail').value.trim().toLowerCase();
-      if (!name || !city || !email) return;
-
-      setBtnLoading('sendOtpBtn', true, 'Send Verification Code');
-      try {
-        const portal_key = 'mds_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        const { data: profile, error: findErr } = await client
-          .from('mds_profiles')
-          .select('*')
-          .eq('portal_key', portal_key)
-          .maybeSingle();
-
-        if (findErr || !profile) {
-          showAuthError('Partner not found. Please contact admin to register your account.');
-          return;
-        }
-
-        // Check if this partner already completed setup
-        if (profile.is_verified && profile.user_id) {
-           showAuthError('This partner account is already set up. Please log in instead.');
-           return;
-         }
-
-        // Update email + city
-        const { error: updErr } = await client
-          .from('mds_profiles')
-          .update({ email, city })
-          .eq('portal_key', portal_key);
-
-        if (updErr) throw updErr;
-
-        // Send OTP
-        const { error: otpErr } = await client.auth.signInWithOtp({
-          email: email,
-          options: { shouldCreateUser: true }
-        });
-
-        if (otpErr) {
-          console.error('OTP error:', otpErr);
-          showAuthError(otpErr.message || 'Could not send OTP. Please contact admin.');
-          return;
-        }
-
-        pendingSetup = { name, city, email, portal_key };
-        document.getElementById('otpEmailDisplay').innerText = email;
-        document.getElementById('otpCode').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-        showAuthView('otp');
-      } catch (err) {
-        console.error('Send OTP error:', err);
-        showAuthError(err.message || 'Could not send OTP.');
-      } finally {
-        setBtnLoading('sendOtpBtn', false, 'Send Verification Code');
-      }
-    }
-    window.handleSendOtp = handleSendOtp;
-
-    async function resendOtp() {
-      if (!pendingSetup) { showAuthView('setup'); return; }
-      try {
-        const { error } = await client.auth.signInWithOtp({
-          email: pendingSetup.email,
-          options: { shouldCreateUser: true }
-        });
-        if (error) throw error;
-        alert('✅ New code sent to ' + pendingSetup.email);
-      } catch (err) {
-        showAuthError(err.message || 'Could not resend.');
-      }
-    }
-    window.resendOtp = resendOtp;
-
-    // VERIFY OTP + SET PASSWORD
-    async function handleVerifyOtp(e) {
-      e.preventDefault();
-      if (!pendingSetup) { showAuthView('setup'); return; }
-
-      const code = document.getElementById('otpCode').value.trim();
-      const newPwd = document.getElementById('newPassword').value;
-      const confirm = document.getElementById('confirmPassword').value;
-
-      if (!/^\d{6,8}$/.test(code)) { showAuthError('Please enter the code from your email (6-8 digits).'); return; }
-      if (newPwd.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
-      if (newPwd !== confirm) { showAuthError('Passwords do not match.'); return; }
-
-      setBtnLoading('verifyOtpBtn', true, 'Verify & Save Password');
-      try {
-        const { error: verifyErr } = await client.auth.verifyOtp({
-          email: pendingSetup.email,
-          token: code,
-          type: 'email'
-        });
-
-        if (verifyErr) throw verifyErr;
-
-        const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
-        if (updateErr) throw updateErr;
-
-        await client.from('mds_profiles')
-          .update({ is_verified: true, city: pendingSetup.city })
-          .eq('portal_key', pendingSetup.portal_key);
-
-        currentPartner = pendingSetup.name;
-        currentCity = pendingSetup.city;
-        sessionStorage.setItem('mds_current_partner', currentPartner);
-        sessionStorage.setItem('mds_current_city', currentCity);
-        pendingSetup = null;
-        unlockPortal();
-      } catch (err) {
-        console.error('Verify error:', err);
-        showAuthError(err.message || 'Invalid or expired code. Please try again.');
-      } finally {
-        setBtnLoading('verifyOtpBtn', false, 'Verify & Save Password');
-      }
-    }
-    window.handleVerifyOtp = handleVerifyOtp;
 
     // FORGOT PASSWORD (Send Code)
     async function handleForgotPassword(e) {
