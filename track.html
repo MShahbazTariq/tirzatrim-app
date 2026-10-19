@@ -88,10 +88,12 @@
         </div>
 
         <!-- Progress Timeline -->
-        <div class="relative py-4">
-          <!-- Connecting Line -->
-          <div class="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0 rounded-full"></div>
-          <div id="progressBar" class="absolute top-1/2 left-0 h-1 bg-sky-500 -translate-y-1/2 z-0 rounded-full transition-all duration-1000" style="width: 0%;"></div>
+      <div class="relative py-4 px-4">
+        <!-- Connecting Line -->
+        <!-- Added left-4 and right-4 to align with the center of the outer circles -->
+        <div class="absolute top-1/2 left-4 right-4 h-1 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0 rounded-full"></div>
+        <!-- The progress bar starts at left-4 -->
+        <div id="progressBar" class="absolute top-1/2 left-4 h-1 bg-sky-500 -translate-y-1/2 z-0 rounded-full transition-all duration-1000" style="width: 0%;"></div>
 
           <!-- Steps -->
           <div class="relative z-10 flex justify-between">
