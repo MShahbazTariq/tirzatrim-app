@@ -1412,7 +1412,8 @@ select.innerHTML = `<option value="">❌ No MDS partners have the ${requiredDevi
       const updatePayload = {
         fulfillment_channel: channel,
         mds_provider: mdsProvider,
-        status: 'Order Processing'
+        status: 'Order Processing',
+        updated_by: `Rep: ${currentRep.full_name} (${currentRep.territory_code})`
       };
 
       const { error } = await client
