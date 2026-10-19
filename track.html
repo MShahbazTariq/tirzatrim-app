@@ -307,7 +307,7 @@
         desc.innerText = "Your order is on the way! Our rider will contact you shortly.";
       } 
       else if (s === 'delivered' || s === 'patient confirmed' || s === 'completed' || s === 'usage guidance completed' || s === 'feedback submitted') {
-        bar.style.width = '66%';
+        bar.style.width = '100%'; // Changed from 66% to 100% to touch the final circle
         s2.className = doneClass; s3.className = doneClass; s4.className = activeClass;
         title.innerText = "Delivered";
         title.className = "text-lg font-black text-emerald-500";
