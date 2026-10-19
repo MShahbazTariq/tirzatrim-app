@@ -628,7 +628,7 @@
     // FETCH DATA
     // ============================================================
     window.fetchEverything = async function(silent = false) {
-      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false });
+      const { data: orders, error: orderErr } = await client.from('orders').select('*').order('created_at', { ascending: false }).limit(1000);
       if (orderErr) { if (!silent) console.error("Error loading orders:", orderErr.message); return; }
       allOrders = orders || [];
 
