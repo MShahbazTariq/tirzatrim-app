@@ -989,26 +989,37 @@
     }
 
     async function deleteSelectedDoctors() {
-      const checkedBoxes = document.querySelectorAll('.docRowCheckbox:checked');
-      if (checkedBoxes.length === 0) {
-        alert("Please select at least one doctor checkbox to delete.");
-        return;
-      }
-      const confirmDel = confirm(`Permanently delete ${checkedBoxes.length} selected doctor(s) from your territory?`);
-      if (!confirmDel) return;
+  const checkedBoxes = document.querySelectorAll('.docRowCheckbox:checked');
+  if (checkedBoxes.length === 0) {
+    alert("Please select at least one doctor checkbox to delete.");
+    return;
+  }
+  
+  const confirmDel = confirm(`Permanently delete ${checkedBoxes.length} selected doctor(s) from your territory?`);
+  if (!confirmDel) return;
 
-      for (const cb of checkedBoxes) {
-        const { error } = await client
-          .from('territory_doctors')
-          .delete()
-          .ilike('Territory ID', currentRep.territory_code)
-          .eq('Mrep Doctor Code', cb.value);
-        if (error) console.error("Delete error:", error.message);
-      }
-      alert("🗑️ Selected doctors deleted successfully!");
-      toggleDeleteMode();
-      window.fetchTerritoryDoctors();
-    }
+  // 1. Gather all codes into a single array
+  const codesToDelete = Array.from(checkedBoxes).map(cb => cb.value);
+
+  try {
+    // 2. Fire ONE single batch delete request to Supabase
+    const { error } = await client
+      .from('territory_doctors')
+      .delete()
+      .ilike('Territory ID', currentRep.territory_code)
+      .in('Mrep Doctor Code', codesToDelete); // <-- .in() handles the bulk delete
+
+    if (error) throw error;
+    
+    alert(`🗑️ Successfully deleted ${codesToDelete.length} doctor(s)!`);
+    toggleDeleteMode(); // Reset the delete mode UI
+    window.fetchTerritoryDoctors(); // Refresh the table
+    
+  } catch (error) {
+    console.error("Bulk delete error:", error.message);
+    alert("Error deleting doctors: " + error.message);
+  }
+}
 
     function openAddDoctorModal() {
       document.getElementById('addDoctorModal').classList.remove('hidden');
