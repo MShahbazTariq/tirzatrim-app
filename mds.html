@@ -230,6 +230,7 @@
     let pendingCancelOrderId = null;
     let currentPartner = sessionStorage.getItem('mds_current_partner') || null;
     let currentCity = sessionStorage.getItem('mds_current_city') || null;
+    let isVerifiedSession = sessionStorage.getItem('mds_session_verified') === 'true';
 
     const TITRATION_MAP = {
       '2.5mg': '5mg', '5mg': '7.5mg', '7.5mg': '10mg',
@@ -263,10 +264,11 @@
       btn.innerText = loading ? '⏳ Verifying...' : labelWhenIdle;
     }
 
-    // STRICT EXACT MATCH LOGIN
+    // STRICT EXACT MATCH LOGIN (IGNORES HIDDEN SPACES)
     async function handlePortalLogin(e) {
       e.preventDefault();
       
+      // .trim() removes hidden spaces at the start and end
       const inputName = document.getElementById('loginPartnerName').value.trim();
       const inputCity = document.getElementById('loginCity').value.trim();
 
@@ -290,14 +292,13 @@
           return;
         }
 
-        // 3. STRICT CASE-SENSITIVE CHECK
-        // If the name or city doesn't match EXACTLY what the admin typed, throw an error.
+        // 3. STRICT CASE-SENSITIVE CHECK (compares trimmed values)
         if (profile.partner_name !== inputName) {
           showAuthError('Incorrect Partner Name. You must type it exactly as provided by Admin (case-sensitive).');
           return;
         }
 
-        if (profile.city !== inputCity) {
+        if (profile.city.trim() !== inputCity) {
           showAuthError('Incorrect City. You must type it exactly as provided by Admin (case-sensitive).');
           return;
         }
@@ -305,9 +306,11 @@
         // 4. If they pass the exact match, log them in!
         currentPartner = profile.partner_name;
         currentCity = profile.city;
+        isVerifiedSession = true;
         
         sessionStorage.setItem('mds_current_partner', currentPartner);
         sessionStorage.setItem('mds_current_city', currentCity);
+        sessionStorage.setItem('mds_session_verified', 'true');
         
         unlockPortal();
 
@@ -323,8 +326,8 @@
     // SESSION RESTORE
     async function checkSession() {
       try {
-        // Check if sessionStorage has their data (since we don't use Supabase Auth anymore)
-        if (currentPartner && currentCity) {
+        // Only unlock if they have a verified session
+        if (currentPartner && currentCity && isVerifiedSession) {
           unlockPortal();
           return;
         }
@@ -332,6 +335,8 @@
         console.warn('Session restore error:', err);
       }
 
+      // Otherwise, force logout
+      sessionStorage.clear();
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('dashboardContent').classList.add('hidden');
       document.getElementById('topNavBar').classList.add('hidden');
@@ -363,8 +368,10 @@
       
       sessionStorage.removeItem('mds_current_partner');
       sessionStorage.removeItem('mds_current_city');
+      sessionStorage.removeItem('mds_session_verified');
       currentPartner = null;
       currentCity = null;
+      isVerifiedSession = false;
       
       checkSession();
     }
