@@ -1330,7 +1330,8 @@
       }
 
       if (error || !finalProviders || finalProviders.length === 0) {
-        select.innerHTML = `<option value="">❌ No MDS partners have ${order.prescribed_dose || '5mg'} in stock for ${city || 'this city'}</option>`;
+        const requiredDeviceName = inventoryColumn === 'dose_5mg' ? '5mg Pen' : (inventoryColumn === 'dose_10mg' ? '10mg Pen' : '15mg Pen');
+select.innerHTML = `<option value="">❌ No MDS partners have the ${requiredDeviceName} in stock for ${city || 'this city'}</option>`;
         return;
       }
 
