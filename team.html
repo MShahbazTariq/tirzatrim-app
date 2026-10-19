@@ -2507,7 +2507,9 @@ select.innerHTML = `<option value="">❌ No MDS partners have the ${requiredDevi
     }
 
     function manualWhatsApp(mobile, name, orderId, status) {
-      openWhatsAppUniversal(mobile, `Assalam-o-Alaikum ${name}, this is regarding your TirzaTrim order (${orderId}). Your order status is currently: *${status}*. Thank you for choosing TirzaTrim Patient Support.`);
+      const trackLink = `https://tirzatrim-app.vercel.app/track.html`;
+      const msg = `Assalam-o-Alaikum ${name},\n\nThis is regarding your TirzaTrim order (${orderId}).\n\nYour order status is currently: *${status}*.\n\n📦 You can track your order live here:\n${trackLink}\n\nThank you for choosing TirzaTrim Patient Support.`;
+      openWhatsAppUniversal(mobile, msg);
     }
 
     function manualFeedback(mobile, name) {
