@@ -193,30 +193,15 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <!-- 2.5mg -->
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <label class="block text-xs font-bold text-slate-500 mb-2">TirzaTrim 2.5mg</label>
-            <input type="number" id="inv-2.5" min="0" value="0" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
           <!-- 5mg -->
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <label class="block text-xs font-bold text-slate-500 mb-2">TirzaTrim 5mg</label>
             <input type="number" id="inv-5" min="0" value="0" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
-          <!-- 7.5mg -->
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <label class="block text-xs font-bold text-slate-500 mb-2">TirzaTrim 7.5mg</label>
-            <input type="number" id="inv-7.5" min="0" value="0" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
           <!-- 10mg -->
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <label class="block text-xs font-bold text-slate-500 mb-2">TirzaTrim 10mg</label>
             <input type="number" id="inv-10" min="0" value="0" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white outline-none focus:border-teal-500">
-          </div>
-          <!-- 12.5mg -->
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <label class="block text-xs font-bold text-slate-500 mb-2">TirzaTrim 12.5mg</label>
-            <input type="number" id="inv-12.5" min="0" value="0" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white outline-none focus:border-teal-500">
           </div>
           <!-- 15mg -->
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
@@ -471,11 +456,8 @@
         if (error) throw error;
 
         if (data) {
-          document.getElementById('inv-2.5').value = data.dose_2_5mg || 0;
           document.getElementById('inv-5').value = data.dose_5mg || 0;
-          document.getElementById('inv-7.5').value = data.dose_7_5mg || 0;
           document.getElementById('inv-10').value = data.dose_10mg || 0;
-          document.getElementById('inv-12.5').value = data.dose_12_5mg || 0;
           document.getElementById('inv-15').value = data.dose_15mg || 0;
         }
       } catch (err) {
@@ -490,11 +472,8 @@
 
       const payload = {
         provider_name: currentPartner,
-        dose_2_5mg: parseInt(document.getElementById('inv-2.5').value) || 0,
         dose_5mg: parseInt(document.getElementById('inv-5').value) || 0,
-        dose_7_5mg: parseInt(document.getElementById('inv-7.5').value) || 0,
         dose_10mg: parseInt(document.getElementById('inv-10').value) || 0,
-        dose_12_5mg: parseInt(document.getElementById('inv-12.5').value) || 0,
         dose_15mg: parseInt(document.getElementById('inv-15').value) || 0,
         updated_at: new Date().toISOString()
       };
