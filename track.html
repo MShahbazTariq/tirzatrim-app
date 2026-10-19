@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TirzaTrim — Track Your Order</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme.js"></script>
+  <script src="/broadcast.js"></script>
+  <script src="/notification.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-900 dark:text-slate-100 p-4 md:p-8 flex items-center justify-center transition-colors duration-200">
+
+  <div class="max-w-xl w-full bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl dark:shadow-2xl backdrop-blur-xl space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+      <span class="text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-4 py-1.5 rounded-full border border-sky-500/20">
+        TirzaTrim Patient Care
+      </span>
+      <button onclick="toggleTheme()" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all flex items-center gap-1" title="Toggle Theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
+
+    <!-- Header Text -->
+    <div class="text-center space-y-1.5">
+      <div class="w-16 h-16 rounded-3xl bg-sky-500/10 border border-sky-500/20 text-3xl flex items-center justify-center mx-auto text-sky-600 dark:text-sky-400 mb-2">
+        📦
+      </div>
+      <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        Track Your <span class="text-sky-600 dark:text-sky-400">Order</span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+        Enter your registered mobile number below to see the live delivery status of your TirzaTrim order.
+      </p>
+    </div>
+
+    <!-- Search Form -->
+    <form id="trackForm" onsubmit="trackOrder(event)" class="space-y-4">
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Registered Mobile Number *</label>
+        <input type="tel" id="trackMobile" required placeholder="03XXXXXXXXX" class="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-900 dark:text-white outline-none focus:border-sky-500 placeholder-slate-400 dark:placeholder-slate-600 transition-all text-center tracking-widest">
+      </div>
+      <button type="submit" id="trackBtn" class="w-full py-3.5 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2">
+        <span>🔍</span>
+        <span>Find My Order</span>
+      </button>
+    </form>
+
+    <p id="trackError" class="text-xs text-center font-medium text-rose-500 hidden"></p>
+
+    <!-- RESULTS VIEW (Hidden initially) -->
+    <div id="resultView" class="hidden space-y-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+      
+      <!-- Order Header -->
+      <div class="text-center space-y-2">
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Order ID</div>
+        <div id="resOrderId" class="text-xl font-black font-mono text-slate-900 dark:text-white">TT-XXXXXX</div>
+        <div id="resPatientName" class="text-sm font-semibold text-slate-600 dark:text-slate-400">For: John Doe</div>
+      </div>
+
+      <!-- Progress Timeline -->
+      <div class="relative py-4">
+        <!-- Connecting Line -->
+        <div class="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0 rounded-full"></div>
+        <div id="progressBar" class="absolute top-1/2 left-0 h-1 bg-sky-500 -translate-y-1/2 z-0 rounded-full transition-all duration-1000" style="width: 0%;"></div>
+
+        <!-- Steps -->
+        <div class="relative z-10 flex justify-between">
+          <!-- Step 1: Placed -->
+          <div class="flex flex-col items-center gap-2 w-16">
+            <div id="step1Icon" class="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold shadow-md">✓</div>
+            <span class="text-[10px] font-bold text-center text-slate-700 dark:text-slate-300">Placed</span>
+          </div>
+          <!-- Step 2: Processing -->
+          <div class="flex flex-col items-center gap-2 w-16">
+            <div id="step2Icon" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">⏳</div>
+            <span class="text-[10px] font-bold text-center text-slate-400">Processing</span>
+          </div>
+          <!-- Step 3: Dispatched -->
+          <div class="flex flex-col items-center gap-2 w-16">
+            <div id="step3Icon" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">🚚</div>
+            <span class="text-[10px] font-bold text-center text-slate-400">On the Way</span>
+          </div>
+          <!-- Step 4: Delivered -->
+          <div class="flex flex-col items-center gap-2 w-16">
+            <div id="step4Icon" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">📦</div>
+            <span class="text-[10px] font-bold text-center text-slate-400">Delivered</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Details Card -->
+      <div id="statusDetailsCard" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+        <div id="statusTitle" class="text-lg font-black text-sky-600 dark:text-sky-400">Processing</div>
+        <div id="statusDesc" class="text-xs text-slate-500 dark:text-slate-400">We are preparing your TirzaTrim prescription for dispatch.</div>
+      </div>
+
+      <!-- Action Buttons (Conditional) -->
+      <div id="actionButtons" class="space-y-3">
+        <!-- Feedback Button (Only shows if delivered) -->
+        <a id="feedbackBtn" href="#" class="hidden w-full py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+          <span>⭐</span> Leave Feedback
+        </a>
+        <!-- WhatsApp Support Button -->
+        <a href="https://wa.me/923000000000?text=Assalam-o-Alaikum,%20I%20need%20help%20with%20my%20TirzaTrim%20order." target="_blank" class="w-full py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+          <span>💬</span> Contact Support via WhatsApp
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function cleanPhone(phone) {
+      if (!phone) return '';
+      return phone.replace(/\D/g, '');
+    }
+
+    async function trackOrder(e) {
+      e.preventDefault();
+      const btn = document.getElementById('trackBtn');
+      const errEl = document.getElementById('trackError');
+      const resultView = document.getElementById('resultView');
+      
+      const rawMobile = document.getElementById('trackMobile').value.trim();
+      const digitsOnly = cleanPhone(rawMobile);
+      const searchTail = digitsOnly.slice(-8); // Matches last 8 digits reliably
+
+      if (digitsOnly.length < 10) {
+        errEl.innerText = "Please enter a valid mobile number.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = "🔍 Searching...";
+      errEl.classList.add('hidden');
+      resultView.classList.add('hidden');
+
+      try {
+        // 1. Find the patient's latest order by flexible mobile number
+        const { data: orders, error } = await client
+          .from('orders')
+          .select('*')
+          .ilike('mobile', `%${searchTail}%`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+        if (!orders || orders.length === 0) {
+          errEl.innerText = "No order found for this mobile number. Please check and try again.";
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        const order = orders[0];
+
+        // 2. Check if feedback exists
+        const { data: fb } = await client
+          .from('feedback')
+          .select('id')
+          .eq('order_id', order.id)
+          .maybeSingle();
+
+        // 3. Populate Result UI
+        document.getElementById('resOrderId').innerText = order.order_id || 'N/A';
+        document.getElementById('resPatientName').innerText = `For: ${order.patient_name || 'Patient'}`;
+        
+        renderTimeline(order.status, !!fb);
+        
+        resultView.classList.remove('hidden');
+
+      } catch (err) {
+        console.error(err);
+        errEl.innerText = "An error occurred. Please try again.";
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "<span>🔍</span> <span>Find My Order</span>";
+      }
+    }
+
+    function renderTimeline(status, hasFeedback) {
+      const bar = document.getElementById('progressBar');
+      const s1 = document.getElementById('step1Icon');
+      const s2 = document.getElementById('step2Icon');
+      const s3 = document.getElementById('step3Icon');
+      const s4 = document.getElementById('step4Icon');
+      
+      const title = document.getElementById('statusTitle');
+      const desc = document.getElementById('statusDesc');
+      const fbBtn = document.getElementById('feedbackBtn');
+
+      const activeClass = "w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold shadow-[0_0_15px_rgba(14,165,233,0.5)] transition-all scale-110";
+      const doneClass = "w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold";
+      const pendingClass = "w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold";
+      
+      // Reset
+      s1.className = doneClass;
+      s2.className = pendingClass; s3.className = pendingClass; s4.className = pendingClass;
+      fbBtn.classList.add('hidden');
+
+      const s = (status || '').toLowerCase();
+
+      if (s === 'cancelled') {
+        bar.style.width = '0%';
+        bar.className = "absolute top-1/2 left-0 h-1 bg-rose-500 -translate-y-1/2 z-0 rounded-full transition-all duration-1000";
+        title.innerText = "Order Cancelled";
+        title.className = "text-lg font-black text-rose-600";
+        desc.innerText = "This order has been cancelled. Please contact support for more information.";
+        return;
+      }
+
+      bar.className = "absolute top-1/2 left-0 h-1 bg-sky-500 -translate-y-1/2 z-0 rounded-full transition-all duration-1000";
+
+      if (s === 'new patient' || s === 'prescription received' || s === 'order processing') {
+        bar.style.width = '0%';
+        s2.className = activeClass;
+        title.innerText = "Processing";
+        desc.innerText = "We have received your prescription and are preparing it for dispatch.";
+      } 
+      else if (s === 'dispatched' || s === 'out for delivery') {
+        bar.style.width = '33%';
+        s2.className = doneClass; s3.className = activeClass;
+        title.innerText = "Out for Delivery";
+        desc.innerText = "Your order is on the way! Our rider will contact you shortly.";
+      } 
+      else if (s === 'delivered' || s === 'patient confirmed' || s === 'completed' || s === 'usage guidance completed' || s === 'feedback submitted') {
+        bar.style.width = '66%';
+        s2.className = doneClass; s3.className = doneClass; s4.className = activeClass;
+        title.innerText = "Delivered";
+        desc.innerText = "Your order has been successfully delivered. We hope you feel your best!";
+        
+        if (!hasFeedback) {
+          fbBtn.href = `https://tirzatrim-app.vercel.app/feedback.html?mobile=${encodeURIComponent(document.getElementById('trackMobile').value.trim())}`;
+          fbBtn.classList.remove('hidden');
+        }
+      }
+    }
+
+    checkGlobalBroadcast('patient');
+  </script>
+</body>
+</html>
