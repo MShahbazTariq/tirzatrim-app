@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = "https://yygmkqzbbnpyikvlqibw.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_publishable_wN0uOuHt57_4A5Ufs2vo8g_8ImKIuKJ";
+// ⚠️ CRITICAL: Ensure SUPABASE_SERVICE_ROLE_KEY is set in Vercel. 
+// Do NOT rely on the anon key here, or RLS will block it.
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -47,6 +49,8 @@ export default async function handler(req, res) {
 
       // Day 21-28 check (Week 4 of the 4-week pen cycle)
       if (daysElapsed >= 21 && daysElapsed <= 28) {
+        
+        // Check if we already logged this reminder
         const { data: existingLog } = await supabase
           .from('reminders_log')
           .select('id')
@@ -58,6 +62,7 @@ export default async function handler(req, res) {
           const doseKey = normalizeDoseKey(order.prescribed_dose);
           const nextRecommendedDose = NEXT_DOSE_MAP[doseKey] || '7.5mg';
 
+          // Push to our local array for the response
           remindersQueue.push({
             order_id: order.id,
             patient_name: order.patient_name,
@@ -68,6 +73,7 @@ export default async function handler(req, res) {
             days_elapsed: daysElapsed
           });
 
+          // 2. Log the reminder to prevent spamming
           await supabase.from('reminders_log').insert([{
             order_id: order.id,
             patient_mobile: order.mobile,
@@ -75,6 +81,28 @@ export default async function handler(req, res) {
             target_dose: nextRecommendedDose,
             status: 'PENDING_DISPATCH'
           }]);
+
+          // 3. Find the Rep's SAP ID so we can notify them on the portal
+          if (order.rep_code && order.rep_code !== 'DIRECT') {
+            const { data: repData } = await supabase
+              .from('reps')
+              .select('sap_id')
+              .ilike('territory_code', order.rep_code)
+              .maybeSingle();
+
+            if (repData && repData.sap_id) {
+              // 4. Insert an in-app notification for the Rep (This makes their 🔔 ring!)
+              await supabase.from('notifications').insert([{
+                user_id: String(repData.sap_id),
+                user_role: 'rep',
+                title: `🔄 Refill Due: ${order.patient_name}`,
+                message: `Patient ${order.patient_name} is on Week 4 (Day ${daysElapsed}) of ${order.prescribed_dose}. Please contact them for their next step-up dose (${nextRecommendedDose}).`,
+                type: 'order',
+                priority: 'high',
+                link: '/team.html'
+              }]);
+            }
+          }
         }
       }
     }
@@ -87,6 +115,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
+    console.error("Cron Error:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 }
