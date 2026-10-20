@@ -469,7 +469,7 @@
     }
 
     // ============================================================
-    // FUZZY NAME MATCHING (Upgraded for Pakistani/Urdu Variations)
+    // FUZZY NAME MATCHING (Levenshtein-based)
     // ============================================================
     function normalizeDoctorName(name) {
       if (!name) return '';
@@ -480,23 +480,33 @@
         .trim();
     }
 
-    // Phonetic key: Collapses sound-alike variations (e.g., Mehmood -> mahmud)
-    function phoneticKey(word) {
-      if (!word) return '';
-      let w = String(word).toLowerCase().trim().replace(/[^a-z]/g, '');
-      if (!w) return '';
-      w = w.replace(/(.)\1+/g, '$1'); 
-      w = w.replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/aa/g, 'a')
-           .replace(/kh/g, 'k').replace(/ph/g, 'f').replace(/gh/g, 'g')
-           .replace(/q/g, 'k').replace(/x/g, 'ks').replace(/z/g, 's')
-           .replace(/v/g, 'w').replace(/y$/g, 'i').replace(/e$/g, '').replace(/h$/g, '');
-      
-      // Specific Pakistani name mappings
-      w = w.replace(/^moh?amm?[ae]d/, 'mohd').replace(/^moh?[ae]mm?[ae]d/, 'mohd')
-           .replace(/^m[ae]h?m[uo]+d/, 'mahmud').replace(/^nou?m[ae]n/, 'noman')
-           .replace(/^n[ao]um[ae]n/, 'noman').replace(/^[ae]hm[ae]d/, 'ahmad')
-           .replace(/^s[ae]y[ae]d/, 'sayed').replace(/^s[ae][iy][ae]d/, 'sayed');
-      return w;
+    function levenshtein(a, b) {
+      if (!a) return b ? b.length : 0;
+      if (!b) return a.length;
+      a = String(a); b = String(b);
+      if (a === b) return 0;
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      const prev = new Array(bl + 1);
+      const curr = new Array(bl + 1);
+      for (let j = 0; j <= bl; j++) prev[j] = j;
+      for (let i = 1; i <= al; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= bl; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= bl; j++) prev[j] = curr[j];
+      }
+      return prev[bl];
+    }
+
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      const maxLen = Math.max(String(a).length, String(b).length);
+      if (maxLen === 0) return 1;
+      return 1 - (levenshtein(String(a), String(b)) / maxLen);
     }
 
     function isSameDoctorName(nameA, nameB) {
@@ -511,15 +521,24 @@
       const tokensB = normB.split(' ').filter(Boolean);
       if (tokensA.length === 0 || tokensB.length === 0) return false;
 
-      // 1. Phonetic First & Last Name Match (Catches Syed/Syad & Mehmood/Mahmud)
-      const firstA = phoneticKey(tokensA[0]);
-      const firstB = phoneticKey(tokensB[0]);
-      const lastA = phoneticKey(tokensA[tokensA.length - 1]);
-      const lastB = phoneticKey(tokensB[tokensB.length - 1]);
-      
-      if (firstA === firstB && lastA === lastB) return true;
+      // Extract First and Last names
+      const firstA = tokensA[0];
+      const firstB = tokensB[0];
+      const lastA = tokensA[tokensA.length - 1];
+      const lastB = tokensB[tokensB.length - 1];
 
-      // 2. Shared Tokens (fallback for 2+ exact word matches)
+      // Check if the First Name is at least 75% similar (e.g., Syed vs Syad)
+      const firstSim = similarity(firstA, firstB);
+      
+      // Check if the Last Name is at least 85% similar (e.g., Hassan vs Hassan)
+      const lastSim = similarity(lastA, lastB);
+
+      // If BOTH First and Last names are highly similar, we have a match!
+      if (firstSim >= 0.75 && lastSim >= 0.85) {
+        return true;
+      }
+
+      // Fallback: If they share at least 2 exact words
       let shared = 0;
       tokensA.forEach(t1 => { if (tokensB.includes(t1)) shared++; });
       if (shared >= 2) return true;
@@ -1281,13 +1300,12 @@ window.pickLoginSuggestion = pickLoginSuggestion;
         const nameOK = isSameDoctorName(targetDoctorName, o.doctor_name);
         if (!nameOK) return false;
 
-                // 2. Check City Match Safely
-        // We check if the order city matches, BUT if the order has no city or the doctor has no city, we let it pass.
-        if (targetCity && targetCity.toLowerCase().trim() !== 'all' && targetCity.trim() !== '') {
+        // 2. Check City Match Safely
+        if (targetCity && targetCity.toLowerCase().trim() !== 'all') {
           const docCity = (targetCity || '').toLowerCase().trim();
           const orderCity = (o.city || '').toLowerCase().trim();
           
-          // Only reject if BOTH cities exist and they don't match
+          // If the order has a city, and it doesn't match the doctor's city, reject it
           if (orderCity !== '' && docCity !== '' && !orderCity.includes(docCity) && !docCity.includes(orderCity)) {
             return false;
           }
