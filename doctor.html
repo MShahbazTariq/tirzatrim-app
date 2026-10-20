@@ -460,35 +460,65 @@
       btn.innerText = loading ? '⏳ Please wait...' : labelWhenIdle;
     }
 
-    // ============================================================
-    // FUZZY NAME MATCHING (unchanged — preserved from old file)
+        // ============================================================
+    // FUZZY NAME MATCHING (Upgraded for Pakistani/Urdu Variations)
     // ============================================================
     function normalizeDoctorName(name) {
       if (!name) return '';
-      return String(name).toLowerCase().replace(/^dr\.?\s*/i, '').replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      return String(name).toLowerCase()
+        .replace(/^dr\.?\s*/i, '')
+        .replace(/[^a-z\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
-    function tokenizeName(name) {
-      return normalizeDoctorName(name).split(' ').filter(w => w.length >= 2);
+
+    // Phonetic key: Collapses sound-alike variations (e.g., Mehmood -> mahmud)
+    function phoneticKey(word) {
+      if (!word) return '';
+      let w = String(word).toLowerCase().trim().replace(/[^a-z]/g, '');
+      if (!w) return '';
+      w = w.replace(/(.)\1+/g, '$1'); 
+      w = w.replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/aa/g, 'a')
+           .replace(/kh/g, 'k').replace(/ph/g, 'f').replace(/gh/g, 'g')
+           .replace(/q/g, 'k').replace(/x/g, 'ks').replace(/z/g, 's')
+           .replace(/v/g, 'w').replace(/y$/g, 'i').replace(/e$/g, '').replace(/h$/g, '');
+      
+      // Specific Pakistani name mappings
+      w = w.replace(/^moh?amm?[ae]d/, 'mohd').replace(/^moh?[ae]mm?[ae]d/, 'mohd')
+           .replace(/^m[ae]h?m[uo]+d/, 'mahmud').replace(/^nou?m[ae]n/, 'noman')
+           .replace(/^n[ao]um[ae]n/, 'noman').replace(/^[ae]hm[ae]d/, 'ahmad')
+           .replace(/^s[ae]y[ae]d/, 'sayed').replace(/^s[ae][iy][ae]d/, 'sayed');
+      return w;
     }
-    function countSharedTokens(tokens1, tokens2) {
-      let count = 0;
-      const used = new Set();
-      tokens1.forEach(t1 => {
-        for (let i = 0; i < tokens2.length; i++) {
-          if (!used.has(i) && tokens2[i] === t1) { count++; used.add(i); break; }
-        }
-      });
-      return count;
-    }
+
     function isSameDoctorName(nameA, nameB) {
-      const tokensA = tokenizeName(nameA);
-      const tokensB = tokenizeName(nameB);
+      const normA = normalizeDoctorName(nameA);
+      const normB = normalizeDoctorName(nameB);
+      
+      if (!normA || !normB) return false;
+      if (normA === normB) return true;
+      if (normA.includes(normB) || normB.includes(normA)) return true;
+
+      const tokensA = normA.split(' ').filter(Boolean);
+      const tokensB = normB.split(' ').filter(Boolean);
       if (tokensA.length === 0 || tokensB.length === 0) return false;
-      const shared = countSharedTokens(tokensA, tokensB);
-      const minTokens = Math.min(tokensA.length, tokensB.length);
-      if (minTokens === 1) return shared >= 1 && tokensA[0] === tokensB[0];
-      return shared >= 2;
+
+      // 1. Phonetic First & Last Name Match (Catches Syed/Syad & Mehmood/Mahmud)
+      const firstA = phoneticKey(tokensA[0]);
+      const firstB = phoneticKey(tokensB[0]);
+      const lastA = phoneticKey(tokensA[tokensA.length - 1]);
+      const lastB = phoneticKey(tokensB[tokensB.length - 1]);
+      
+      if (firstA === firstB && lastA === lastB) return true;
+
+      // 2. Shared Tokens (fallback for 2+ exact word matches)
+      let shared = 0;
+      tokensA.forEach(t1 => { if (tokensB.includes(t1)) shared++; });
+      if (shared >= 2) return true;
+
+      return false;
     }
+
     function cityMatches(cityA, cityB) {
       if (!cityA || !cityB) return true;
       return cityA.toLowerCase().trim() === cityB.toLowerCase().trim();
