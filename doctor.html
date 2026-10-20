@@ -1431,8 +1431,29 @@ window.pickLoginSuggestion = pickLoginSuggestion;
       (ordersToGraph || []).forEach(o => { const orderDate = getLocalDateKey(o.created_at); if (daysCount[orderDate] !== undefined) daysCount[orderDate]++; });
       const labels = datesList.map(dateStr => { const parts = dateStr.split('-'); return `${parts[2]}/${parts[1]}`; });
       const dataPoints = datesList.map(d => daysCount[d]);
-      const chartCanvas = document.getElementById('dailyEnrollmentChart');
+            const chartCanvas = document.getElementById('dailyEnrollmentChart');
       if (!chartCanvas) return;
+      
+      // 🎯 NEW: Handle empty state gracefully
+      const totalOrdersInChart = dataPoints.reduce((a, b) => a + b, 0);
+      if (totalOrdersInChart === 0) {
+        chartCanvas.style.display = 'none';
+        const parent = chartCanvas.parentElement;
+        if (!parent.querySelector('.empty-chart-msg')) {
+          const msg = document.createElement('div');
+          msg.className = 'empty-chart-msg absolute inset-0 flex items-center justify-center text-xs text-slate-400 italic';
+          msg.innerText = 'No orders placed in the last 14 days';
+          parent.style.position = 'relative';
+          parent.appendChild(msg);
+        }
+        return;
+      } else {
+        chartCanvas.style.display = 'block';
+        const parent = chartCanvas.parentElement;
+        const msg = parent.querySelector('.empty-chart-msg');
+        if (msg) msg.remove();
+      }
+
       const ctx = chartCanvas.getContext('2d');
       if (chartInstance) chartInstance.destroy();
       const isDark = document.documentElement.classList.contains('dark');
