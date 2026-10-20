@@ -1281,13 +1281,14 @@ window.pickLoginSuggestion = pickLoginSuggestion;
         const nameOK = isSameDoctorName(targetDoctorName, o.doctor_name);
         if (!nameOK) return false;
 
-        // 2. Check City Match Safely
-        if (targetCity && targetCity.toLowerCase().trim() !== 'all') {
+                // 2. Check City Match Safely
+        // We check if the order city matches, BUT if the order has no city or the doctor has no city, we let it pass.
+        if (targetCity && targetCity.toLowerCase().trim() !== 'all' && targetCity.trim() !== '') {
           const docCity = (targetCity || '').toLowerCase().trim();
           const orderCity = (o.city || '').toLowerCase().trim();
           
-          // If the order has a city, and it doesn't match the doctor's city, reject it
-          if (orderCity && docCity !== orderCity) {
+          // Only reject if BOTH cities exist and they don't match
+          if (orderCity !== '' && docCity !== '' && !orderCity.includes(docCity) && !docCity.includes(orderCity)) {
             return false;
           }
         }
